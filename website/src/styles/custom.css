@@ -1,0 +1,479 @@
+/* Lumina documentation theme.
+   Overrides Starlight's design tokens and adds the small amount of structure
+   the generated API reference needs. */
+
+:root {
+  /* Violet accent, taken from the logo. The ramp follows Starlight's
+     convention: -low for subtle fills, -accent for solid fills, -high for
+     text on the page background. */
+  --sl-color-accent-low: #2a1065;
+  --sl-color-accent: #7c3aed;
+  --sl-color-accent-high: #c4b5fd;
+
+  /* The icon set reads these. Two tones plus a near-white for the panes,
+     exactly as the logo is built. */
+  --lum-icon-deep: #6d28d9;
+  --lum-icon-main: #8b5cf6;
+  --lum-icon-light: #a78bfa;
+  --lum-icon-pane: #f5f3ff;
+
+  /* Three typefaces, three jobs. All self-hosted via Fontsource.
+     Instrument Sans reads well in long prose, Space Grotesk gives the headings
+     a voice, and JetBrains Mono carries the signatures and identifiers. */
+  --sl-font:
+    'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sl-font-mono:
+    'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'Source Code Pro',
+    Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --lum-font-display: 'Space Grotesk Variable', var(--sl-font);
+
+  /* Selection: violet, like the accent. The solid pair is for prose; the
+     translucent one is for code, where the syntax colours must survive. */
+  --lum-selection-bg: #4c1d95;
+  --lum-selection-fg: #ede9fe;
+  --lum-selection-soft: rgb(76 29 149 / 70%);
+
+  /* The reference pages carry wide signatures and three-column tables. */
+  --sl-content-width: 50rem;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #ede9fe;
+  --sl-color-accent: #6d28d9;
+  --sl-color-accent-high: #3b0f7a;
+
+  /* Slightly deeper tones, because the icons sit on white here. */
+  --lum-icon-deep: #5b21b6;
+  --lum-icon-main: #7c3aed;
+  --lum-icon-light: #a78bfa;
+  --lum-icon-pane: #f8f7ff;
+
+  --lum-selection-bg: #ddd6fe;
+  --lum-selection-fg: #2e1065;
+  --lum-selection-soft: rgb(139 92 246 / 30%);
+}
+
+/* ------------------------------------------------------------------ */
+/* Selection                                                           */
+/* ------------------------------------------------------------------ */
+
+::selection {
+  background-color: var(--lum-selection-bg);
+  color: var(--lum-selection-fg);
+  text-shadow: none;
+}
+
+/* Inside code, only tint the background: `color: inherit` resolves to the
+   originating token's own colour, so highlighted code stays readable while
+   selected. */
+.expressive-code ::selection,
+.expressive-code::selection,
+.sl-markdown-content code ::selection,
+.sl-markdown-content code::selection {
+  background-color: var(--lum-selection-soft);
+  color: inherit;
+}
+
+/* Search hits use the same language as a selection. */
+mark {
+  background-color: var(--lum-selection-soft);
+  color: inherit;
+  border-radius: 0.125rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography                                                          */
+/* ------------------------------------------------------------------ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.site-title,
+.hero h1,
+.hero .tagline {
+  font-family: var(--lum-font-display);
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
+}
+
+.site-title {
+  font-weight: 600;
+}
+
+.hero .tagline {
+  letter-spacing: -0.01em;
+}
+
+/* Documentation must show the exact characters, so JetBrains Mono's code
+   ligatures (-> and friends) are turned off. */
+code,
+pre,
+kbd,
+samp,
+.expressive-code {
+  font-variant-ligatures: none;
+}
+
+/* Hex constant values line up in the constants tables. */
+.sl-markdown-content td code {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Explicit anchors                                                    */
+/* ------------------------------------------------------------------ */
+
+/* The generator emits `<a id="…"></a>` before every heading so that the
+   original Doxygen ids keep working as deep links. Markdown wraps a lone
+   inline element in a paragraph, so both the anchor and its wrapper have to
+   collapse to nothing — while staying in the layout, since `display: none`
+   cannot be scrolled to. */
+.sl-markdown-content a[id]:empty {
+  display: block;
+  height: 0;
+  margin: 0;
+  scroll-margin-top: calc(var(--sl-nav-height) + 1.5rem);
+}
+
+.sl-markdown-content p:has(> a[id]:empty:only-child) {
+  height: 0;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* API reference entries                                               */
+/* ------------------------------------------------------------------ */
+
+/* Each entry is a heading carrying the identifier, immediately followed by its
+   signature (functions) or kind line plus definition (types). Matching on that
+   shape keeps the rule off the guides, whose h3s are prose headings. Starlight
+   wraps every heading in `.sl-heading-wrapper`, so that is the sibling the code
+   block actually follows. */
+.sl-markdown-content .sl-heading-wrapper.level-h3:has(+ .expressive-code),
+.sl-markdown-content .sl-heading-wrapper.level-h3:has(+ p + .expressive-code) {
+  margin-top: 3.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+.sl-markdown-content .sl-heading-wrapper.level-h3:has(+ .expressive-code) > h3,
+.sl-markdown-content .sl-heading-wrapper.level-h3:has(+ p + .expressive-code) > h3 {
+  margin-top: 0;
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-xl);
+  letter-spacing: -0.01em;
+}
+
+/* The kind line ("Struct", "Callback type") sits between heading and code. */
+.sl-markdown-content .sl-heading-wrapper + p > em:only-child {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  font-style: normal;
+  font-size: var(--sl-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-gray-3);
+}
+
+/* `**Parameters**`, `**Returns**`, `**Errors**` and friends: a paragraph whose
+   whole content is bold reads as a field label. */
+.sl-markdown-content p > strong:only-child {
+  display: block;
+  margin-top: 1.5rem;
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-accent-high);
+}
+
+/* The first label of an entry follows the signature directly and needs less
+   room above it than the labels that follow a table or a paragraph. */
+.sl-markdown-content .expressive-code + p > strong:only-child {
+  margin-top: 1rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tables                                                              */
+/* ------------------------------------------------------------------ */
+
+.sl-markdown-content table {
+  display: table;
+  width: 100%;
+  font-size: var(--sl-text-sm);
+  border-collapse: collapse;
+}
+
+.sl-markdown-content th {
+  font-size: var(--sl-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sl-color-gray-2);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+.sl-markdown-content td,
+.sl-markdown-content th {
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+.sl-markdown-content tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+/* Parameter and constant names stay on one line. */
+.sl-markdown-content td:first-child code {
+  white-space: nowrap;
+}
+
+/* The "Dir" column of parameter tables is narrow and secondary. */
+.sl-markdown-content td:nth-child(2):not(:last-child) {
+  white-space: nowrap;
+  color: var(--sl-color-gray-3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Misc                                                                */
+/* ------------------------------------------------------------------ */
+
+/* Code spans inside links (every cross-reference to a function) should read
+   as links, not as neutral code. */
+.sl-markdown-content a > code {
+  color: inherit;
+  background-color: transparent;
+  padding-inline: 0.125rem;
+}
+
+/* Diagrams exported from the guides are drawn for a light background. */
+.sl-markdown-content img[src$='.svg'] {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+/* Splash page hero: give the logo some presence. */
+.hero > img,
+.hero .hero-html svg {
+  filter: drop-shadow(0 0 3rem rgb(124 58 237 / 45%));
+}
+
+/* ------------------------------------------------------------------ */
+/* Icons and cards                                                     */
+/* ------------------------------------------------------------------ */
+
+/* The icon that opens a generated page. Markdown wraps the inline span in a
+   paragraph, so both need their spacing taken in hand. */
+.lum-page-icon {
+  display: block;
+  line-height: 0;
+}
+
+.lum-page-icon svg {
+  filter: drop-shadow(0 0.25rem 0.75rem rgb(124 58 237 / 28%));
+}
+
+.sl-markdown-content p:has(> .lum-page-icon:only-child) {
+  margin: 0 0 1.25rem;
+}
+
+/* Shared by the landing page's LumCard component and the card grids the
+   generator writes into the reference pages as plain HTML. */
+.lum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-block: 1.5rem;
+}
+
+.lum-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.lum-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background-color: var(--sl-color-black);
+  color: var(--sl-color-white);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.lum-card__icon {
+  display: block;
+  line-height: 0;
+  margin-bottom: 0.75rem;
+}
+
+.lum-card__title {
+  font-family: var(--lum-font-display);
+  font-size: var(--sl-text-h5);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.lum-card__body {
+  margin-top: 0.4rem;
+  font-size: var(--sl-text-sm);
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+}
+
+.lum-card--link:hover,
+.lum-card--link:focus-visible {
+  border-color: var(--sl-color-accent);
+  background-color: var(--sl-color-accent-low);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lum-card--link {
+    transition: none;
+  }
+
+  .lum-card--link:hover,
+  .lum-card--link:focus-visible {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Site footer                                                         */
+/* ------------------------------------------------------------------ */
+
+/* Deliberately plain: a hairline, a row of links, a line of small print.
+   The sidebar already carries the navigation. Sits below the article, inside
+   the main frame, so it clears the fixed left sidebar on its own. */
+.lum-footer {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--sl-color-hairline-shade);
+  padding: 1.25rem 1.5rem 0;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+/* From 72rem Starlight pins the table of contents with `position: fixed`, so
+   it paints over anything beneath it. Reserve exactly the strip it occupies,
+   using its own width formula, and only on pages that actually have one. */
+@media (min-width: 72rem) {
+  :root[data-has-toc] .lum-footer {
+    padding-inline-end: max(
+      var(--sl-sidebar-width),
+      calc(
+        var(--sl-sidebar-width) + (100% - var(--sl-content-width) -
+              var(--sl-sidebar-width)) / 2
+      )
+    );
+  }
+}
+
+.lum-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.75rem;
+}
+
+.lum-footer__links a {
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+}
+
+.lum-footer__links a:hover {
+  color: var(--sl-color-white);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.lum-footer__legal {
+  margin: 0.6rem 0 0;
+  line-height: 1.6;
+  color: var(--sl-color-gray-4);
+}
+
+/* ------------------------------------------------------------------ */
+/* The wordmark at the end of the page                                 */
+/* ------------------------------------------------------------------ */
+
+/* The reveal needs somewhere to happen, so this block is a run of scroll with
+   nothing in it. The word is held against the bottom edge of the viewport
+   while you travel through it, rising and fading in as you go, and lands in
+   place exactly as the page ends. Kept short: any longer and the resting
+   state is mostly empty screen. */
+.lum-wordmark {
+  --p: 1;
+  /* Sized from the available width, not the viewport: the fixed sidebar takes
+     a slice out of the former, and the word must never be clipped. */
+  container-type: inline-size;
+  height: 38vh;
+  min-height: 15rem;
+  margin-top: 0.75rem;
+  user-select: none;
+  /* The word must sit at the BOTTOM of this run, because sticky only ever
+     holds an element back from leaving through the edge it names: it never
+     pushes one down. Parked at the top, it would simply stay there. */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.lum-wordmark__stick {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  overflow: hidden;
+  line-height: 0.78;
+}
+
+/* The movement lives on a wrapper, never on the element that paints the
+   letters: promoting a text-filled box to its own compositing layer is what
+   makes gradient-clipped text vanish in some engines, and keeping the two
+   apart costs nothing. */
+.lum-wordmark__rise {
+  /* Must not be inline: `transform` has no effect on inline boxes. */
+  display: inline-block;
+  /* A percentage resolves against the box own height, so the rise stays
+     proportional to the letters at every viewport width. An `em` here would
+     resolve against the inherited body size and barely move at all. */
+  transform: translateY(calc((1 - var(--p)) * 40%));
+  /* Stays at nothing for the first fifth of the travel, so the word really
+     does arrive during the scroll rather than fading the whole way down. */
+  opacity: calc(1.25 * var(--p) - 0.25);
+}
+
+/* One flat colour. No gradient, no bloom: at this size either one reads as
+   grime rather than as a mark. */
+.lum-wordmark__text {
+  display: inline-block;
+  font-family: var(--lum-font-display);
+  font-size: clamp(3.5rem, 17vw, 18rem);
+  font-size: clamp(3.5rem, 26cqw, 18rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  color: var(--lum-icon-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lum-wordmark {
+    height: auto;
+    min-height: 0;
+  }
+
+  .lum-wordmark__rise {
+    transform: none;
+    opacity: 1;
+  }
+}

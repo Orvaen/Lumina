@@ -1,0 +1,130 @@
+/*!
+
+@page internals_guide Structure interne
+
+@tableofcontents
+
+Lumina comporte plusieurs interfaces internes.  Chacune a son domaine de
+responsabilité et ses propres conventions de nommage.
+
+
+@section internals_public Interface publique
+
+La plus connue est l'interface publique, décrite dans le fichier d'en-tête
+lumina.h.  Elle est implémentée dans des fichiers source partagés par toutes
+les plateformes, et ces fichiers ne contiennent aucun code spécifique à une
+plateforme.  Ce code finit généralement par appeler l'interface de plateforme
+et l'interface interne pour faire le travail réel.
+
+L'interface publique suit les conventions de nommage d'OpenGL, avec Lumina et
+lumina à la place de GL et gl.  Pour les membres de structure, là où OpenGL ne
+fixe rien, elle utilise la casse chameau sans majuscule initiale.
+
+Exemples : `lumCreateWindow`, `LUMwindow`, `LUM_RED_BITS`
+
+
+@section internals_native Interface native
+
+L'[interface native](@ref native) est un petit ensemble de fonctions publiques
+mais spécifiques à une plateforme, décrites dans le fichier d'en-tête
+lumina_native.h.  Elle sert à accéder aux handles sous-jacents de fenêtre, de
+contexte et, sur certaines plateformes, d'affichage, utilisés par l'interface
+de plateforme.
+
+Les noms de ces fonctions ressemblent à ceux de l'interface publique, mais
+intègrent le nom de l'interface dont provient le handle retourné.
+
+Exemples : `lumGetX11Window`, `lumGetWGLContext`
+
+
+@section internals_internal Interface interne
+
+L'interface interne regroupe les fonctions utilitaires qu'emploient toutes les
+autres interfaces.  C'est du code partagé, implémenté dans les mêmes fichiers
+source partagés que les interfaces publique et d'événements.  Elle est décrite
+dans le fichier d'en-tête internal.h.
+
+L'interface interne a la charge des données globales de Lumina, qu'elle
+conserve dans une structure `_LUMlibrary` nommée `_lum`.
+
+Elle emploie le même style que l'interface publique, à ceci près que tous les
+noms globaux commencent par un tiret bas.
+
+Exemples : `_lumIsValidContextConfig`, `_LUMwindow`, `_lum.monitorCount`
+
+
+@section internals_platform Interface de plateforme
+
+L'interface de plateforme implémente toutes les opérations spécifiques à une
+plateforme, au service de l'interface publique.  Cela inclut le traitement des
+événements.  Elle n'est jamais appelée directement par le code applicatif et
+n'appelle jamais directement les fonctions de rappel fournies par
+l'application.  Il lui est également interdit de modifier la partie
+indépendante de la plateforme des structures internes : elle appelle plutôt
+l'interface d'événements quand des événements intéressants pour Lumina
+surviennent.
+
+Elle reflète pour l'essentiel les parties de l'interface publique qui doivent
+effectuer des opérations spécifiques sur tout ou partie des plateformes.
+
+La partie « système de fenêtrage » de l'API de plateforme est appelée via la
+structure de pointeurs de fonction `_LUMplatform`, ce qui permet de choisir la
+plateforme à l'exécution.  Cela couvre la création des fenêtres et des
+contextes, les entrées et le traitement des événements, les écrans et la
+création des surfaces Vulkan.  Cette structure se trouve dans la structure
+globale `_lum`.
+
+Exemple : `_lum.platform.createWindow`
+
+Les parties minuterie, threads et chargement de modules de l'API de plateforme
+sont de simples fonctions préfixées par `_lumPlatform`, car elles ne dépendent
+pas du système de fenêtrage employé.
+
+Exemple : `_lumPlatformGetTimerValue`
+
+L'interface de plateforme définit également des structures contenant l'état
+global et l'état par objet propres à la plateforme.  Leurs noms reflètent ceux
+de l'interface interne, avec un suffixe propre à l'interface concernée.
+
+Exemples : `_LUMwindowX11`, `_LUMcontextWGL`
+
+Ces structures sont intégrées comme membres dans les structures de l'interface
+interne, via des macros spéciales qui les nomment d'après l'interface
+concernée.  Cela empêche le code partagé d'utiliser ces membres par mégarde.
+
+Exemples : `window->win32.handle`, `_lum.x11.display`
+
+
+@section internals_event Interface d'événements
+
+L'interface d'événements est implémentée dans les mêmes fichiers source
+partagés que l'interface publique.  Elle a la charge de délivrer à
+l'application les événements qu'elle reçoit, par des fonctions de rappel, par
+des changements d'état de fenêtre, ou les deux.
+
+Ses noms de fonction emploient le préfixe `_lumInput` et le motif ObjetÉvénement.
+
+Exemples : `_lumInputWindowFocus`, `_lumInputCursorPos`
+
+
+@section internals_static Fonctions statiques
+
+Les fonctions statiques peuvent être utilisées par n'importe quelle interface
+et n'ont ni préfixe ni suffixe.  Elles emploient la casse chameau sans
+majuscule initiale.
+
+Exemple : `isValidElementForJoystick`
+
+
+@section internals_config Macros de configuration
+
+Lumina utilise plusieurs macros de configuration pour choisir, à la
+compilation, quelles interfaces et quels chemins de code employer.  Elles sont
+définies dans la cible CMake de Lumina.
+
+Les macros de configuration suivent le même style que les symboles de
+l'interface publique, avec un tiret bas initial.
+
+Exemples : `_LUM_WIN32`, `_LUM_BUILD_DLL`
+
+*/

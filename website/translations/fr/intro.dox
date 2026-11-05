@@ -1,0 +1,654 @@
+/*!
+
+@page intro_guide Introduction à l'API
+
+@tableofcontents
+
+Ce guide présente les concepts de base de Lumina et décrit l'initialisation, la
+gestion des erreurs, ainsi que les garanties et les limites de l'API.  Pour un
+tour d'horizon large mais rapide, voyez plutôt @ref quick_guide.  Pour le
+détail d'une fonction de cette catégorie, voyez @ref init.
+
+Il existe aussi des guides pour les autres domaines de Lumina.
+
+ - @ref window_guide
+ - @ref context_guide
+ - @ref vulkan_guide
+ - @ref monitor_guide
+ - @ref input_guide
+
+
+@section intro_init Initialisation et terminaison
+
+Avant de pouvoir appeler la plupart des fonctions de Lumina, la bibliothèque
+doit être initialisée.  Cette initialisation détermine les fonctionnalités
+disponibles sur la machine, énumère les écrans, initialise le minuteur et
+effectue les initialisations propres à la plateforme.
+
+Seules les fonctions suivantes peuvent être appelées avant que la bibliothèque
+ait été initialisée avec succès, et uniquement depuis le thread principal.
+
+ - @ref lumGetVersion
+ - @ref lumGetVersionString
+ - @ref lumPlatformSupported
+ - @ref lumGetError
+ - @ref lumSetErrorCallback
+ - @ref lumInitHint
+ - @ref lumInitAllocator
+ - @ref lumInitVulkanLoader
+ - @ref lumInit
+ - @ref lumTerminate
+
+Appeler toute autre fonction avant une initialisation réussie provoque une
+erreur @ref LUM_NOT_INITIALIZED.
+
+
+@subsection intro_init_init Initialiser Lumina
+
+La bibliothèque s'initialise avec @ref lumInit, qui retourne `LUM_FALSE` en cas
+d'erreur.
+
+@code
+if (!lumInit())
+{
+    // Traiter l'échec de l'initialisation
+}
+@endcode
+
+Si une partie de l'initialisation échoue, les parties déjà réussies sont
+terminées comme si @ref lumTerminate avait été appelée.  La bibliothèque n'a
+besoin d'être initialisée qu'une fois ; tout appel supplémentaire sur une
+bibliothèque déjà initialisée retourne `LUM_TRUE` immédiatement.
+
+Une fois la bibliothèque initialisée avec succès, elle devrait être terminée
+avant que l'application ne se termine.  Les systèmes modernes sont très bons
+pour libérer les ressources des programmes qui s'arrêtent, mais Lumina doit
+parfois modifier des réglages système globaux, qui risquent de ne pas être
+restaurés sans terminaison.
+
+@macos À l'initialisation de la bibliothèque, le menu principal et l'icône du
+dock sont créés.  Ce n'est pas souhaitable pour un programme uniquement en
+ligne de commande.  Leur création peut être désactivée avec l'indice
+d'initialisation @ref LUM_COCOA_MENUBAR.
+
+
+@subsection init_hints Indices d'initialisation
+
+Les indices (hints) d'initialisation se positionnent avant @ref lumInit et
+influencent le comportement de la bibliothèque jusqu'à sa terminaison.  On les
+positionne avec @ref lumInitHint.
+
+@code
+lumInitHint(LUM_JOYSTICK_HAT_BUTTONS, LUM_FALSE);
+@endcode
+
+Les valeurs que vous donnez aux indices ne sont jamais réinitialisées par
+Lumina, mais elles ne prennent effet que pendant l'initialisation.  Une fois
+Lumina initialisée, toute valeur que vous positionnez est ignorée jusqu'à ce
+que la bibliothèque soit terminée puis réinitialisée.
+
+Certains indices sont propres à une plateforme.  On peut les positionner sur
+n'importe quelle plateforme, mais ils n'agissent que sur la leur ; les autres
+plateformes les ignorent.  Les positionner ne demande aucun en-tête ni aucune
+fonction spécifique à une plateforme.
+
+
+@subsubsection init_hints_shared Indices d'initialisation partagés
+
+@anchor LUM_PLATFORM
+__LUM_PLATFORM__ indique la plateforme à utiliser pour le fenêtrage et les
+entrées.  Les valeurs possibles sont `LUM_ANY_PLATFORM`,
+`LUM_PLATFORM_WIN32`, `LUM_PLATFORM_COCOA`, `LUM_PLATFORM_X11`,
+`LUM_PLATFORM_WAYLAND` et `LUM_PLATFORM_NULL`.  La valeur par défaut est
+`LUM_ANY_PLATFORM`, qui choisit n'importe quelle plateforme prise en charge
+par la bibliothèque, à l'exception du backend Null.
+
+
+@anchor LUM_JOYSTICK_HAT_BUTTONS
+__LUM_JOYSTICK_HAT_BUTTONS__ indique s'il faut aussi exposer les croix
+directionnelles des manettes comme des boutons, par compatibilité avec les
+versions antérieures de Lumina qui n'avaient pas @ref lumGetJoystickHats.  Les
+valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+@anchor LUM_ANGLE_PLATFORM_TYPE_hint
+__LUM_ANGLE_PLATFORM_TYPE__ indique le type de plateforme (le backend de rendu)
+à demander lors de l'utilisation d'OpenGL ES et d'EGL via
+[ANGLE](https://chromium.googlesource.com/angle/angle/).  Si le type demandé
+n'est pas disponible, ANGLE utilise le sien par défaut.  Les valeurs possibles
+sont `LUM_ANGLE_PLATFORM_TYPE_NONE`, `LUM_ANGLE_PLATFORM_TYPE_OPENGL`,
+`LUM_ANGLE_PLATFORM_TYPE_OPENGLES`, `LUM_ANGLE_PLATFORM_TYPE_D3D9`,
+`LUM_ANGLE_PLATFORM_TYPE_D3D11`, `LUM_ANGLE_PLATFORM_TYPE_VULKAN` et
+`LUM_ANGLE_PLATFORM_TYPE_METAL`.
+
+Le type de plateforme ANGLE est indiqué via l'extension
+`EGL_ANGLE_platform_angle`.  Cette extension n'est pas utilisée si cet indice
+vaut `LUM_ANGLE_PLATFORM_TYPE_NONE`, qui est la valeur par défaut.
+
+
+@subsubsection init_hints_osx Indices d'initialisation propres à macOS
+
+@anchor LUM_COCOA_CHDIR_RESOURCES_hint
+__LUM_COCOA_CHDIR_RESOURCES__ indique s'il faut placer le répertoire courant de
+l'application dans le sous-répertoire `Contents/Resources` de son bundle,
+lorsqu'il existe.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet
+indice est ignoré sur les autres plateformes.
+
+@anchor LUM_COCOA_MENUBAR_hint
+__LUM_COCOA_MENUBAR__ indique s'il faut créer la barre de menus et l'icône du
+dock à l'initialisation de Lumina.  Cela vaut que la barre de menus soit créée
+depuis un nib ou manuellement par Lumina.  Les valeurs possibles sont
+`LUM_TRUE` et `LUM_FALSE`.  Cet indice est ignoré sur les autres plateformes.
+
+
+@subsubsection init_hints_x11 Indices d'initialisation propres à X11
+
+@anchor LUM_X11_XCB_VULKAN_SURFACE_hint
+__LUM_X11_XCB_VULKAN_SURFACE__ indique s'il faut préférer l'extension
+`VK_KHR_xcb_surface` pour créer les surfaces Vulkan, ou utiliser l'extension
+`VK_KHR_xlib_surface`.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+Cet indice est ignoré sur les autres plateformes.
+
+
+@subsubsection init_hints_values Valeurs prises en charge et valeurs par défaut
+
+Indice d'initialisation          | Valeur par défaut               | Valeurs possibles
+-------------------------------- | ------------------------------- | ----------------
+@ref LUM_PLATFORM               | `LUM_ANY_PLATFORM`             | `LUM_ANY_PLATFORM`, `LUM_PLATFORM_WIN32`, `LUM_PLATFORM_COCOA`, `LUM_PLATFORM_X11`, `LUM_PLATFORM_WAYLAND` ou `LUM_PLATFORM_NULL`
+@ref LUM_JOYSTICK_HAT_BUTTONS   | `LUM_TRUE`                     | `LUM_TRUE` ou `LUM_FALSE`
+@ref LUM_ANGLE_PLATFORM_TYPE    | `LUM_ANGLE_PLATFORM_TYPE_NONE` | `LUM_ANGLE_PLATFORM_TYPE_NONE`, `LUM_ANGLE_PLATFORM_TYPE_OPENGL`, `LUM_ANGLE_PLATFORM_TYPE_OPENGLES`, `LUM_ANGLE_PLATFORM_TYPE_D3D9`, `LUM_ANGLE_PLATFORM_TYPE_D3D11`, `LUM_ANGLE_PLATFORM_TYPE_VULKAN` ou `LUM_ANGLE_PLATFORM_TYPE_METAL`
+@ref LUM_COCOA_CHDIR_RESOURCES  | `LUM_TRUE`                     | `LUM_TRUE` ou `LUM_FALSE`
+@ref LUM_COCOA_MENUBAR          | `LUM_TRUE`                     | `LUM_TRUE` ou `LUM_FALSE`
+@ref LUM_X11_XCB_VULKAN_SURFACE | `LUM_TRUE`                     | `LUM_TRUE` ou `LUM_FALSE`
+
+
+@subsection platform Choix de la plateforme à l'exécution
+
+Lumina peut être compilée pour plusieurs plateformes (systèmes de fenêtrage) à
+la fois.  Un même binaire de la bibliothèque peut ainsi prendre en charge X11
+et Wayland sur Linux et les autres systèmes de type Unix.
+
+Vous contrôlez le choix de la plateforme avec l'indice d'initialisation @ref
+LUM_PLATFORM.  Par défaut il vaut @ref LUM_ANY_PLATFORM, qui cherche les
+systèmes de fenêtrage pris en charge par ordre de priorité et retient le
+premier trouvé.  On peut aussi le fixer à une plateforme précise pour que
+Lumina ne cherche que celle-là.
+
+@code
+lumInitHint(LUM_PLATFORM, LUM_PLATFORM_X11);
+@endcode
+
+Ce mécanisme donne également accès à la plateforme Null, toujours prise en
+charge mais qu'il faut demander explicitement.  Cette plateforme est en pratique
+un bouchon : elle émule un système de fenêtrage sur un unique écran 1080p, sans
+jamais dialoguer avec un vrai système de fenêtrage.
+
+@code
+lumInitHint(LUM_PLATFORM, LUM_PLATFORM_NULL);
+@endcode
+
+Vous pouvez tester si un binaire de la bibliothèque a été compilé avec la prise
+en charge d'une plateforme donnée grâce à @ref lumPlatformSupported.
+
+@code
+if (lumPlatformSupported(LUM_PLATFORM_WAYLAND))
+    lumInitHint(LUM_PLATFORM, LUM_PLATFORM_WAYLAND);
+@endcode
+
+Une fois Lumina initialisée, vous pouvez demander quelle plateforme a été
+retenue avec @ref lumGetPlatform.
+
+@code
+int platform = lumGetPlatform();
+@endcode
+
+Si vous utilisez des [fonctions d'accès natif](@ref native), en particulier sur
+Linux et les autres systèmes de type Unix, vous devrez peut-être vérifier que
+vous appelez bien celles qui correspondent à la plateforme retenue.
+
+
+@subsection init_allocator Allocateur mémoire personnalisé
+
+L'allocateur de mémoire sur le tas peut être personnalisé avant
+l'initialisation, avec @ref lumInitAllocator.
+
+@code
+LUMallocator allocator;
+allocator.allocate = my_malloc;
+allocator.reallocate = my_realloc;
+allocator.deallocate = my_free;
+allocator.user = NULL;
+
+lumInitAllocator(&allocator);
+@endcode
+
+L'allocateur est pris en compte au début de l'initialisation et sert jusqu'à ce
+que Lumina soit entièrement terminée.  Un allocateur installé après
+l'initialisation ne sera pris en compte qu'à l'initialisation suivante.
+
+L'allocateur ne sert que pour les allocations qui auraient été faites avec la
+bibliothèque standard C.  Les allocations mémoire qui doivent passer par des
+API propres à la plateforme continuent de le faire.
+
+La fonction d'allocation doit avoir une signature correspondant à @ref
+LUMallocatefun.  Elle reçoit la taille voulue, en octets, et le pointeur
+utilisateur passé à @ref lumInitAllocator, et retourne l'adresse du bloc
+mémoire alloué.
+
+@code
+void* my_malloc(size_t size, void* user)
+{
+    ...
+}
+@endcode
+
+La fonction de réallocation doit avoir une signature correspondant à @ref
+LUMreallocatefun.  Elle reçoit le bloc mémoire à réallouer, la nouvelle taille
+voulue, en octets, et le pointeur utilisateur passé à @ref lumInitAllocator,
+et retourne l'adresse du bloc redimensionné.
+
+@code
+void* my_realloc(void* block, size_t size, void* user)
+{
+    ...
+}
+@endcode
+
+La fonction de libération doit avoir une signature correspondant à @ref
+LUMdeallocatefun.  Elle reçoit le bloc mémoire à libérer et le pointeur
+utilisateur passé à @ref lumInitAllocator.
+
+@code
+void my_free(void* block, void* user)
+{
+    ...
+}
+@endcode
+
+
+@subsection intro_init_terminate Terminer Lumina
+
+Avant que votre application ne se termine, vous devriez terminer la
+bibliothèque Lumina si elle a été initialisée.  Cela se fait avec @ref
+lumTerminate.
+
+@code
+lumTerminate();
+@endcode
+
+Cela détruit les fenêtres, écrans et curseurs restants, restaure les rampes
+gamma modifiées, réactive l'économiseur d'écran s'il avait été désactivé et
+libère toutes les autres ressources allouées par Lumina.
+
+Une fois la bibliothèque terminée, tout se passe comme si elle n'avait jamais
+été initialisée : il faudra l'initialiser à nouveau pour pouvoir utiliser
+Lumina.  Si la bibliothèque n'était pas initialisée ou avait déjà été terminée,
+l'appel rend la main immédiatement.
+
+
+@section error_handling Gestion des erreurs
+
+Certaines fonctions de Lumina ont une valeur de retour qui signale une erreur,
+mais cela n'aide pas beaucoup à comprendre ce qui s'est passé ni pourquoi.
+D'autres n'ont aucune valeur de retour réservée aux erreurs : il faut donc un
+canal distinct pour les signaler.  Enfin, beaucoup de fonctions de Lumina n'ont
+aucune valeur de retour.
+
+Le dernier [code d'erreur](@ref errors) du thread appelant peut être demandé à
+tout moment avec @ref lumGetError.
+
+@code
+int code = lumGetError(NULL);
+
+if (code != LUM_NO_ERROR)
+    handle_error(code);
+@endcode
+
+Si aucune erreur n'est survenue depuis le dernier appel, @ref LUM_NO_ERROR
+(zéro) est retourné.  L'erreur est effacée avant que la fonction ne rende la
+main.
+
+Le code d'erreur indique la catégorie générale de l'erreur.  Certains codes,
+comme @ref LUM_NOT_INITIALIZED, n'ont qu'un seul sens, tandis que d'autres
+comme @ref LUM_PLATFORM_ERROR servent à beaucoup d'erreurs différentes.
+
+Lumina en sait souvent plus sur une erreur que sa seule catégorie.  Vous pouvez
+récupérer, avec le code d'erreur, une description lisible encodée en UTF-8.  Si
+aucune erreur n'est survenue depuis le dernier appel, la description est mise à
+`NULL`.
+
+@code
+const char* description;
+int code = lumGetError(&description);
+
+if (description)
+    display_error_message(code, description);
+@endcode
+
+La chaîne de description récupérée n'est valide que jusqu'à l'erreur suivante.
+Vous devez donc en faire une copie si vous voulez la conserver.
+
+Vous pouvez aussi installer une fonction de rappel d'erreur, appelée à chaque
+erreur.  Elle s'installe avec @ref lumSetErrorCallback.
+
+@code
+lumSetErrorCallback(error_callback);
+@endcode
+
+La fonction de rappel d'erreur reçoit le même code d'erreur et la même
+description lisible que ceux retournés par @ref lumGetError.
+
+@code
+void error_callback(int code, const char* description)
+{
+    display_error_message(code, description);
+}
+@endcode
+
+La fonction de rappel d'erreur est appelée après que l'erreur a été mémorisée :
+appeler @ref lumGetError depuis cette fonction retourne donc les mêmes valeurs
+que ses arguments.
+
+La chaîne de description passée à la fonction de rappel n'est valide que
+jusqu'au retour de celle-ci.  Vous devez donc en faire une copie si vous voulez
+la conserver.
+
+__Une erreur signalée n'est jamais fatale.__  Tant que Lumina a été initialisée
+avec succès, elle reste initialisée et dans un état sûr jusqu'à sa terminaison,
+quel que soit le nombre d'erreurs survenues.  Si une erreur pendant
+l'initialisation fait échouer @ref lumInit, toute partie déjà initialisée est
+terminée proprement.
+
+Ne comptez pas sur un appel aujourd'hui invalide pour produire une erreur
+précise : à l'avenir, ce même appel pourra produire une autre erreur ou devenir
+valide.
+
+
+@section coordinate_systems Systèmes de coordonnées
+
+Lumina a deux systèmes de coordonnées principaux : l'_écran virtuel_ et la
+_zone de contenu_ (content area) de la fenêtre.  Tous deux utilisent la même
+unité : les _coordonnées d'écran virtuel_, ou simplement _coordonnées d'écran_,
+qui ne correspondent pas nécessairement à des pixels.
+
+<img src="spaces.svg" width="90%" />
+
+Dans les deux systèmes, l'axe X pointe vers la droite et l'axe Y vers le bas.
+
+Les positions des fenêtres et des écrans sont exprimées comme la position du
+coin supérieur gauche de leur zone de contenu par rapport à l'écran virtuel,
+tandis que les positions du curseur sont exprimées par rapport à la zone de
+contenu d'une fenêtre.
+
+Comme l'origine du système de coordonnées de la zone de contenu est aussi le
+point à partir duquel la position de la fenêtre est exprimée, vous pouvez
+convertir des coordonnées de zone de contenu en coordonnées d'écran virtuel en
+y ajoutant la position de la fenêtre.  Le cadre de la fenêtre, lorsqu'il
+existe, déborde de la zone de contenu mais n'affecte pas la position de la
+fenêtre.
+
+Presque toutes les positions et tailles dans Lumina sont mesurées en
+coordonnées d'écran, par rapport à l'une des deux origines ci-dessus.  Cela
+vaut pour les positions du curseur, les positions et tailles de fenêtre, les
+tailles de cadre de fenêtre, les positions d'écran et les résolutions des modes
+vidéo.
+
+Deux exceptions : la [taille physique d'un écran](@ref monitor_size), mesurée
+en millimètres, et la [taille du tampon d'image](@ref window_fbsize), mesurée
+en pixels.
+
+Les pixels et les coordonnées d'écran peuvent correspondre un pour un sur votre
+machine, mais ce ne sera pas le cas sur toutes les autres, par exemple sur un
+Mac à écran Retina.  Le rapport entre coordonnées d'écran et pixels peut aussi
+changer à l'exécution, selon l'écran sur lequel la fenêtre est considérée se
+trouver.
+
+
+@section guarantees_limitations Garanties et limites
+
+Cette section décrit les conditions dans lesquelles on peut attendre de Lumina
+qu'elle fonctionne, sauf bogue du système d'exploitation ou des pilotes.
+Utiliser Lumina hors de ces limites peut marcher sur certaines plateformes, sur
+certaines machines, une partie du temps, ou avec certaines versions de Lumina,
+mais cela peut cesser de marcher à tout moment et ne sera pas considéré comme
+un bogue.
+
+
+@subsection lifetime Durée de vie des pointeurs
+
+Lumina ne libérera jamais un pointeur que vous lui fournissez, et vous ne devez
+jamais libérer un pointeur qu'elle vous fournit.
+
+Beaucoup de fonctions de Lumina retournent des pointeurs vers des structures,
+des chaînes ou des tableaux alloués dynamiquement, et certaines fonctions de
+rappel en reçoivent.  Ils sont toujours gérés par Lumina et ne doivent jamais
+être libérés par l'application.  La durée de vie de ces pointeurs est
+documentée pour chaque fonction et chaque fonction de rappel de Lumina.  Si
+vous avez besoin de conserver ces données, vous devez les copier avant
+l'expiration de cette durée de vie.
+
+Beaucoup de fonctions de Lumina acceptent des pointeurs vers des structures ou
+des chaînes allouées par l'application.  Lumina ne les libère jamais : elles
+restent toujours sous la responsabilité de l'application.  Si Lumina a besoin
+de conserver les données de ces structures ou de ces chaînes, elle les copie
+avant de rendre la main.
+
+Il est garanti que les durées de vie des pointeurs ne seront pas raccourcies
+dans de futures versions mineures ou correctives.
+
+
+@subsection reentrancy Réentrance
+
+Le traitement des événements et la destruction d'objets ne sont pas réentrants
+dans Lumina.  Autrement dit, les fonctions suivantes ne doivent pas être
+appelées depuis une fonction de rappel :
+
+ - @ref lumDestroyWindow
+ - @ref lumDestroyCursor
+ - @ref lumPollEvents
+ - @ref lumWaitEvents
+ - @ref lumWaitEventsTimeout
+ - @ref lumTerminate
+
+Ces fonctions pourront devenir réentrantes dans de futures versions mineures ou
+correctives, mais les fonctions absentes de cette liste ne deviendront pas non
+réentrantes.
+
+
+@subsection thread_safety Sûreté des threads
+
+La plupart des fonctions de Lumina ne doivent être appelées que depuis le
+thread principal (celui qui appelle main), mais certaines peuvent l'être depuis
+n'importe quel thread une fois la bibliothèque initialisée.  Avant
+l'initialisation, la bibliothèque entière n'est pas sûre vis-à-vis des threads.
+
+La documentation de référence de chaque fonction de Lumina précise si elle est
+limitée au thread principal.
+
+L'initialisation, la terminaison, le traitement des événements, ainsi que la
+création et la destruction des fenêtres, des curseurs et des contextes OpenGL
+et OpenGL ES sont tous restreints au thread principal, en raison des limites
+d'une ou plusieurs plateformes.
+
+Comme le traitement des événements doit avoir lieu sur le thread principal,
+toutes les fonctions de rappel sauf celle d'erreur ne sont appelées que sur ce
+thread.  La fonction de rappel d'erreur peut être appelée depuis n'importe quel
+thread, puisque n'importe quelle fonction de Lumina peut produire des erreurs.
+
+Le code d'erreur et sa description peuvent être demandés depuis n'importe quel
+thread.
+
+ - @ref lumGetError
+
+Des événements vides peuvent être postés depuis n'importe quel thread.
+
+ - @ref lumPostEmptyEvent
+
+Le pointeur utilisateur et l'indicateur de fermeture d'une fenêtre peuvent être
+lus et écrits depuis n'importe quel thread, mais Lumina ne les synchronise pas.
+
+ - @ref lumGetWindowUserPointer
+ - @ref lumSetWindowUserPointer
+ - @ref lumWindowShouldClose
+ - @ref lumSetWindowShouldClose
+
+Ces fonctions de travail avec les contextes OpenGL et OpenGL ES peuvent être
+appelées depuis n'importe quel thread, mais Lumina ne synchronise pas l'objet
+fenêtre.
+
+ - @ref lumMakeContextCurrent
+ - @ref lumGetCurrentContext
+ - @ref lumSwapBuffers
+ - @ref lumSwapInterval
+ - @ref lumExtensionSupported
+ - @ref lumGetProcAddress
+
+Les fonctions de minuterie brute peuvent être appelées depuis n'importe quel
+thread.
+
+ - @ref lumGetTimerFrequency
+ - @ref lumGetTimerValue
+
+Le minuteur ordinaire peut être utilisé depuis n'importe quel thread, mais la
+lecture et l'écriture de son décalage ne sont pas synchronisées par Lumina.
+
+ - @ref lumGetTime
+ - @ref lumSetTime
+
+Les informations de version de la bibliothèque peuvent être demandées depuis
+n'importe quel thread.
+
+ - @ref lumGetVersion
+ - @ref lumGetVersionString
+
+Les informations de plateforme peuvent être demandées depuis n'importe quel
+thread.
+
+ - @ref lumPlatformSupported
+ - @ref lumGetPlatform
+
+Toutes les fonctions liées à Vulkan peuvent être appelées depuis n'importe quel
+thread.
+
+ - @ref lumVulkanSupported
+ - @ref lumGetRequiredInstanceExtensions
+ - @ref lumGetInstanceProcAddress
+ - @ref lumGetPhysicalDevicePresentationSupport
+ - @ref lumCreateWindowSurface
+
+En interne, Lumina n'utilise d'objets de synchronisation que pour gérer le
+contexte et l'état d'erreur propres à chaque thread.  Toute synchronisation
+supplémentaire est laissée à l'application.
+
+Les fonctions aujourd'hui appelables depuis n'importe quel thread le resteront
+toujours, mais celles actuellement limitées au thread principal pourront être
+ouvertes à tous les threads dans de futures versions.
+
+
+@subsection compatibility Compatibilité entre versions
+
+Lumina applique le [versionnage sémantique](https://semver.org/).  Cela
+garantit la compatibilité ascendante des sources et des binaires avec les
+versions mineures antérieures de l'API.  Autrement dit, vous pouvez déposer une
+version plus récente de la bibliothèque et les programmes existants
+continueront de compiler, les binaires existants continueront de fonctionner.
+
+Une fois une fonction ou une constante ajoutée, la signature de cette fonction
+ou la valeur de cette constante reste inchangée jusqu'à la prochaine version
+majeure de Lumina.  Aucune compatibilité d'aucune sorte n'est garantie entre
+versions majeures.
+
+Un comportement non documenté, c'est-à-dire non décrit dans la documentation,
+peut changer à tout moment jusqu'à ce qu'il soit documenté.
+
+Si la documentation de référence et l'implémentation divergent, c'est presque
+toujours la documentation de référence qui fait foi et l'implémentation sera
+corrigée dans la version suivante.  La documentation de référence prime
+également sur tout ce qu'affirme un guide.
+
+
+@subsection event_order Ordre des événements
+
+L'ordre d'arrivée d'événements liés entre eux n'est pas garanti identique d'une
+plateforme à l'autre.  Font exception les événements synthétiques de
+relâchement de touche et de bouton de souris, toujours délivrés après
+l'événement de perte de focus de la fenêtre.
+
+
+@section intro_version Gestion des versions
+
+Lumina fournit de quoi identifier la version de Lumina contre laquelle votre
+application a été compilée, ainsi que celle contre laquelle elle s'exécute
+actuellement.  Si vous chargez Lumina dynamiquement (pas seulement en liaison
+dynamique), cela vous permet de vérifier que le binaire de la bibliothèque est
+compatible avec votre application.
+
+
+@subsection intro_version_compile Version à la compilation
+
+La version à la compilation de Lumina est fournie par l'en-tête de Lumina via
+les macros `LUM_VERSION_MAJOR`, `LUM_VERSION_MINOR` et `LUM_VERSION_REVISION`.
+
+@code
+printf("Compilé avec Lumina %i.%i.%i\n",
+       LUM_VERSION_MAJOR,
+       LUM_VERSION_MINOR,
+       LUM_VERSION_REVISION);
+@endcode
+
+
+@subsection intro_version_runtime Version à l'exécution
+
+La version à l'exécution se récupère avec @ref lumGetVersion, une fonction que
+l'on peut appeler que Lumina soit initialisée ou non.
+
+@code
+int major, minor, revision;
+lumGetVersion(&major, &minor, &revision);
+
+printf("Exécuté avec Lumina %i.%i.%i\n", major, minor, revision);
+@endcode
+
+
+@subsection intro_version_string Chaîne de version
+
+Lumina fournit aussi une chaîne de version produite à la compilation, qui
+décrit la version, la plateforme, le compilateur et les options de compilation
+propres à la plateforme.  Elle est surtout destinée aux rapports de bogue, pour
+que les développeurs voient quels chemins de code sont activés dans un binaire.
+
+Cette chaîne est retournée par @ref lumGetVersionString, une fonction que l'on
+peut appeler que Lumina soit initialisée ou non.
+
+__N'utilisez pas la chaîne de version__ pour analyser la version de la
+bibliothèque Lumina.  La fonction @ref lumGetVersion fournit déjà la version du
+binaire en cours d'exécution.
+
+__N'utilisez pas la chaîne de version__ pour déterminer les plateformes prises
+en charge.  La fonction @ref lumPlatformSupported permet de les interroger.
+
+__Lumina 3.4 :__ le format de cette chaîne a changé pour accompagner l'ajout du
+[choix de la plateforme à l'exécution](@ref platform).
+
+Le format de la chaîne est le suivant :
+ - La version de Lumina
+ - Pour chaque plateforme prise en charge :
+   - Le nom de l'API du système de fenêtrage
+   - Le nom de l'API de création de contexte propre au système de fenêtrage, le cas échéant
+ - Les noms des API de création de contexte toujours prises en charge, EGL et OSMesa
+ - Les éventuelles options de compilation, API supplémentaires et, sous Windows, le compilateur utilisé
+
+Par exemple, Lumina 3.4 compilée en DLL pour Windows avec MinGW peut avoir une
+chaîne de version comme celle-ci :
+
+@code
+3.4.0 Win32 WGL Null EGL OSMesa MinGW DLL
+@endcode
+
+Tandis que Lumina compilée en bibliothèque statique pour Linux, avec Wayland et
+X11 activés, peut avoir une chaîne comme celle-ci :
+
+@code
+3.4.0 Wayland X11 GLX Null EGL OSMesa monotonic
+@endcode
+
+*/

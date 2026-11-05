@@ -1,0 +1,416 @@
+/*!
+
+@page quick_guide Premiers pas
+
+@tableofcontents
+
+Ce guide vous accompagne dans l'écriture d'une petite application avec Lumina.
+L'application crée une fenêtre et un contexte OpenGL, affiche un triangle en
+rotation, puis se termine quand l'utilisateur ferme la fenêtre ou appuie sur
+_Échap_.  Il présente quelques-unes des fonctions les plus courantes, mais il y
+en a bien d'autres.
+
+Ce guide ne suppose aucune expérience des versions antérieures de Lumina.  Si
+vous avez utilisé GLFW 2 par le passé, lisez @ref moving_guide : certaines
+fonctions se comportent différemment dans Lumina.
+
+
+@section quick_steps Pas à pas
+
+@subsection quick_include Inclure l'en-tête de Lumina
+
+Dans les fichiers source de votre application où vous utilisez Lumina, vous
+devez inclure son fichier d'en-tête.
+
+@code
+#include <Lumina/lumina.h>
+@endcode
+
+Cet en-tête fournit toutes les constantes, tous les types et tous les
+prototypes de fonction de l'API Lumina.
+
+Par défaut, il inclut aussi l'en-tête OpenGL de votre environnement de
+développement.  Sur certaines plateformes, cet en-tête ne prend en charge que
+d'anciennes versions d'OpenGL.  Le cas le plus extrême est Windows, où il se
+limite généralement à OpenGL 1.2.
+
+La plupart des programmes utiliseront plutôt une
+[bibliothèque de chargement d'extensions](@ref context_glext_auto) et
+incluront son en-tête.  Cet exemple utilise des fichiers produits par
+[glad](https://gen.glad.sh/).  L'en-tête de Lumina sait détecter la plupart de
+ces en-têtes s'ils sont inclus en premier, et n'inclut alors pas celui de votre
+environnement de développement.
+
+@code
+#include <glad/gl.h>
+#include <Lumina/lumina.h>
+@endcode
+
+Pour être certain d'éviter tout conflit d'en-têtes, vous pouvez définir @ref
+LUM_INCLUDE_NONE avant l'en-tête de Lumina pour désactiver explicitement
+l'inclusion de l'en-tête de l'environnement de développement.  Cela permet
+aussi d'inclure les deux en-têtes dans n'importe quel ordre.
+
+@code
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
+#include <glad/gl.h>
+@endcode
+
+
+@subsection quick_init_term Initialiser et terminer Lumina
+
+Avant de pouvoir utiliser la plupart des fonctions de Lumina, la bibliothèque
+doit être initialisée.  Si l'initialisation réussit, `LUM_TRUE` est retourné.
+En cas d'erreur, c'est `LUM_FALSE`.
+
+@code
+if (!lumInit())
+{
+    // L'initialisation a échoué
+}
+@endcode
+
+Notez que `LUM_TRUE` et `LUM_FALSE` valent un et zéro, et vaudront toujours un
+et zéro.
+
+Quand vous en avez fini avec Lumina, typiquement juste avant que l'application
+se termine, vous devez terminer Lumina.
+
+@code
+lumTerminate();
+@endcode
+
+Cela détruit les fenêtres restantes et libère toutes les autres ressources
+allouées par Lumina.  Après cet appel, vous devez réinitialiser Lumina avant
+d'utiliser une fonction qui l'exige.
+
+
+@subsection quick_capture_error Installer une fonction de rappel d'erreur
+
+La plupart des événements sont signalés par des fonctions de rappel
+(callbacks) : une touche enfoncée, une fenêtre Lumina déplacée, une erreur
+survenue.  Une fonction de rappel est une fonction C (ou une méthode statique
+C++) que Lumina appelle avec des arguments décrivant l'événement.
+
+Lorsqu'une fonction de Lumina échoue, une erreur est signalée à la fonction de
+rappel d'erreur de Lumina.  Vous pouvez recevoir ces signalements en installant
+la vôtre.  Elle doit avoir la signature ci-dessous, mais peut faire tout ce
+qu'une autre fonction de rappel a le droit de faire.
+
+@code
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Erreur : %s\n", description);
+}
+@endcode
+
+Une fonction de rappel doit être installée pour que Lumina sache qu'il faut
+l'appeler.  La fonction qui installe la fonction de rappel d'erreur est l'une
+des rares fonctions de Lumina que l'on peut appeler avant l'initialisation, ce
+qui vous permet d'être averti des erreurs pendant comme après celle-ci.
+
+@code
+lumSetErrorCallback(error_callback);
+@endcode
+
+
+@subsection quick_create_window Créer une fenêtre et un contexte
+
+La fenêtre et son contexte OpenGL sont créés par un seul appel à @ref
+lumCreateWindowEx, qui retourne un handle vers l'objet combiné fenêtre et
+contexte ainsi créé.  Tout ce dont il a besoin est décrit par un @ref
+LUMwindowdesc, et __tout champ omis prend la valeur par défaut de la
+bibliothèque__ : une fenêtre ordinaire n'en demande que trois.
+
+@code
+LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width  = 640,
+    .height = 480,
+    .title  = "Mon titre"
+});
+if (!window)
+{
+    // La création de la fenêtre ou du contexte OpenGL a échoué
+}
+@endcode
+
+Cela crée une fenêtre de 640 sur 480 en mode fenêtré, dotée d'un contexte
+OpenGL.  Si la création de la fenêtre ou du contexte échoue, `NULL` est
+retourné.  Vous devriez toujours vérifier la valeur de retour.  La création
+d'une fenêtre échoue rarement, mais celle d'un contexte dépend de pilotes
+correctement installés et peut échouer même sur une machine dotée du matériel
+nécessaire.
+
+Par défaut, le contexte OpenGL que crée Lumina peut avoir n'importe quelle
+version.  Vous pouvez exiger une version minimale d'OpenGL avec les champs
+`glMajor` et `glMinor`.  Si la version minimale demandée n'est pas prise en
+charge par la machine, la création du contexte — et donc de la fenêtre — échoue.
+
+Vous pouvez choisir le profil OpenGL avec le champ `glProfile`.  Ce programme
+utilise le profil core, le seul que macOS prenne en charge pour OpenGL 3.x
+et 4.x.
+
+Régler `makeCurrent` sur `LUM_ON` demande que le nouveau contexte soit rendu
+courant sur le thread appelant avant le retour de l'appel, ce qui évite un
+appel séparé à @ref lumMakeContextCurrent.
+
+@code
+LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width       = 640,
+    .height      = 480,
+    .title       = "Mon titre",
+    .glMajor     = 3,
+    .glMinor     = 3,
+    .glProfile   = LUM_OPENGL_CORE_PROFILE,
+    .makeCurrent = LUM_ON
+});
+if (!window)
+{
+    // La création de la fenêtre ou du contexte a échoué
+}
+@endcode
+
+Le descripteur n'est lu que pendant l'appel : il n'a pas besoin de lui
+survivre.  Un littéral composé comme ci-dessus convient donc parfaitement, mais
+le descripteur peut tout aussi bien être une variable nommée que vous
+remplissez, réutilisez ou transmettez.
+
+@ref window_creation_desc décrit le descripteur en détail, et @ref
+LUMwindowdesc en énumère tous les champs.
+
+Le handle de la fenêtre est passé à toutes les fonctions liées aux fenêtres, et
+transmis à toutes les fonctions de rappel liées aux fenêtres, pour qu'elles
+sachent quelle fenêtre a reçu l'événement.
+
+Quand une fenêtre et son contexte ne servent plus, détruisez-les.
+
+@code
+lumDestroyWindow(window);
+@endcode
+
+Une fois cette fonction appelée, plus aucun événement n'est délivré pour cette
+fenêtre et son handle devient invalide.
+
+
+@subsection quick_context_current Rendre le contexte OpenGL courant
+
+Avant de pouvoir utiliser l'API OpenGL, il vous faut un contexte OpenGL
+courant.  Le champ `makeCurrent` ci-dessus s'en est déjà chargé, mais un
+contexte peut aussi être rendu courant plus tard — et doit l'être si vous ne
+l'avez pas demandé à la création.
+
+@code
+lumMakeContextCurrent(window);
+@endcode
+
+Le contexte reste courant jusqu'à ce que vous en rendiez un autre courant, ou
+jusqu'à la destruction de la fenêtre à laquelle il appartient.
+
+Si vous utilisez une [bibliothèque de chargement
+d'extensions](@ref context_glext_auto) pour accéder à OpenGL moderne, c'est ici
+qu'il faut l'initialiser : le chargeur a besoin d'un contexte courant pour y
+lire les fonctions.  Cet exemple utilise
+[glad](https://github.com/Dav1dde/glad), mais la règle vaut pour toutes les
+bibliothèques de ce genre.
+
+@code
+gladLoadGL(lumGetProcAddress);
+@endcode
+
+
+@subsection quick_window_close Consulter l'indicateur de fermeture
+
+Chaque fenêtre porte un indicateur disant si elle devrait être fermée.
+
+Quand l'utilisateur tente de fermer la fenêtre, que ce soit par le bouton de
+fermeture de la barre de titre ou par une combinaison comme Alt+F4, cet
+indicateur passe à 1.  Notez que __la fenêtre n'est pas réellement fermée__ :
+c'est à vous de surveiller cet indicateur, puis de détruire la fenêtre ou de
+donner un retour quelconque à l'utilisateur.
+
+@code
+while (!lumWindowShouldClose(window))
+{
+    // On continue
+}
+@endcode
+
+Vous pouvez être averti de la tentative de fermeture en installant une fonction
+de rappel avec @ref lumSetWindowCloseCallback.  Elle est appelée immédiatement
+après que l'indicateur a été positionné.
+
+Vous pouvez aussi le positionner vous-même avec @ref lumSetWindowShouldClose.
+C'est utile si vous voulez interpréter d'autres entrées comme une demande de
+fermeture, par exemple l'appui sur la touche _Échap_.
+
+
+@subsection quick_key_input Recevoir les événements d'entrée
+
+Chaque fenêtre dispose d'un grand nombre de fonctions de rappel que l'on peut
+installer pour recevoir les différents types d'événements.  Pour recevoir les
+appuis et relâchements de touches, écrivez une fonction de rappel de clavier.
+
+@code
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
+}
+@endcode
+
+Comme les autres fonctions de rappel liées aux fenêtres, celle du clavier
+s'installe fenêtre par fenêtre.
+
+@code
+lumSetKeyCallback(window, key_callback);
+@endcode
+
+Pour que ces fonctions de rappel soient appelées quand les événements
+surviennent, vous devez traiter les événements, comme décrit plus bas.
+
+
+@subsection quick_render Dessiner avec OpenGL
+
+Une fois que vous disposez d'un contexte OpenGL courant, vous utilisez OpenGL
+normalement.  Dans ce tutoriel, nous affichons un triangle multicolore en
+rotation.  La taille du tampon d'image (framebuffer) doit être récupérée pour
+`glViewport`.
+
+@code
+int width, height;
+lumGetFramebufferSize(window, &width, &height);
+glViewport(0, 0, width, height);
+@endcode
+
+Vous pouvez aussi installer une fonction de rappel de taille de tampon d'image
+avec @ref lumSetFramebufferSizeCallback et être averti des changements de
+taille.
+
+Expliquer comment dessiner avec OpenGL dépasse le cadre de ce tutoriel, mais il
+existe d'excellentes ressources pour apprendre OpenGL moderne.  En voici
+quelques-unes :
+
+ - [Anton's OpenGL 4 Tutorials](https://antongerdelan.net/opengl/)
+ - [Learn OpenGL](https://learnopengl.com/)
+ - [Open.GL](https://open.gl/)
+
+Toutes utilisent Lumina, mais OpenGL fonctionne de la même façon quelle que
+soit l'API employée pour créer la fenêtre et le contexte.
+
+
+@subsection quick_timer Lire le minuteur
+
+Pour obtenir une animation fluide, il faut une source de temps.  Lumina fournit
+un minuteur qui retourne le nombre de secondes écoulées depuis
+l'initialisation.  La source de temps utilisée est la plus précise disponible
+sur chaque plateforme, et offre généralement une résolution de l'ordre de la
+microseconde ou de la nanoseconde.
+
+@code
+double time = lumGetTime();
+@endcode
+
+
+@subsection quick_swap_buffers Échanger les tampons
+
+Par défaut, les fenêtres Lumina utilisent le double tampon.  Cela signifie que
+chaque fenêtre possède deux tampons de rendu : un tampon avant (front buffer)
+et un tampon arrière (back buffer).  Le tampon avant est celui qui est affiché,
+le tampon arrière celui dans lequel vous dessinez.
+
+Une fois l'image entièrement dessinée, les tampons doivent être échangés : le
+tampon arrière devient le tampon avant et réciproquement.
+
+@code
+lumSwapBuffers(window);
+@endcode
+
+L'intervalle d'échange (swap interval) indique combien d'images attendre avant
+d'échanger les tampons ; on parle couramment de _vsync_.  Par défaut, cet
+intervalle vaut zéro, ce qui veut dire que l'échange a lieu immédiatement.  Sur
+une machine rapide, beaucoup de ces images ne seront jamais vues, puisque
+l'écran ne se rafraîchit généralement que 60 à 75 fois par seconde : on gaspille
+donc beaucoup de cycles processeur et GPU.
+
+De plus, comme les tampons sont échangés au milieu d'un rafraîchissement de
+l'écran, on obtient un [déchirement d'image
+(screen tearing)](https://en.wikipedia.org/wiki/Screen_tearing).
+
+Pour ces raisons, une application voudra généralement régler l'intervalle
+d'échange à un.  On peut le monter plus haut, mais c'est rarement recommandé à
+cause de la latence d'entrée que cela induit.
+
+@code
+lumSwapInterval(1);
+@endcode
+
+Cette fonction agit sur le contexte courant et échoue s'il n'y a pas de
+contexte courant.
+
+
+@subsection quick_process_events Traiter les événements
+
+Lumina doit dialoguer régulièrement avec le système de fenêtrage, à la fois
+pour recevoir les événements et pour montrer que l'application n'est pas
+bloquée.  Le traitement des événements doit être fait régulièrement tant que
+vous avez des fenêtres visibles, et se place normalement à chaque image, après
+l'échange des tampons.
+
+Il y a deux façons de traiter les événements en attente : l'interrogation
+(polling) et l'attente.  Cet exemple utilise l'interrogation, qui traite
+uniquement les événements déjà reçus puis rend la main immédiatement.
+
+@code
+lumPollEvents();
+@endcode
+
+C'est le meilleur choix quand on dessine en continu, comme le font la plupart
+des jeux.  Si au contraire vous n'avez besoin de redessiner qu'à la réception
+d'une nouvelle entrée, @ref lumWaitEvents convient mieux.  Cette fonction
+attend qu'au moins un événement soit reçu, en endormant le thread pendant ce
+temps, puis traite tous les événements reçus.  Cela économise énormément de
+cycles processeur et convient par exemple à bien des outils d'édition.
+
+
+@section quick_example Tout assembler
+
+Maintenant que vous savez initialiser Lumina, créer une fenêtre et interroger
+le clavier, vous pouvez écrire un petit programme.
+
+Ce programme crée une fenêtre de 640 sur 480 en mode fenêtré et lance une
+boucle qui efface l'écran, dessine un triangle et traite les événements
+jusqu'à ce que l'utilisateur appuie sur _Échap_ ou ferme la fenêtre.
+
+@snippet triangle-opengl.c code
+
+Le programme ci-dessus se trouve dans le
+[paquet source](https://www.glfw.org/download.html) sous le nom
+`examples/triangle-opengl.c` ; il est compilé avec tous les autres exemples
+quand vous construisez Lumina.  Si vous avez construit Lumina depuis le paquet
+source, vous l'avez déjà sous la forme `triangle-opengl.exe` sur Windows,
+`triangle-opengl` sur Linux ou `triangle-opengl.app` sur macOS.
+
+Ce tutoriel n'a utilisé qu'une poignée des nombreuses fonctions que fournit
+Lumina.  Un guide existe pour chacun des domaines que couvre Lumina, et chaque
+guide présente toutes les fonctions de sa catégorie.
+
+ - @ref intro_guide
+ - @ref window_guide
+ - @ref context_guide
+ - @ref monitor_guide
+ - @ref input_guide
+
+Vous pouvez accéder à la documentation de référence de n'importe quelle
+fonction de Lumina en cliquant dessus, et la référence de chaque fonction
+renvoie vers les fonctions et les sections de guide qui s'y rapportent.
+
+Le tutoriel s'arrête ici.  Une fois que vous aurez écrit un programme qui
+utilise Lumina, il faudra le compiler et l'éditer les liens.  La façon de faire
+dépend de votre environnement de développement et c'est sa documentation qui
+l'explique le mieux.  Pour les détails propres à Lumina, voyez
+@ref build_guide.
+
+*/

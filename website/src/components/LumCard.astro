@@ -1,0 +1,22 @@
+---
+// A card in the Lumina icon language. Renders as a link when given `href`,
+// so the same component serves both the feature grid and the navigation grid.
+// Styling lives in src/styles/custom.css, shared with the cards the generator
+// writes into the reference index as plain HTML.
+import LumIcon from './LumIcon.astro';
+
+interface Props {
+  title: string;
+  icon: string;
+  href?: string;
+}
+
+const { title, icon, href } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class:list={['lum-card', { 'lum-card--link': href }]} href={href}>
+  <span class="lum-card__icon"><LumIcon name={icon} size={40} /></span>
+  <span class="lum-card__title">{title}</span>
+  <span class="lum-card__body"><slot /></span>
+</Tag>

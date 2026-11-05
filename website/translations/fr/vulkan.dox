@@ -1,0 +1,258 @@
+/*!
+
+@page vulkan_guide Guide Vulkan
+
+@tableofcontents
+
+Ce guide vise à combler l'espace entre les [ressources Vulkan
+officielles](https://www.khronos.org/vulkan/) et le reste de la documentation
+de Lumina ; il ne remplace ni les unes ni l'autre.  Il suppose une certaine
+familiarité avec les concepts de Vulkan — chargeurs (loaders), périphériques,
+files d'attente et surfaces — et laisse à la documentation de Vulkan le soin
+d'expliquer le détail de ses fonctions.
+
+Pour développer avec Vulkan, téléchargez le [SDK Vulkan de
+LunarG](https://vulkan.lunarg.com/) correspondant à votre plateforme.  Outre
+les en-têtes et les bibliothèques d'édition de liens, il fournit les couches de
+validation nécessaires au développement.
+
+Le [Vulkan Tutorial](https://vulkan-tutorial.com/) donne davantage
+d'informations sur l'usage conjoint de Lumina et de Vulkan.  Les [exemples
+Vulkan de Khronos](https://github.com/KhronosGroup/Vulkan-Samples) utilisent
+eux aussi Lumina, avec toutefois une petite couche intermédiaire.
+
+Pour le détail d'une fonction de prise en charge de Vulkan, voyez @ref vulkan.
+Il existe aussi des guides pour les autres domaines de l'API Lumina.
+
+ - @ref intro_guide
+ - @ref window_guide
+ - @ref context_guide
+ - @ref monitor_guide
+ - @ref input_guide
+
+
+@section vulkan_loader Trouver le chargeur Vulkan
+
+Lumina elle-même n'a jamais besoin d'être liée au chargeur Vulkan.
+
+Par défaut, Lumina charge dynamiquement le chargeur Vulkan à l'exécution, sous
+son nom standard : `vulkan-1.dll` sur Windows, `libvulkan.so.1` sur Linux et
+les autres systèmes de type Unix, `libvulkan.1.dylib` sur macOS.
+
+@macos Lumina cherche également dans le sous-répertoire des exécutables du
+bundle de votre application.
+
+Si votre code utilise un chargeur Vulkan portant un autre nom ou situé à un
+emplacement non standard, vous devrez l'indiquer à Lumina.  Passez votre
+version de `vkGetInstanceProcAddr` à @ref lumInitVulkanLoader avant
+d'initialiser Lumina : cette fonction servira pour toute récupération de point
+d'entrée Vulkan, et Lumina ne chargera plus dynamiquement le chargeur.
+
+@code
+lumInitVulkanLoader(vkGetInstanceProcAddr);
+@endcode
+
+@macos Pour que votre application soit redistribuable, vous devrez préparer son
+bundle conformément à la documentation du SDK LunarG.  C'est expliqué en détail
+dans la [documentation du SDK pour
+macOS](https://vulkan.lunarg.com/doc/sdk/latest/mac/getting_started.html).
+
+
+@section vulkan_include Inclure l'en-tête Vulkan
+
+Pour que Lumina inclue l'en-tête Vulkan, définissez @ref LUM_INCLUDE_VULKAN
+avant d'inclure l'en-tête de Lumina.
+
+@code
+#define LUM_INCLUDE_VULKAN
+#include <Lumina/lumina.h>
+@endcode
+
+Si vous préférez inclure l'en-tête Vulkan depuis un emplacement personnalisé,
+ou utiliser votre propre en-tête Vulkan, faites-le avant l'en-tête de Lumina.
+
+@code
+#include <path/to/vulkan.h>
+#include <Lumina/lumina.h>
+@endcode
+
+À moins qu'un en-tête Vulkan ne soit inclus, par l'en-tête de Lumina ou
+au-dessus de lui, les fonctions suivantes de Lumina ne seront pas déclarées,
+car elles dépendent de types Vulkan.
+
+ - @ref lumInitVulkanLoader
+ - @ref lumGetInstanceProcAddress
+ - @ref lumGetPhysicalDevicePresentationSupport
+ - @ref lumCreateWindowSurface
+
+Il n'est pas nécessaire de définir les macros `VK_USE_PLATFORM_*_KHR` pour que
+la partie Vulkan de Lumina fonctionne.  Ne les définissez que si vous utilisez
+ces extensions directement.
+
+
+@section vulkan_support Vérifier la prise en charge de Vulkan
+
+Si vous liez directement votre programme au chargeur Vulkan, vous pouvez sauter
+cette section : la bibliothèque de chargement canonique pour poste de travail
+exporte toutes les fonctions du cœur de Vulkan et des extensions Khronos, qui
+peuvent donc être appelées directement.
+
+Si vous chargez le chargeur Vulkan dynamiquement au lieu de lier contre lui,
+vous pouvez vérifier la disponibilité d'un chargeur et d'un ICD avec @ref
+lumVulkanSupported.
+
+@code
+if (lumVulkanSupported())
+{
+    // Vulkan est disponible, au moins pour le calcul
+}
+@endcode
+
+Cette fonction retourne `LUM_TRUE` si le chargeur Vulkan et un ICD au moins
+minimalement fonctionnel ont été trouvés.
+
+Si l'un des deux manque, tout autre appel à une fonction Lumina liée à Vulkan
+produira une erreur @ref LUM_API_UNAVAILABLE.
+
+
+@subsection vulkan_proc Récupérer des pointeurs de fonction Vulkan
+
+Pour charger n'importe quelle fonction du cœur de Vulkan ou d'une extension
+depuis le chargeur trouvé, appelez @ref lumGetInstanceProcAddress.  Pour
+charger les fonctions nécessaires à la création d'une instance, passez `NULL`
+comme instance.
+
+@code
+PFN_vkCreateInstance pfnCreateInstance = (PFN_vkCreateInstance)
+    lumGetInstanceProcAddress(NULL, "vkCreateInstance");
+@endcode
+
+Une fois l'instance créée, vous pouvez y charger toutes les autres fonctions du
+cœur de Vulkan, ainsi que celles des extensions d'instance que vous avez
+activées.
+
+@code
+PFN_vkCreateDevice pfnCreateDevice = (PFN_vkCreateDevice)
+    lumGetInstanceProcAddress(instance, "vkCreateDevice");
+@endcode
+
+Cette fonction appelle à son tour `vkGetInstanceProcAddr`.  En cas d'échec,
+elle se rabat sur une interrogation du chargeur Vulkan propre à la plateforme,
+c'est-à-dire `dlsym` ou `GetProcAddress`.  Si cela échoue aussi, elle retourne
+`NULL`.  Pour en savoir plus sur `vkGetInstanceProcAddr`, voyez la
+documentation de Vulkan.
+
+Vulkan fournit également `vkGetDeviceProcAddr`, pour charger les versions des
+fonctions Vulkan propres à un périphérique.  Cette fonction se récupère depuis
+une instance avec @ref lumGetInstanceProcAddress.
+
+@code
+PFN_vkGetDeviceProcAddr pfnGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)
+    lumGetInstanceProcAddress(instance, "vkGetDeviceProcAddr");
+@endcode
+
+Les fonctions propres à un périphérique peuvent s'exécuter un peu plus vite,
+n'ayant pas à répartir l'appel en interne selon le périphérique qu'on leur
+passe.  Pour en savoir plus sur `vkGetDeviceProcAddr`, voyez la documentation
+de Vulkan.
+
+
+@section vulkan_ext Connaître les extensions Vulkan requises
+
+Pour faire quoi que ce soit d'utile avec Vulkan, il vous faut créer une
+instance.  Si vous voulez utiliser Vulkan pour dessiner dans une fenêtre, vous
+devez activer les extensions d'instance dont Lumina a besoin pour créer des
+surfaces Vulkan.
+
+Pour connaître les extensions d'instance requises, appelez @ref
+lumGetRequiredInstanceExtensions.
+
+@code
+uint32_t count;
+const char** extensions = lumGetRequiredInstanceExtensions(&count);
+@endcode
+
+Ces extensions doivent toutes être activées lors de la création des instances
+que vous passerez à @ref lumGetPhysicalDevicePresentationSupport et @ref
+lumCreateWindowSurface.  L'ensemble des extensions varie selon la plateforme,
+et peut aussi varier selon les pilotes graphiques et d'autres facteurs.
+
+En cas d'échec, la fonction retourne `NULL` et Lumina ne pourra pas créer de
+surfaces de fenêtre Vulkan.  Vous pouvez toujours utiliser Vulkan pour le rendu
+hors écran et le calcul.
+
+En cas de succès, le tableau retourné contient toujours `VK_KHR_surface` : si
+vous n'avez besoin d'aucune extension supplémentaire, vous pouvez passer cette
+liste telle quelle à la structure `VkInstanceCreateInfo`.
+
+@code
+VkInstanceCreateInfo ici;
+
+memset(&ici, 0, sizeof(ici));
+ici.enabledExtensionCount = count;
+ici.ppEnabledExtensionNames = extensions;
+...
+@endcode
+
+De futures versions de Lumina pourront exiger d'autres extensions.  Vérifiez
+que les extensions que vous souhaitez activer ne figurent pas déjà dans le
+tableau retourné : indiquer deux fois une même extension dans la structure
+`VkInstanceCreateInfo` est une erreur.
+
+
+@section vulkan_present Vérifier la prise en charge de la présentation Vulkan
+
+Toutes les familles de files d'attente de tous les périphériques Vulkan ne
+savent pas présenter des images sur des surfaces.  Pour vérifier qu'une famille
+de files donnée d'un périphérique physique prend en charge la présentation
+d'images, sans avoir à créer d'abord une fenêtre et une surface, appelez @ref
+lumGetPhysicalDevicePresentationSupport.
+
+@code
+if (lumGetPhysicalDevicePresentationSupport(instance, physical_device, queue_family_index))
+{
+    // La famille de files prend en charge la présentation d'images
+}
+@endcode
+
+L'extension `VK_KHR_surface` fournit en outre la fonction
+`vkGetPhysicalDeviceSurfaceSupportKHR`, qui effectue le même test sur une
+surface Vulkan existante.
+
+
+@section vulkan_window Créer la fenêtre
+
+À moins d'utiliser OpenGL ou OpenGL ES avec la même fenêtre que Vulkan, il est
+inutile de créer un contexte.  Vous pouvez désactiver sa création avec l'indice
+[LUM_CLIENT_API](@ref LUM_CLIENT_API_hint).
+
+@code
+lumWindowHint(LUM_CLIENT_API, LUM_NO_API);
+LUMwindow* window = lumCreateWindow(640, 480, "Titre de la fenêtre", NULL, NULL);
+@endcode
+
+Voyez @ref context_less pour en savoir plus.
+
+
+@section vulkan_surface Créer une surface de fenêtre Vulkan
+
+Vous pouvez créer une surface Vulkan — telle que définie par l'extension
+`VK_KHR_surface` — pour une fenêtre Lumina, avec @ref lumCreateWindowSurface.
+
+@code
+VkSurfaceKHR surface;
+VkResult err = lumCreateWindowSurface(instance, window, NULL, &surface);
+if (err)
+{
+    // La création de la surface de fenêtre a échoué
+}
+@endcode
+
+Si un contexte OpenGL ou OpenGL ES a été créé sur la fenêtre, c'est lui qui est
+propriétaire de la présentation sur cette fenêtre, et aucune surface Vulkan ne
+peut être créée.
+
+C'est à vous de détruire la surface : Lumina ne le fait pas pour vous.
+Appelez pour cela la fonction `vkDestroySurfaceKHR` de la même extension.
+
+*/

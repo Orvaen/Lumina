@@ -1,0 +1,276 @@
+/*!
+
+@page monitor_guide Guide des écrans
+
+@tableofcontents
+
+Ce guide présente les fonctions de Lumina liées aux écrans.  Pour le détail
+d'une fonction de cette catégorie, voyez @ref monitor.  Il existe aussi des
+guides pour les autres domaines de Lumina.
+
+ - @ref intro_guide
+ - @ref window_guide
+ - @ref context_guide
+ - @ref vulkan_guide
+ - @ref input_guide
+
+
+@section monitor_object Objets écran
+
+Un objet écran représente un écran actuellement connecté ; il se manipule par
+un pointeur vers le type [opaque](https://en.wikipedia.org/wiki/Opaque_data_type)
+@ref LUMmonitor.  L'application ne peut ni créer ni détruire ces objets, et
+leurs adresses restent valides jusqu'à la déconnexion des écrans qu'ils
+représentent, ou jusqu'à la [terminaison](@ref intro_init_terminate) de la
+bibliothèque.
+
+Chaque écran possède un mode vidéo courant, une liste de modes vidéo pris en
+charge, une position virtuelle, un nom lisible, une taille physique estimée et
+une rampe gamma.  L'un des écrans est l'écran principal.
+
+La position virtuelle d'un écran est exprimée en
+[coordonnées d'écran](@ref coordinate_systems) ; avec le mode vidéo courant,
+elle décrit la fenêtre d'affichage que chaque écran connecté ouvre sur le
+bureau virtuel qui les englobe.
+
+Pour voir comment Lumina perçoit votre configuration d'écrans et les modes
+vidéo disponibles, lancez le programme de test `monitors`.
+
+
+@subsection monitor_monitors Récupérer les écrans
+
+L'écran principal est retourné par @ref lumGetPrimaryMonitor.  C'est l'écran
+préféré de l'utilisateur, généralement celui qui porte les éléments d'interface
+globaux comme la barre des tâches ou la barre de menus.
+
+@code
+LUMmonitor* primary = lumGetPrimaryMonitor();
+@endcode
+
+Vous pouvez récupérer tous les écrans actuellement connectés avec @ref
+lumGetMonitors.  Voyez la documentation de référence pour la durée de vie du
+tableau retourné.
+
+@code
+int count;
+LUMmonitor** monitors = lumGetMonitors(&count);
+@endcode
+
+L'écran principal est toujours le premier du tableau retourné, mais les autres
+peuvent changer d'indice lorsqu'un écran est connecté ou déconnecté.
+
+
+@subsection monitor_event Changements de configuration des écrans
+
+Si vous souhaitez être averti de la connexion ou de la déconnexion d'un écran,
+installez une fonction de rappel d'écran.
+
+@code
+lumSetMonitorCallback(monitor_callback);
+@endcode
+
+Cette fonction reçoit le handle de l'écran qui vient d'être connecté ou
+déconnecté, ainsi que l'événement survenu.
+
+@code
+void monitor_callback(LUMmonitor* monitor, int event)
+{
+    if (event == LUM_CONNECTED)
+    {
+        // L'écran a été connecté
+    }
+    else if (event == LUM_DISCONNECTED)
+    {
+        // L'écran a été déconnecté
+    }
+}
+@endcode
+
+Si un écran est déconnecté, toutes les fenêtres qui y étaient en plein écran
+repassent en mode fenêtré avant l'appel de la fonction de rappel.  Seules @ref
+lumGetMonitorName et @ref lumGetMonitorUserPointer retournent des valeurs
+utiles pour un écran déconnecté, et uniquement avant que la fonction de rappel
+ne rende la main.
+
+
+@section monitor_properties Propriétés d'un écran
+
+Chaque écran possède un mode vidéo courant, une liste de modes vidéo pris en
+charge, une position virtuelle, un facteur d'échelle de contenu, un nom
+lisible, un pointeur utilisateur, une taille physique estimée et une rampe
+gamma.
+
+
+@subsection monitor_modes Modes vidéo
+
+Lumina choisit en général correctement un mode vidéo adapté lorsque vous créez
+une fenêtre en plein écran, changez son mode vidéo ou faites passer une fenêtre
+en plein écran, mais il est parfois utile de savoir exactement quels modes
+vidéo sont pris en charge.
+
+Un mode vidéo est représenté par une structure @ref LUMvidmode.  Vous pouvez
+obtenir le tableau des modes vidéo pris en charge par un écran avec @ref
+lumGetVideoModes.  Voyez la documentation de référence pour la durée de vie du
+tableau retourné.
+
+@code
+int count;
+LUMvidmode* modes = lumGetVideoModes(monitor, &count);
+@endcode
+
+Pour obtenir le mode vidéo courant d'un écran, appelez @ref lumGetVideoMode.
+Voyez la documentation de référence pour la durée de vie du pointeur retourné.
+
+@code
+const LUMvidmode* mode = lumGetVideoMode(monitor);
+@endcode
+
+La résolution d'un mode vidéo est exprimée en
+[coordonnées d'écran](@ref coordinate_systems), pas en pixels.
+
+
+@subsection monitor_size Taille physique
+
+La taille physique d'un écran en millimètres, ou son estimation, se récupère
+avec @ref lumGetMonitorPhysicalSize.  Elle n'a aucun rapport avec sa
+_résolution_ courante, c'est-à-dire la largeur et la hauteur de son
+[mode vidéo](@ref monitor_modes) actuel.
+
+@code
+int width_mm, height_mm;
+lumGetMonitorPhysicalSize(monitor, &width_mm, &height_mm);
+@endcode
+
+On peut s'en servir pour calculer le DPI brut d'un écran, mais c'est rarement
+utile.  Préférez le [facteur d'échelle de l'écran](@ref monitor_scale) et le
+[facteur d'échelle de la fenêtre](@ref window_scale) pour dimensionner votre
+contenu.
+
+
+@subsection monitor_scale Facteur d'échelle du contenu
+
+Le facteur d'échelle du contenu d'un écran se récupère avec @ref
+lumGetMonitorContentScale.
+
+@code
+float xscale, yscale;
+lumGetMonitorContentScale(monitor, &xscale, &yscale);
+@endcode
+
+Ce facteur est le rapport entre le DPI courant et le DPI par défaut de la
+plateforme.  Il compte particulièrement pour le texte et les éléments
+d'interface.  Si les dimensions en pixels de votre interface, multipliées par
+ce facteur, rendent bien sur votre machine, elles devraient paraître d'une
+taille raisonnable sur les autres machines, quels que soient leur DPI et leurs
+réglages de mise à l'échelle.  Cela suppose que les réglages système de DPI et
+d'échelle soient à peu près corrects.
+
+Ce facteur peut dépendre à la fois de la résolution et de la densité de pixels
+de l'écran, et des réglages de l'utilisateur.  Il peut être très différent du
+DPI brut calculé à partir de la taille physique et de la résolution courante.
+
+
+@subsection monitor_pos Position virtuelle
+
+La position de l'écran sur le bureau virtuel, en
+[coordonnées d'écran](@ref coordinate_systems), se récupère avec @ref
+lumGetMonitorPos.
+
+@code
+int xpos, ypos;
+lumGetMonitorPos(monitor, &xpos, &ypos);
+@endcode
+
+
+@subsection monitor_workarea Zone de travail
+
+La partie d'un écran qu'aucune barre des tâches ni barre de menus globale
+n'occupe est la zone de travail.  Elle est exprimée en
+[coordonnées d'écran](@ref coordinate_systems) et se récupère avec @ref
+lumGetMonitorWorkarea.
+
+@code
+int xpos, ypos, width, height;
+lumGetMonitorWorkarea(monitor, &xpos, &ypos, &width, &height);
+@endcode
+
+
+@subsection monitor_name Nom lisible
+
+Le nom lisible d'un écran, encodé en UTF-8, est retourné par @ref
+lumGetMonitorName.  Voyez la documentation de référence pour la durée de vie de
+la chaîne retournée.
+
+@code
+const char* name = lumGetMonitorName(monitor);
+@endcode
+
+Rien ne garantit que les noms d'écran soient uniques : deux écrans de même
+marque et de même modèle peuvent porter le même nom.  Seul le handle de l'écran
+est garanti unique, et seulement jusqu'à sa déconnexion.
+
+
+@subsection monitor_userptr Pointeur utilisateur
+
+Chaque écran dispose d'un pointeur utilisateur, que l'on positionne avec @ref
+lumSetMonitorUserPointer et que l'on relit avec @ref lumGetMonitorUserPointer.
+Vous pouvez l'utiliser comme bon vous semble, Lumina ne le modifie pas.  Sa
+valeur est conservée jusqu'à la déconnexion de l'écran ou la terminaison de la
+bibliothèque.
+
+Sa valeur initiale est `NULL`.
+
+
+@subsection monitor_gamma Rampe gamma
+
+La rampe gamma d'un écran se positionne avec @ref lumSetGammaRamp, qui prend un
+handle d'écran et un pointeur vers une structure @ref LUMgammaramp.
+
+@code
+LUMgammaramp ramp;
+unsigned short red[256], green[256], blue[256];
+
+ramp.size = 256;
+ramp.red = red;
+ramp.green = green;
+ramp.blue = blue;
+
+for (i = 0;  i < ramp.size;  i++)
+{
+    // Remplir les tableaux de la rampe gamma comme voulu
+}
+
+lumSetGammaRamp(monitor, &ramp);
+@endcode
+
+Les données de la rampe sont copiées avant que la fonction ne rende la main :
+il est donc inutile de les conserver une fois la rampe positionnée.
+
+Il est recommandé que votre rampe gamma ait la même taille que la rampe
+courante de cet écran.
+
+La rampe gamma courante d'un écran est retournée par @ref lumGetGammaRamp.
+Voyez la documentation de référence pour la durée de vie de la structure
+retournée.
+
+@code
+const LUMgammaramp* ramp = lumGetGammaRamp(monitor);
+@endcode
+
+Si vous souhaitez simplement une rampe gamma ordinaire, vous pouvez laisser
+Lumina la calculer à partir de l'exposant voulu avec @ref lumSetGamma, qui
+appelle à son tour @ref lumSetGammaRamp avec la rampe obtenue.
+
+@code
+lumSetGamma(monitor, 1.0);
+@endcode
+
+Pour expérimenter la correction gamma via @ref lumSetGamma, lancez le programme
+de test `gamma`.
+
+@note La rampe gamma pilotée par logiciel s'applique _en plus_ de la correction
+gamma matérielle, qui approche aujourd'hui généralement le gamma sRGB.
+Autrement dit, poser une rampe parfaitement linéaire, c'est-à-dire un gamma de
+1.0, produit le comportement par défaut, en général proche de sRGB.
+
+*/

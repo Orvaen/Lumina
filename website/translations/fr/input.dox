@@ -1,0 +1,992 @@
+/*!
+
+@page input_guide Guide des entrées
+
+@tableofcontents
+
+Ce guide présente les fonctions de Lumina liées aux entrées.  Pour le détail
+d'une fonction de cette catégorie, voyez @ref input.  Il existe aussi des
+guides pour les autres domaines de Lumina.
+
+ - @ref intro_guide
+ - @ref window_guide
+ - @ref context_guide
+ - @ref vulkan_guide
+ - @ref monitor_guide
+
+Lumina fournit de nombreuses sortes d'entrées.  Certaines ne s'obtiennent que
+par interrogation, comme le temps ; d'autres uniquement par fonction de rappel,
+comme le défilement ; beaucoup offrent les deux.  Les fonctions de rappel
+demandent plus de travail que l'interrogation, mais consomment moins de
+processeur et garantissent que vous ne manquerez aucun changement d'état.
+
+Toutes les fonctions de rappel d'entrée reçoivent un handle de fenêtre.  Grâce
+au [pointeur utilisateur de la fenêtre](@ref window_userptr), vous pouvez
+atteindre depuis vos fonctions de rappel des structures ou des objets non
+globaux.
+
+Pour mieux sentir le comportement des différentes fonctions de rappel
+d'événement, lancez le programme de test `events`.  Il installe toutes les
+fonctions de rappel que gère Lumina et affiche tous les arguments reçus pour
+chaque événement, avec des informations d'horodatage et de séquence.
+
+
+@section events Traitement des événements
+
+Lumina doit interroger le système de fenêtrage, à la fois pour fournir des
+entrées à l'application et pour prouver au système que l'application n'est pas
+bloquée.  Le traitement des événements se fait normalement à chaque image,
+après l'[échange des tampons](@ref buffer_swap).  Même sans fenêtre, il faut
+interroger les événements pour recevoir ceux de branchement d'écran et de
+manette.
+
+Trois fonctions traitent les événements en attente.  @ref lumPollEvents ne
+traite que ceux déjà reçus, puis rend la main immédiatement.
+
+@code
+lumPollEvents();
+@endcode
+
+C'est le meilleur choix quand on dessine en continu, comme la plupart des jeux.
+
+Si vous n'avez besoin de mettre à jour le contenu de la fenêtre qu'à la
+réception d'une nouvelle entrée, @ref lumWaitEvents convient mieux.
+
+@code
+lumWaitEvents();
+@endcode
+
+Elle endort le thread jusqu'à ce qu'au moins un événement soit reçu, puis
+traite tous les événements reçus.  Cela économise énormément de cycles
+processeur et convient par exemple aux outils d'édition.
+
+Si vous voulez attendre des événements tout en ayant des éléments d'interface
+ou d'autres tâches à rafraîchir périodiquement, @ref lumWaitEventsTimeout vous
+laisse indiquer un délai.
+
+@code
+lumWaitEventsTimeout(0.7);
+@endcode
+
+Elle endort le thread jusqu'à ce qu'au moins un événement soit reçu, ou jusqu'à
+l'écoulement du nombre de secondes indiqué.  Elle traite ensuite les
+événements reçus.
+
+Si le thread principal dort dans @ref lumWaitEvents, vous pouvez le réveiller
+depuis un autre thread en postant un événement vide dans la file, avec @ref
+lumPostEmptyEvent.
+
+@code
+lumPostEmptyEvent();
+@endcode
+
+Ne supposez pas que les fonctions de rappel ne seront appelées _qu'en réponse_
+aux fonctions ci-dessus.  S'il est nécessaire de traiter les événements de
+l'une de ces façons, les systèmes de fenêtrage qui obligent Lumina à
+enregistrer ses propres fonctions de rappel peuvent lui transmettre des
+événements en réponse à de nombreux appels de fonctions du système de
+fenêtrage.  Lumina les transmet alors aux fonctions de rappel de l'application
+avant de rendre la main.
+
+Par exemple, sous Windows, la fonction système qui implémente @ref
+lumSetWindowSize envoie directement des événements de taille de fenêtre à la
+fonction de rappel d'événement que possède chaque fenêtre et que Lumina
+implémente pour les siennes.  Si vous avez installé une
+[fonction de rappel de taille de fenêtre](@ref window_size), Lumina l'appellera
+à son tour avec la nouvelle taille, avant que l'appel à @ref lumSetWindowSize
+ne rende la main.
+
+
+@section input_keyboard Entrées clavier
+
+Lumina divise les entrées clavier en deux catégories : les événements de touche
+et les événements de caractère.  Les premiers concernent les touches physiques,
+les seconds les points de code Unicode produits par l'appui sur certaines
+d'entre elles.
+
+Touches et caractères ne correspondent pas un pour un.  Un seul appui peut
+produire plusieurs caractères, et un seul caractère peut demander plusieurs
+touches.  Ce n'est peut-être pas le cas sur votre machine, mais vos
+utilisateurs n'emploieront sans doute pas tous la même disposition clavier, la
+même méthode de saisie, ni même le même système d'exploitation que vous.
+
+
+@subsection input_key Saisie des touches
+
+Si vous souhaitez être averti qu'une touche physique est enfoncée, relâchée ou
+qu'elle se répète, installez une fonction de rappel de clavier.
+
+@code
+lumSetKeyCallback(window, key_callback);
+@endcode
+
+Cette fonction reçoit la [touche](@ref keys), le scancode propre à la
+plateforme, l'action, et les [bits de modificateurs](@ref mods).
+
+@code
+void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == LUM_KEY_E && action == LUM_PRESS)
+        activate_airship();
+}
+@endcode
+
+L'action vaut `LUM_PRESS`, `LUM_REPEAT` ou `LUM_RELEASE`.  La touche vaudra
+`LUM_KEY_UNKNOWN` si Lumina n'a pas de symbole pour elle, par exemple les
+touches _E-mail_ et _Lecture_.
+
+Le scancode est unique pour chaque touche, qu'elle ait ou non un symbole.  Les
+scancodes sont propres à la plateforme mais stables dans le temps : une touche
+aura des scancodes différents selon la plateforme, mais on peut les enregistrer
+sur disque sans crainte.  Vous obtenez le scancode de n'importe quelle
+[touche nommée](@ref keys) sur la plateforme courante avec @ref
+lumGetKeyScancode.
+
+@code
+const int scancode = lumGetKeyScancode(LUM_KEY_X);
+set_key_mapping(scancode, swap_weapons);
+@endcode
+
+Le dernier état signalé de chaque [touche nommée](@ref keys) est également
+conservé dans des tableaux d'état par fenêtre, que l'on interroge avec @ref
+lumGetKey.
+
+@code
+int state = lumGetKey(window, LUM_KEY_E);
+if (state == LUM_PRESS)
+{
+    activate_airship();
+}
+@endcode
+
+L'état retourné vaut `LUM_PRESS` ou `LUM_RELEASE`.
+
+Cette fonction ne retourne que l'état mis en cache à partir des événements.
+Elle n'interroge pas le système sur l'état physique courant de la touche.
+
+@anchor LUM_STICKY_KEYS
+Chaque fois que vous interrogez un état, vous risquez de manquer le changement
+que vous guettez.  Si une touche enfoncée est relâchée avant que vous
+n'interrogiez son état, vous aurez manqué l'appui.  La solution recommandée est
+d'utiliser une fonction de rappel, mais il existe aussi le mode d'entrée
+`LUM_STICKY_KEYS`.
+
+@code
+lumSetInputMode(window, LUM_STICKY_KEYS, LUM_TRUE);
+@endcode
+
+Quand le mode touches collantes est actif, l'état interrogeable d'une touche
+reste `LUM_PRESS` jusqu'à ce qu'il soit lu avec @ref lumGetKey.  Une fois lu,
+si un événement de relâchement a été traité entre-temps, l'état repasse à
+`LUM_RELEASE` ; sinon il reste `LUM_PRESS`.
+
+@anchor LUM_LOCK_KEY_MODS
+Si vous voulez connaître l'état des touches Verr. Maj et Verr. Num au moment où
+les événements d'entrée ont été produits, activez le mode d'entrée
+`LUM_LOCK_KEY_MODS`.
+
+@code
+lumSetInputMode(window, LUM_LOCK_KEY_MODS, LUM_TRUE);
+@endcode
+
+Quand ce mode est actif, toute fonction de rappel qui reçoit des
+[bits de modificateurs](@ref mods) aura le bit @ref LUM_MOD_CAPS_LOCK
+positionné si Verr. Maj était actif lors de l'événement, et le bit @ref
+LUM_MOD_NUM_LOCK si Verr. Num l'était.
+
+La constante `LUM_KEY_LAST` contient la plus grande valeur de
+[touche nommée](@ref keys).
+
+
+@subsection input_char Saisie de texte
+
+Lumina prend en charge la saisie de texte sous forme d'un flux de
+[points de code Unicode](https://en.wikipedia.org/wiki/Unicode), tels que les
+produit le système de saisie du système d'exploitation.  Contrairement à la
+saisie de touches, la saisie de texte respecte les dispositions clavier et les
+touches de modification, et gère la composition de caractères par
+[touches mortes](https://fr.wikipedia.org/wiki/Touche_morte).  Une fois reçus,
+vous pouvez encoder ces points de code en UTF-8 ou dans tout autre encodage de
+votre choix.
+
+Comme un `unsigned int` fait 32 bits sur toutes les plateformes que prend en
+charge Lumina, vous pouvez traiter l'argument point de code comme de l'UTF-32
+dans le boutisme natif.
+
+Si vous souhaitez offrir une saisie de texte ordinaire, installez une fonction
+de rappel de caractère.
+
+@code
+lumSetCharCallback(window, character_callback);
+@endcode
+
+Cette fonction reçoit les points de code Unicode des événements de touche qui
+auraient conduit à une saisie de texte ordinaire ; elle se comporte en général
+comme un champ de texte standard de la plateforme.
+
+@code
+void character_callback(LUMwindow* window, unsigned int codepoint)
+{
+}
+@endcode
+
+
+@subsection input_key_name Noms des touches
+
+Si vous souhaitez désigner les touches par leur nom, vous pouvez obtenir le nom
+des touches imprimables, dépendant de la disposition clavier, avec @ref
+lumGetKeyName.
+
+@code
+const char* key_name = lumGetKeyName(LUM_KEY_W, 0);
+show_tutorial_hint("Appuyez sur %s pour avancer", key_name);
+@endcode
+
+Cette fonction accepte aussi bien les [touches que les scancodes](@ref input_key).
+Si la touche indiquée est `LUM_KEY_UNKNOWN`, le scancode est utilisé ; sinon il
+est ignoré.  Cela correspond au comportement de la fonction de rappel de
+clavier : ses arguments peuvent donc toujours être passés tels quels à cette
+fonction.
+
+
+@section input_mouse Entrées souris
+
+Les entrées souris prennent plusieurs formes : mouvement, appuis de boutons,
+décalages de défilement.  L'apparence du curseur peut aussi être changée, soit
+par une image personnalisée, soit par une forme standard du thème système.
+
+
+@subsection cursor_pos Position du curseur
+
+Si vous souhaitez être averti des mouvements du curseur au-dessus de la
+fenêtre, installez une fonction de rappel de position du curseur.
+
+@code
+lumSetCursorPosCallback(window, cursor_position_callback);
+@endcode
+
+Cette fonction reçoit la position du curseur, mesurée en coordonnées d'écran
+mais relativement au coin supérieur gauche de la zone de contenu de la fenêtre.
+Sur les plateformes qui la fournissent, la position sous-pixel complète est
+transmise.
+
+@code
+static void cursor_position_callback(LUMwindow* window, double xpos, double ypos)
+{
+}
+@endcode
+
+La position du curseur est également conservée par fenêtre et s'interroge avec
+@ref lumGetCursorPos.
+
+@code
+double xpos, ypos;
+lumGetCursorPos(window, &xpos, &ypos);
+@endcode
+
+
+@subsection cursor_mode Mode du curseur
+
+@anchor LUM_CURSOR
+Le mode d'entrée `LUM_CURSOR` offre plusieurs modes de curseur, pour des formes
+particulières de saisie du mouvement de la souris.  Par défaut, le mode vaut
+`LUM_CURSOR_NORMAL` : le curseur fléché habituel (ou un autre, posé avec @ref
+lumSetCursor) est utilisé et son mouvement n'est pas limité.
+
+Si vous souhaitez implémenter une caméra pilotée au mouvement de souris, ou
+tout autre schéma exigeant un déplacement illimité, réglez le mode de curseur
+sur `LUM_CURSOR_DISABLED`.
+
+@code
+lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_DISABLED);
+@endcode
+
+Cela masque le curseur et le verrouille sur la fenêtre indiquée.  Lumina
+s'occupe alors de tous les détails de recentrage du curseur et de calcul des
+décalages, et fournit à l'application une position de curseur virtuelle.  Cette
+position virtuelle est transmise normalement, par la fonction de rappel de
+position comme par interrogation.
+
+@note N'implémentez pas votre propre version de ce mécanisme à partir d'autres
+fonctionnalités de Lumina.  Ce n'est pas pris en charge et cela ne fonctionnera
+pas aussi solidement que `LUM_CURSOR_DISABLED`.
+
+Si vous souhaitez seulement que le curseur soit masqué au-dessus d'une fenêtre
+tout en se comportant normalement, réglez le mode sur `LUM_CURSOR_HIDDEN`.
+
+@code
+lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_HIDDEN);
+@endcode
+
+Ce mode n'impose aucune limite au mouvement du curseur.
+
+Pour sortir de l'un ou l'autre de ces modes particuliers, rétablissez le mode
+`LUM_CURSOR_NORMAL`.
+
+@code
+lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_NORMAL);
+@endcode
+
+
+@anchor LUM_RAW_MOUSE_MOTION
+@subsection raw_mouse_motion Mouvement de souris brut
+
+Lorsque le curseur est désactivé, le mouvement de souris brut, sans mise à
+l'échelle ni accélération, peut être activé s'il est disponible.
+
+Le mouvement brut est plus proche du déplacement réel de la souris sur une
+surface.  Il n'est affecté ni par la mise à l'échelle ni par l'accélération
+appliquées au curseur du bureau.  Ce traitement convient à un curseur, tandis
+que le mouvement brut convient mieux au pilotage d'une caméra 3D, par exemple.
+C'est pourquoi le mouvement brut n'est fourni que lorsque le curseur est
+désactivé.
+
+Appelez @ref lumRawMouseMotionSupported pour savoir si la machine courante
+fournit le mouvement brut, puis activez le mode d'entrée
+`LUM_RAW_MOUSE_MOTION`.  Il est désactivé par défaut.
+
+@code
+if (lumRawMouseMotionSupported())
+    lumSetInputMode(window, LUM_RAW_MOUSE_MOTION, LUM_TRUE);
+@endcode
+
+S'il est pris en charge, le mouvement brut s'active ou se désactive fenêtre par
+fenêtre et à tout moment, mais il n'est fourni que lorsque le curseur est
+désactivé.
+
+
+@subsection cursor_object Objets curseur
+
+Lumina permet de créer des images de curseur personnalisées comme issues du
+thème système, encapsulées dans des objets @ref LUMcursor.  Ils se créent avec
+@ref lumCreateCursor ou @ref lumCreateStandardCursor, et se détruisent avec
+@ref lumDestroyCursor, ou @ref lumTerminate s'il en reste.
+
+
+@subsubsection cursor_custom Créer un curseur personnalisé
+
+Un curseur personnalisé se crée avec @ref lumCreateCursor, qui retourne un
+handle vers l'objet créé.  Voici par exemple comment créer un curseur carré
+blanc de 16 × 16 dont le point chaud est au coin supérieur gauche :
+
+@code
+unsigned char pixels[16 * 16 * 4];
+memset(pixels, 0xff, sizeof(pixels));
+
+LUMimage image;
+image.width = 16;
+image.height = 16;
+image.pixels = pixels;
+
+LUMcursor* cursor = lumCreateCursor(&image, 0, 0);
+@endcode
+
+Si la création échoue, `NULL` est retourné : il faut donc vérifier la valeur de
+retour.
+
+Les données d'image sont en RVBA 32 bits, petit-boutiste, non prémultiplié,
+c'est-à-dire huit bits par canal avec le rouge en premier.  Les pixels sont
+rangés de façon canonique, en lignes successives, à partir du coin supérieur
+gauche.
+
+
+@subsubsection cursor_standard Créer un curseur standard
+
+Un curseur de [forme standard](@ref shapes), issu du thème de curseurs courant
+du système, se crée avec @ref lumCreateStandardCursor.
+
+@code
+LUMcursor* url_cursor = lumCreateStandardCursor(LUM_POINTING_HAND_CURSOR);
+@endcode
+
+Ces objets curseur se comportent exactement comme ceux créés avec @ref
+lumCreateCursor, à ceci près que l'image vient du thème système.
+
+Quelques-unes de ces formes ne sont pas disponibles partout.  Si une forme est
+indisponible, `NULL` est retourné.  Voyez @ref lumCreateStandardCursor pour le
+détail.
+
+
+@subsubsection cursor_destruction Détruire un curseur
+
+Quand un curseur ne sert plus, détruisez-le avec @ref lumDestroyCursor.
+
+@code
+lumDestroyCursor(cursor);
+@endcode
+
+La destruction d'un curseur réussit toujours.  Si le curseur est courant pour
+une fenêtre, celle-ci revient au curseur par défaut.  Cela n'affecte pas le
+mode de curseur.  Tous les curseurs restants sont détruits à l'appel de @ref
+lumTerminate.
+
+
+@subsubsection cursor_set Poser un curseur
+
+Un curseur se pose comme courant pour une fenêtre avec @ref lumSetCursor.
+
+@code
+lumSetCursor(window, cursor);
+@endcode
+
+Une fois posée, son image sert tant que le curseur système est au-dessus de la
+zone de contenu de la fenêtre et que le [mode de curseur](@ref cursor_mode)
+vaut `LUM_CURSOR_NORMAL`.
+
+Un même curseur peut être posé sur autant de fenêtres qu'on veut.
+
+Pour revenir au curseur par défaut, posez `NULL` comme curseur de la fenêtre.
+
+@code
+lumSetCursor(window, NULL);
+@endcode
+
+Quand un curseur est détruit, toute fenêtre qui l'utilisait revient au curseur
+par défaut.  Cela n'affecte pas le mode de curseur.
+
+
+@subsection cursor_enter Événements d'entrée et de sortie du curseur
+
+Si vous souhaitez être averti quand le curseur entre dans la zone de contenu
+d'une fenêtre ou en sort, installez une fonction de rappel d'entrée/sortie de
+curseur.
+
+@code
+lumSetCursorEnterCallback(window, cursor_enter_callback);
+@endcode
+
+Cette fonction reçoit la nouvelle classification du curseur.
+
+@code
+void cursor_enter_callback(LUMwindow* window, int entered)
+{
+    if (entered)
+    {
+        // Le curseur est entré dans la zone de contenu de la fenêtre
+    }
+    else
+    {
+        // Le curseur a quitté la zone de contenu de la fenêtre
+    }
+}
+@endcode
+
+Vous pouvez demander si le curseur se trouve actuellement dans la zone de
+contenu de la fenêtre, avec l'attribut de fenêtre
+[LUM_HOVERED](@ref LUM_HOVERED_attrib).
+
+@code
+if (lumGetWindowAttrib(window, LUM_HOVERED))
+{
+    highlight_interface();
+}
+@endcode
+
+
+@subsection input_mouse_button Saisie des boutons de la souris
+
+Si vous souhaitez être averti qu'un bouton de souris est enfoncé ou relâché,
+installez une fonction de rappel de bouton de souris.
+
+@code
+lumSetMouseButtonCallback(window, mouse_button_callback);
+@endcode
+
+Cette fonction reçoit le [bouton](@ref buttons), l'action, et les
+[bits de modificateurs](@ref mods).
+
+@code
+void mouse_button_callback(LUMwindow* window, int button, int action, int mods)
+{
+    if (button == LUM_MOUSE_BUTTON_RIGHT && action == LUM_PRESS)
+        popup_menu();
+}
+@endcode
+
+L'action vaut `LUM_PRESS` ou `LUM_RELEASE`.
+
+L'état des [boutons nommés](@ref buttons) est également conservé dans des
+tableaux d'état par fenêtre, que l'on interroge avec @ref lumGetMouseButton.
+
+@code
+int state = lumGetMouseButton(window, LUM_MOUSE_BUTTON_LEFT);
+if (state == LUM_PRESS)
+{
+    upgrade_cow();
+}
+@endcode
+
+L'état retourné vaut `LUM_PRESS` ou `LUM_RELEASE`.
+
+Cette fonction ne retourne que l'état mis en cache à partir des événements.
+Elle n'interroge pas le système sur l'état courant du bouton.
+
+@anchor LUM_STICKY_MOUSE_BUTTONS
+Chaque fois que vous interrogez un état, vous risquez de manquer le changement
+que vous guettez.  Si un bouton enfoncé est relâché avant que vous
+n'interrogiez son état, vous aurez manqué l'appui.  La solution recommandée est
+d'utiliser une fonction de rappel, mais il existe aussi le mode d'entrée
+`LUM_STICKY_MOUSE_BUTTONS`.
+
+@code
+lumSetInputMode(window, LUM_STICKY_MOUSE_BUTTONS, LUM_TRUE);
+@endcode
+
+Quand le mode boutons collants est actif, l'état interrogeable d'un bouton
+reste `LUM_PRESS` jusqu'à ce qu'il soit lu avec @ref lumGetMouseButton.  Une
+fois lu, si un événement de relâchement a été traité entre-temps, l'état
+repasse à `LUM_RELEASE` ; sinon il reste `LUM_PRESS`.
+
+La constante `LUM_MOUSE_BUTTON_LAST` contient la plus grande valeur de
+[bouton nommé](@ref buttons).
+
+
+@subsection scrolling Saisie du défilement
+
+Si vous souhaitez être averti que l'utilisateur fait défiler, à la molette ou
+par un geste sur pavé tactile, installez une fonction de rappel de défilement.
+
+@code
+lumSetScrollCallback(window, scroll_callback);
+@endcode
+
+Cette fonction reçoit des décalages de défilement à deux dimensions.
+
+@code
+void scroll_callback(LUMwindow* window, double xoffset, double yoffset)
+{
+}
+@endcode
+
+Une molette de souris ordinaire, étant verticale, fournit des décalages sur
+l'axe Y.
+
+
+@section joystick Entrées de manette
+
+Les fonctions de manette exposent les manettes et contrôleurs connectés, les
+deux étant appelés manettes.  Jusqu'à seize manettes sont gérées, de
+`LUM_JOYSTICK_1` et `LUM_JOYSTICK_2` jusqu'à `LUM_JOYSTICK_16`, c'est-à-dire
+`LUM_JOYSTICK_LAST`.  Vous pouvez tester la présence d'une
+[manette](@ref joysticks) avec @ref lumJoystickPresent.
+
+@code
+int present = lumJoystickPresent(LUM_JOYSTICK_1);
+@endcode
+
+Chaque manette possède zéro axe ou plus, zéro bouton ou plus, zéro croix
+directionnelle ou plus, un nom lisible, un pointeur utilisateur et un GUID
+compatible SDL.
+
+Les manettes détectées sont ajoutées au début du tableau.  Une fois détectée,
+une manette conserve l'identifiant qui lui a été attribué jusqu'à sa
+déconnexion ou la terminaison de la bibliothèque : au gré des connexions et
+déconnexions, des trous peuvent donc apparaître dans les identifiants.
+
+L'état des axes, boutons et croix d'une manette est mis à jour à
+l'interrogation, sans qu'il soit nécessaire de créer une fenêtre ni de traiter
+les événements.  En revanche, si vous voulez que les événements de connexion et
+de déconnexion parviennent de façon fiable à la
+[fonction de rappel de manette](@ref joystick_event), vous devez
+[traiter les événements](@ref events).
+
+Pour voir en temps réel toutes les propriétés de toutes les manettes
+connectées, lancez le programme de test `joysticks`.
+
+
+@subsection joystick_axis État des axes d'une manette
+
+Les positions de tous les axes d'une manette sont retournées par @ref
+lumGetJoystickAxes.  Voyez la documentation de référence pour la durée de vie
+du tableau retourné.
+
+@code
+int count;
+const float* axes = lumGetJoystickAxes(LUM_JOYSTICK_5, &count);
+@endcode
+
+Chaque élément du tableau retourné est une valeur comprise entre -1.0 et 1.0.
+
+
+@subsection joystick_button État des boutons d'une manette
+
+Les états de tous les boutons d'une manette sont retournés par @ref
+lumGetJoystickButtons.  Voyez la documentation de référence pour la durée de
+vie du tableau retourné.
+
+@code
+int count;
+const unsigned char* buttons = lumGetJoystickButtons(LUM_JOYSTICK_3, &count);
+@endcode
+
+Chaque élément du tableau retourné vaut `LUM_PRESS` ou `LUM_RELEASE`.
+
+Par compatibilité ascendante avec les versions antérieures, qui n'avaient pas
+@ref lumGetJoystickHats, le tableau des boutons inclut aussi par défaut toutes
+les croix directionnelles.  Voyez la documentation de référence de @ref
+lumGetJoystickButtons pour le détail.
+
+
+@subsection joystick_hat État des croix directionnelles
+
+Les états de toutes les croix sont retournés par @ref lumGetJoystickHats.
+Voyez la documentation de référence pour la durée de vie du tableau retourné.
+
+@code
+int count;
+const unsigned char* hats = lumGetJoystickHats(LUM_JOYSTICK_7, &count);
+@endcode
+
+Chaque élément du tableau retourné vaut l'une des valeurs suivantes :
+
+Nom                   | Valeur
+----                  | -----
+`LUM_HAT_CENTERED`   | 0
+`LUM_HAT_UP`         | 1
+`LUM_HAT_RIGHT`      | 2
+`LUM_HAT_DOWN`       | 4
+`LUM_HAT_LEFT`       | 8
+`LUM_HAT_RIGHT_UP`   | `LUM_HAT_RIGHT` \| `LUM_HAT_UP`
+`LUM_HAT_RIGHT_DOWN` | `LUM_HAT_RIGHT` \| `LUM_HAT_DOWN`
+`LUM_HAT_LEFT_UP`    | `LUM_HAT_LEFT` \| `LUM_HAT_UP`
+`LUM_HAT_LEFT_DOWN`  | `LUM_HAT_LEFT` \| `LUM_HAT_DOWN`
+
+Les directions diagonales sont des combinaisons binaires des directions
+primaires (haut, droite, bas, gauche) ; vous pouvez les tester individuellement
+par un ET avec la direction correspondante.
+
+@code
+if (hats[2] & LUM_HAT_RIGHT)
+{
+    // L'état de la croix 2 peut être droite-haut, droite ou droite-bas
+}
+@endcode
+
+Par compatibilité ascendante avec les versions antérieures, qui n'avaient pas
+@ref lumGetJoystickHats, toutes les croix sont aussi incluses par défaut dans
+le tableau des boutons.  Voyez la documentation de référence de @ref
+lumGetJoystickButtons pour le détail.
+
+
+@subsection joystick_name Nom d'une manette
+
+Le nom lisible d'une manette, encodé en UTF-8, est retourné par @ref
+lumGetJoystickName.  Voyez la documentation de référence pour la durée de vie
+de la chaîne retournée.
+
+@code
+const char* name = lumGetJoystickName(LUM_JOYSTICK_4);
+@endcode
+
+Rien ne garantit que les noms de manette soient uniques : deux manettes de même
+marque et de même modèle peuvent porter le même nom.  Seul
+l'[identifiant de manette](@ref joysticks) est garanti unique, et seulement
+jusqu'à sa déconnexion.
+
+
+@subsection joystick_userptr Pointeur utilisateur d'une manette
+
+Chaque manette dispose d'un pointeur utilisateur, que l'on positionne avec @ref
+lumSetJoystickUserPointer et que l'on relit avec @ref
+lumGetJoystickUserPointer.  Vous pouvez l'utiliser comme bon vous semble,
+Lumina ne le modifie pas.  Sa valeur est conservée jusqu'à la déconnexion de la
+manette ou la terminaison de la bibliothèque.
+
+Sa valeur initiale est `NULL`.
+
+
+@subsection joystick_event Changements de configuration des manettes
+
+Si vous souhaitez être averti de la connexion ou de la déconnexion d'une
+manette, installez une fonction de rappel de manette.
+
+@code
+lumSetJoystickCallback(joystick_callback);
+@endcode
+
+Cette fonction reçoit l'identifiant de la manette connectée ou déconnectée,
+ainsi que l'événement survenu.
+
+@code
+void joystick_callback(int jid, int event)
+{
+    if (event == LUM_CONNECTED)
+    {
+        // La manette a été connectée
+    }
+    else if (event == LUM_DISCONNECTED)
+    {
+        // La manette a été déconnectée
+    }
+}
+@endcode
+
+Pour que les événements de connexion et de déconnexion de manette soient
+délivrés sur toutes les plateformes, vous devez appeler l'une des fonctions de
+[traitement des événements](@ref events).  Une déconnexion peut aussi être
+détectée, et la fonction de rappel appelée, par les fonctions de manette
+elles-mêmes ; la fonction retournera alors ce qu'elle retourne pour une manette
+déconnectée.
+
+Seules @ref lumGetJoystickName et @ref lumGetJoystickUserPointer retournent des
+valeurs utiles pour une manette déconnectée, et uniquement avant que la
+fonction de rappel ne rende la main.
+
+
+@subsection gamepad Entrées de manette de jeu
+
+Les fonctions de manette fournissent des axes, boutons et croix non étiquetés,
+sans indiquer où ils se trouvent sur l'appareil.  Leur ordre peut en outre
+varier d'une plateforme à l'autre, même avec le même appareil.
+
+Pour résoudre ce problème, la communauté SDL a monté collectivement le projet
+[SDL_GameControllerDB](https://github.com/gabomdq/SDL_GameControllerDB), une
+base de correspondances entre quantité d'appareils et une manette de type Xbox.
+
+Lumina gère ce format de correspondance et embarque une copie des
+correspondances disponibles à sa sortie.  Voyez @ref gamepad_mapping pour les
+mettre à jour à l'exécution.  Les correspondances sont attribuées
+automatiquement aux manettes à chaque connexion ou mise à jour.
+
+Vous pouvez vérifier qu'une manette est à la fois présente et dotée d'une
+correspondance de manette de jeu avec @ref lumJoystickIsGamepad.
+
+@code
+if (lumJoystickIsGamepad(LUM_JOYSTICK_2))
+{
+    // Utiliser comme manette de jeu
+}
+@endcode
+
+Si seules les entrées de manette de jeu vous intéressent, vous pouvez employer
+cette fonction à la place de @ref lumJoystickPresent.
+
+Vous pouvez demander le nom lisible fourni par la correspondance avec @ref
+lumGetGamepadName.  Il peut différer du [nom de la manette](@ref joystick_name).
+
+@code
+const char* name = lumGetGamepadName(LUM_JOYSTICK_7);
+@endcode
+
+Pour récupérer l'état de manette de jeu d'une manette, appelez @ref
+lumGetGamepadState.
+
+@code
+LUMgamepadstate state;
+
+if (lumGetGamepadState(LUM_JOYSTICK_3, &state))
+{
+    if (state.buttons[LUM_GAMEPAD_BUTTON_A])
+    {
+        input_jump();
+    }
+
+    input_speed(state.axes[LUM_GAMEPAD_AXIS_RIGHT_TRIGGER]);
+}
+@endcode
+
+La structure @ref LUMgamepadstate contient deux tableaux : un pour l'état des
+boutons, un pour celui des axes.  Les valeurs sont les mêmes que pour @ref
+lumGetJoystickButtons et @ref lumGetJoystickAxes, c'est-à-dire `LUM_PRESS` ou
+`LUM_RELEASE` pour les boutons, et -1.0 à 1.0 inclus pour les axes.
+
+La taille des tableaux et la position de chaque élément sont fixes.
+
+Les [indices de bouton](@ref gamepad_buttons) sont `LUM_GAMEPAD_BUTTON_A`,
+`LUM_GAMEPAD_BUTTON_B`, `LUM_GAMEPAD_BUTTON_X`, `LUM_GAMEPAD_BUTTON_Y`,
+`LUM_GAMEPAD_BUTTON_LEFT_BUMPER`, `LUM_GAMEPAD_BUTTON_RIGHT_BUMPER`,
+`LUM_GAMEPAD_BUTTON_BACK`, `LUM_GAMEPAD_BUTTON_START`,
+`LUM_GAMEPAD_BUTTON_GUIDE`, `LUM_GAMEPAD_BUTTON_LEFT_THUMB`,
+`LUM_GAMEPAD_BUTTON_RIGHT_THUMB`, `LUM_GAMEPAD_BUTTON_DPAD_UP`,
+`LUM_GAMEPAD_BUTTON_DPAD_RIGHT`, `LUM_GAMEPAD_BUTTON_DPAD_DOWN` et
+`LUM_GAMEPAD_BUTTON_DPAD_LEFT`.
+
+Pour qui préfère, il existe aussi les alias `LUM_GAMEPAD_BUTTON_CROSS`,
+`LUM_GAMEPAD_BUTTON_CIRCLE`, `LUM_GAMEPAD_BUTTON_SQUARE` et
+`LUM_GAMEPAD_BUTTON_TRIANGLE` pour les indices des boutons A, B, X et Y.
+
+Les [indices d'axe](@ref gamepad_axes) sont `LUM_GAMEPAD_AXIS_LEFT_X`,
+`LUM_GAMEPAD_AXIS_LEFT_Y`, `LUM_GAMEPAD_AXIS_RIGHT_X`,
+`LUM_GAMEPAD_AXIS_RIGHT_Y`, `LUM_GAMEPAD_AXIS_LEFT_TRIGGER` et
+`LUM_GAMEPAD_AXIS_RIGHT_TRIGGER`.
+
+Les constantes `LUM_GAMEPAD_BUTTON_LAST` et `LUM_GAMEPAD_AXIS_LAST` valent le
+plus grand indice disponible de chaque tableau.
+
+
+@subsection gamepad_mapping Correspondances de manette de jeu
+
+Lumina embarque une copie des correspondances de
+[SDL_GameControllerDB](https://github.com/gabomdq/SDL_GameControllerDB)
+disponibles à sa sortie.  On peut en ajouter de plus récentes à l'exécution
+avec @ref lumUpdateGamepadMappings.
+
+@code
+const char* mappings = load_file_contents("game/data/gamecontrollerdb.txt");
+
+lumUpdateGamepadMappings(mappings);
+@endcode
+
+Cette fonction accepte aussi bien une seule ligne que le contenu intégral et
+non modifié du fichier `gamecontrollerdb.txt`.
+
+Si vous compilez Lumina depuis les sources avec CMake, vous pouvez mettre à
+jour les correspondances intégrées en construisant la cible
+_update_mappings_.  Elle lance le script CMake `GenerateMappings.cmake`, qui
+télécharge `gamecontrollerdb.txt` et régénère l'en-tête `mappings.h`.
+
+Voici une description du format de correspondance.  Gardez à l'esprit que
+__cette description ne fait pas autorité__ : le format est défini par les
+projets SDL et SDL_GameControllerDB, dont la documentation et le code priment.
+
+Chaque correspondance tient sur une ligne de valeurs séparées par des virgules,
+décrivant le GUID, le nom et la disposition de la manette.  Les lignes qui ne
+commencent pas par un chiffre hexadécimal sont ignorées.
+
+La première valeur est toujours le GUID de la manette, une chaîne hexadécimale
+de 32 caractères qui identifie généralement sa marque, son modèle, sa révision
+et son type de connexion à l'ordinateur.  Quand cette information est
+indisponible, le GUID est produit à partir du nom de la manette.  Lumina
+emploie le format de GUID de SDL 2.0.5 et au-delà, mais sait convertir depuis
+les formats plus anciens.
+
+La deuxième valeur est toujours le nom lisible de la manette.
+
+Toutes les valeurs suivantes sont de la forme `<champ>:<valeur>` et décrivent
+la disposition.  Ces champs ne sont pas forcément tous présents et peuvent
+apparaître dans n'importe quel ordre.
+
+Les champs de bouton sont `a`, `b`, `c`, `d`, `back`, `start`, `guide`,
+`dpup`, `dpright`, `dpdown`, `dpleft`, `leftshoulder`, `rightshoulder`,
+`leftstick` et `rightstick`.
+
+Les champs d'axe sont `leftx`, `lefty`, `rightx`, `righty`, `lefttrigger` et
+`righttrigger`.
+
+La valeur d'un champ d'axe ou de bouton peut être un bouton de manette, un axe
+de manette, un masque de bits de croix, ou rien.  Les boutons s'écrivent `bN`,
+par exemple `b2` pour le troisième bouton.  Les axes s'écrivent `aN`, par
+exemple `a7` pour le huitième.  Les masques de bits de croix s'écrivent `hN.N`,
+par exemple `h0.8` pour gauche sur la première croix.  Plusieurs bits peuvent
+être positionnés dans le masque.
+
+Un axe peut être précédé d'un modificateur de plage `+` ou `-`, par exemple
+`+a3` pour la moitié positive du quatrième axe.  Cela restreint l'entrée à la
+moitié positive ou négative de l'axe.  Un axe ou demi-axe peut être suivi du
+modificateur d'inversion `~`, par exemple `a2~` ou `-a7~`, qui inverse les
+valeurs de l'axe.
+
+Les masques de bits de croix correspondent aux
+[états de croix](@ref hat_state) des fonctions de manette.
+
+Il existe enfin un champ spécial `platform`, qui indique la plateforme pour
+laquelle la correspondance est valide.  Les valeurs possibles sont `Windows`,
+`Mac OS X` et `Linux`.
+
+Voici à quoi peut ressembler une correspondance de manette.  C'est celle
+qu'embarque Lumina pour les manettes Xbox accessibles via l'API XInput sous
+Windows.  Cet exemple a été coupé sur plusieurs lignes pour tenir dans la page,
+mais une vraie correspondance doit tenir sur une seule.
+
+@code{.unparsed}
+78696e70757401000000000000000000,XInput Gamepad (Lumina),platform:Windows,a:b0,
+b:b1,x:b2,y:b3,leftshoulder:b4,rightshoulder:b5,back:b6,start:b7,leftstick:b8,
+rightstick:b9,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:a4,
+righttrigger:a5,dpup:h0.1,dpright:h0.2,dpdown:h0.4,dpleft:h0.8,
+@endcode
+
+@note Lumina ne gère pas encore la plage de sortie ni les modificateurs `+` et
+`-` récemment ajoutés à SDL.  Les modificateurs d'entrée `+`, `-` et `~` sont
+gérés et décrits ci-dessus.
+
+
+@section time Entrée temporelle
+
+Lumina fournit une mesure du temps à haute résolution, en secondes, avec @ref
+lumGetTime.
+
+@code
+double seconds = lumGetTime();
+@endcode
+
+Elle retourne le nombre de secondes écoulées depuis l'initialisation de la
+bibliothèque par @ref lumInit.  Les sources de temps propres à chaque
+plateforme offrent généralement une résolution de l'ordre de la microseconde ou
+de la nanoseconde.
+
+Vous pouvez modifier le temps de référence avec @ref lumSetTime.
+
+@code
+lumSetTime(4.0);
+@endcode
+
+Cela règle le temps à la valeur indiquée, en secondes, et le décompte reprend à
+partir de là.
+
+Vous pouvez aussi accéder au minuteur brut qui implémente les fonctions
+ci-dessus, avec @ref lumGetTimerValue.
+
+@code
+uint64_t value = lumGetTimerValue();
+@endcode
+
+Cette valeur est exprimée en 1&nbsp;/&nbsp;fréquence seconde.  La fréquence du
+minuteur brut dépend du système d'exploitation et du matériel.  Vous pouvez la
+demander, en Hz, avec @ref lumGetTimerFrequency.
+
+@code
+uint64_t frequency = lumGetTimerFrequency();
+@endcode
+
+
+@section clipboard Presse-papiers en entrée et en sortie
+
+Si le presse-papiers système contient une chaîne encodée en UTF-8, ou s'il peut
+être converti en une telle chaîne, vous la récupérez avec @ref
+lumGetClipboardString.  Voyez la documentation de référence pour la durée de
+vie de la chaîne retournée.
+
+@code
+const char* text = lumGetClipboardString(NULL);
+if (text)
+{
+    insert_text(text);
+}
+@endcode
+
+Si le presse-papiers est vide ou si son contenu n'a pu être converti, `NULL`
+est retourné.
+
+Le contenu du presse-papiers système se règle à une chaîne encodée en UTF-8
+avec @ref lumSetClipboardString.
+
+@code
+lumSetClipboardString(NULL, "Une chaîne avec des mots dedans");
+@endcode
+
+
+@section path_drop Dépôt de chemins
+
+Si vous souhaitez recevoir les chemins des fichiers ou répertoires déposés sur
+une fenêtre, installez une fonction de rappel de dépôt de fichier.
+
+@code
+lumSetDropCallback(window, drop_callback);
+@endcode
+
+Cette fonction reçoit un tableau de chemins encodés en UTF-8.
+
+@code
+void drop_callback(LUMwindow* window, int count, const char** paths)
+{
+    int i;
+    for (i = 0;  i < count;  i++)
+        handle_dropped_file(paths[i]);
+}
+@endcode
+
+Le tableau de chemins et ses chaînes ne sont valides que jusqu'au retour de la
+fonction de rappel : ils ont pu être produits spécialement pour cet événement.
+Vous devez en faire une copie profonde si vous voulez conserver les chemins.
+
+*/

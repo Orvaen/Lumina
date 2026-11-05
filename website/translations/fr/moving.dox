@@ -1,0 +1,530 @@
+/*!
+
+@page moving_guide Migrer de GLFW 2 vers Lumina
+
+@tableofcontents
+
+Ce guide accompagne la transition de GLFW 2 vers Lumina.  Il décrit ce qui a
+changé ou disparu, mais ne couvre _pas_ les [nouveautés](@ref news), sauf
+lorsqu'elles sont indispensables au portage d'une base de code existante vers
+la nouvelle API.  Les nouvelles fonctions multi-écran, par exemple, sont
+nécessaires pour créer des fenêtres plein écran avec Lumina.
+
+
+@section moving_removed Fonctionnalités modifiées ou supprimées
+
+@subsection moving_renamed_files Bibliothèque et en-tête renommés
+
+L'en-tête de Lumina s'appelle @ref lumina.h et a été déplacé dans le répertoire
+`Lumina`, pour éviter les collisions avec les en-têtes d'autres versions
+majeures.  De même, la bibliothèque s'appelle `lumina`, sauf lorsqu'elle est
+installée en bibliothèque partagée sur un système de type Unix, où elle emploie
+le [soname](https://en.wikipedia.org/wiki/soname) `liblumina.so.3`.
+
+@par Ancienne syntaxe
+@code
+#include <GL/lumina.h>
+@endcode
+
+@par Nouvelle syntaxe
+@code
+#include <Lumina/lumina.h>
+@endcode
+
+
+@subsection moving_threads Suppression des fonctions de threads
+
+Les fonctions de threads ont été supprimées, y compris la fonction de mise en
+sommeil par thread.  Elles étaient assez rudimentaires, peu utilisées, mal
+intégrées, et détournaient l'attention du cœur de Lumina : le contexte, les
+entrées et les fenêtres.  Il existe de meilleures bibliothèques de threads, et
+une prise en charge native existe à la fois en
+[C++11](https://en.cppreference.com/w/cpp/thread) et en
+[C11](https://en.cppreference.com/w/c/thread), tous deux de plus en plus
+répandus.
+
+Si vous souhaitez utiliser les facilités de C++11 ou C11 mais que votre
+compilateur ne les prend pas encore en charge, voyez les projets
+[TinyThread++](https://gitorious.org/tinythread/tinythreadpp) et
+[TinyCThread](https://github.com/tinycthread/tinycthread), créés par l'auteur
+original de Lumina.  Ces bibliothèques implémentent un sous-ensemble utilisable
+des API de threads de C++11 et C11 ; certains programmes de test de Lumina
+emploient d'ailleurs TinyCThread.
+
+Lumina gère en revanche bien mieux l'_utilisation depuis plusieurs threads_ que
+ne le faisait GLFW 2.  Un contexte peut être rendu courant sur n'importe quel
+thread, un seul à la fois, et la documentation indique explicitement quelles
+fonctions sont utilisables depuis n'importe quel thread et lesquelles doivent
+l'être depuis le thread principal uniquement.
+
+@par Fonctions supprimées
+`lumSleep`, `lumCreateThread`, `lumDestroyThread`, `lumWaitThread`,
+`lumGetThreadID`, `lumCreateMutex`, `lumDestroyMutex`, `lumLockMutex`,
+`lumUnlockMutex`, `lumCreateCond`, `lumDestroyCond`, `lumWaitCond`,
+`lumSignalCond`, `lumBroadcastCond` et `lumGetNumberOfProcessors`.
+
+@par Types supprimés
+`LUMthreadfun`
+
+
+@subsection moving_image Suppression du chargement d'images et de textures
+
+Les fonctions de chargement d'images et de textures ont été supprimées.  Elles
+ne géraient que le format Targa, ce qui les rendait surtout utiles aux exemples
+pour débutants.  Pour atteindre une qualité justifiant de les garder dans
+Lumina, il aurait fallu non seulement gérer d'autres formats, mais aussi les
+extensions modernes du texturage OpenGL.  Cela aurait ajouté plusieurs
+dépendances externes (libjpeg, libpng, etc.), ou obligé Lumina à embarquer des
+versions de ces bibliothèques.
+
+Comme des bibliothèques le font déjà, il est inutile à la fois de dupliquer le
+travail et d'attacher ce doublon à Lumina.  La bibliothèque obtenue serait
+d'ailleurs indépendante de la plateforme, OpenGL et stdio étant disponibles
+partout où Lumina l'est.
+
+@par Fonctions supprimées
+`lumReadImage`, `lumReadMemoryImage`, `lumFreeImage`, `lumLoadTexture2D`,
+`lumLoadMemoryTexture2D` et `lumLoadTextureImage2D`.
+
+
+@subsection moving_stdcall Suppression de la macro LUMCALL
+
+La macro `LUMCALL`, qui faisait employer
+[__stdcall](https://msdn.microsoft.com/en-us/library/zxk0tw93.aspx) aux
+fonctions de rappel sous Windows, a été supprimée.  Lumina est écrite en C, pas
+en Pascal.  Sa suppression fait une chose de moins à retenir pour le
+programmeur, à savoir l'obligation de marquer toutes les fonctions de rappel
+avec `LUMCALL`.  Elle simplifie aussi la création des DLL et de leurs
+bibliothèques d'import, puisqu'il n'est plus nécessaire de désactiver
+explicitement les suffixes de point d'entrée `@n`.
+
+@par Ancienne syntaxe
+@code
+void LUMCALL callback_function(...);
+@endcode
+
+@par Nouvelle syntaxe
+@code
+void callback_function(...);
+@endcode
+
+
+@subsection moving_window_handles Paramètres de handle de fenêtre
+
+Comme Lumina gère plusieurs fenêtres, un paramètre de handle de fenêtre a été
+ajouté à toutes les fonctions et fonctions de rappel liées aux fenêtres.  Le
+handle d'une fenêtre nouvellement créée est retourné par @ref lumCreateWindow
+(anciennement `lumOpenWindow`).  Un handle de fenêtre est un pointeur vers le
+type [opaque](https://en.wikipedia.org/wiki/Opaque_data_type) @ref LUMwindow.
+
+@par Ancienne syntaxe
+@code
+lumSetWindowTitle("Nouveau titre de fenêtre");
+@endcode
+
+@par Nouvelle syntaxe
+@code
+lumSetWindowTitle(window, "Nouveau titre de fenêtre");
+@endcode
+
+
+@subsection moving_monitor Choix explicite de l'écran
+
+Lumina prend en charge les configurations multi-écran.  Pour demander une
+fenêtre en mode plein écran, au lieu de passer `LUM_FULLSCREEN`, vous précisez
+l'écran que la fenêtre doit occuper.  La fonction @ref lumGetPrimaryMonitor
+retourne l'écran que GLFW 2 aurait choisi, mais il existe bien d'autres
+[fonctions d'écran](@ref monitor_guide).  Un handle d'écran est un pointeur
+vers le type [opaque](https://en.wikipedia.org/wiki/Opaque_data_type) @ref
+LUMmonitor.
+
+@par Ancien plein écran de base
+@code
+lumOpenWindow(640, 480, 8, 8, 8, 0, 24, 0, LUM_FULLSCREEN);
+@endcode
+
+@par Nouveau plein écran de base
+@code
+window = lumCreateWindow(640, 480, "Ma fenêtre", lumGetPrimaryMonitor(), NULL);
+@endcode
+
+@note Les paramètres de profondeur de bits du tampon d'image de
+`lumOpenWindow` sont devenus des [indices de fenêtre](@ref window_hints), mais
+comme ils ont reçu des [valeurs par défaut raisonnables](@ref window_hints_values),
+vous aurez rarement besoin de les positionner.
+
+
+@subsection moving_autopoll Suppression de l'interrogation automatique des événements
+
+Lumina n'interroge pas automatiquement les événements dans @ref lumSwapBuffers :
+vous devez appeler @ref lumPollEvents ou @ref lumWaitEvents vous-même.
+Contrairement à l'échange de tampons, qui agit sur une seule fenêtre, les
+fonctions de traitement des événements agissent sur toutes les fenêtres à la
+fois.
+
+@par Ancienne boucle principale de base
+@code
+while (...)
+{
+    // Traiter les entrées
+    // Dessiner
+    lumSwapBuffers();
+}
+@endcode
+
+@par Nouvelle boucle principale de base
+@code
+while (...)
+{
+    // Traiter les entrées
+    // Dessiner
+    lumSwapBuffers(window);
+    lumPollEvents();
+}
+@endcode
+
+
+@subsection moving_context Gestion explicite du contexte
+
+Chaque fenêtre Lumina possède son propre contexte OpenGL, et vous seul, le
+programmeur, pouvez savoir quel contexte doit être courant sur quel thread à un
+instant donné.  Lumina vous laisse donc cette décision.
+
+Cela veut dire que vous devez appeler @ref lumMakeContextCurrent après la
+création d'une fenêtre, avant tout appel à une fonction OpenGL.
+
+
+@subsection moving_hidpi Séparation des tailles de fenêtre et de tampon d'image
+
+Les positions et tailles de fenêtre s'expriment désormais en coordonnées
+d'écran, qui peuvent ne pas correspondre aux pixels sur les machines à écran
+haute densité.  C'est important, car OpenGL raisonne en pixels, pas en
+coordonnées d'écran : le rectangle passé à `glViewport`, par exemple, doit être
+en pixels.  Des fonctions de taille de tampon d'image ont donc été ajoutées.
+Vous obtenez la taille du tampon d'image d'une fenêtre avec @ref
+lumGetFramebufferSize.  Une fonction de rappel de taille de tampon d'image a
+également été ajoutée, qui s'installe avec @ref lumSetFramebufferSizeCallback.
+
+@par Ancienne configuration de viewport
+@code
+lumGetWindowSize(&width, &height);
+glViewport(0, 0, width, height);
+@endcode
+
+@par Nouvelle configuration de viewport
+@code
+lumGetFramebufferSize(window, &width, &height);
+glViewport(0, 0, width, height);
+@endcode
+
+
+@subsection moving_window_close Changements autour de la fermeture des fenêtres
+
+Le paramètre de fenêtre `LUM_OPENED` a été supprimé.  Tant que la fenêtre n'a
+pas été détruite, par @ref lumDestroyWindow ou @ref lumTerminate, elle est
+« ouverte ».
+
+La tentative de fermeture d'une fenêtre par l'utilisateur est désormais un
+événement comme un autre.  Contrairement à GLFW 2, les fenêtres et les
+contextes créés avec Lumina ne sont jamais détruits sans que vous l'ayez voulu.
+Chaque fenêtre porte maintenant un indicateur de fermeture, mis à `LUM_TRUE`
+quand l'utilisateur tente de la fermer.  Par défaut, rien d'autre ne se passe
+et la fenêtre reste visible.  C'est ensuite à vous de la détruire, d'agir
+autrement, ou d'ignorer la demande.
+
+Vous pouvez consulter cet indicateur à tout moment avec @ref
+lumWindowShouldClose, et le positionner à tout moment avec @ref
+lumSetWindowShouldClose.
+
+@par Ancienne boucle principale de base
+@code
+while (lumGetWindowParam(LUM_OPENED))
+{
+    ...
+}
+@endcode
+
+@par Nouvelle boucle principale de base
+@code
+while (!lumWindowShouldClose(window))
+{
+    ...
+}
+@endcode
+
+La fonction de rappel de fermeture ne retourne plus de valeur.  Elle est
+désormais appelée après que l'indicateur a été positionné, ce qui lui permet
+d'en modifier la valeur, si elle le souhaite, avant la fin du traitement des
+événements.  Vous ne pouvez en revanche pas appeler @ref lumDestroyWindow
+depuis cette fonction de rappel, ni depuis aucune autre liée aux fenêtres.
+
+@par Ancienne syntaxe
+@code
+int LUMCALL window_close_callback(void);
+@endcode
+
+@par Nouvelle syntaxe
+@code
+void window_close_callback(LUMwindow* window);
+@endcode
+
+@note Lumina ne remet jamais l'indicateur de fermeture à `LUM_FALSE` : vous
+pouvez donc l'employer pour d'autres raisons de fermer la fenêtre, par exemple
+un Quitter choisi dans un menu de jeu.
+
+
+@subsection moving_hints Indices de fenêtre persistants
+
+La fonction `lumOpenWindowHint` a été renommée en @ref lumWindowHint.
+
+Les indices de fenêtre ne sont plus remis à leur valeur par défaut à la
+création d'une fenêtre : ils conservent leur valeur jusqu'à modification par
+@ref lumWindowHint ou @ref lumDefaultWindowHints, ou jusqu'à la terminaison
+puis réinitialisation de la bibliothèque.
+
+
+@subsection moving_video_modes Énumération des modes vidéo
+
+L'énumération des modes vidéo se fait désormais par écran.  La fonction @ref
+lumGetVideoModes retourne maintenant tous les modes disponibles d'un écran
+donné, au lieu de vous obliger à deviner la taille du tableau nécessaire.  La
+fonction `lumGetDesktopMode`, au comportement mal défini, a été remplacée par
+@ref lumGetVideoMode, qui retourne le mode courant d'un écran.
+
+
+@subsection moving_char_up Suppression des actions de caractère
+
+Le paramètre d'action de la [fonction de rappel de caractère](@ref LUMcharfun)
+a été supprimé.  C'était un vestige des origines de Lumina, développée en
+anglais par un Suédois.  Or beaucoup de dispositions clavier exigent plusieurs
+touches pour produire des caractères accentués.  La disposition suédoise
+elle-même le réclame pour des cas rares comme ü.
+
+@par Ancienne syntaxe
+@code
+void LUMCALL character_callback(int character, int action);
+@endcode
+
+@par Nouvelle syntaxe
+@code
+void character_callback(LUMwindow* window, int character);
+@endcode
+
+
+@subsection moving_cursorpos Changements de position du curseur
+
+La fonction `lumGetMousePos` a été renommée en @ref lumGetCursorPos,
+`lumSetMousePos` en @ref lumSetCursorPos et `lumSetMousePosCallback` en @ref
+lumSetCursorPosCallback.
+
+La position du curseur est désormais un `double` et non plus un `int`, aussi
+bien pour les fonctions directes que pour la fonction de rappel.  Certaines
+plateformes fournissent un mouvement de curseur sous-pixel, et cette précision
+est maintenant transmise à l'application là où elle existe.  Ailleurs, la
+partie décimale vaut zéro.
+
+Lumina ne vous permet de positionner le curseur dans une fenêtre avec @ref
+lumSetCursorPos (anciennement `lumSetMousePos`) que lorsque cette fenêtre est
+active.  Sinon, la fonction échoue silencieusement.
+
+
+@subsection moving_wheel La position de la molette remplacée par des décalages de défilement
+
+La fonction `lumGetMouseWheel` a été supprimée.  Le défilement est une saisie
+de décalages, il n'a pas de position absolue.  La fonction de rappel de molette
+a été remplacée par une [fonction de rappel de défilement](@ref LUMscrollfun)
+qui reçoit des décalages en virgule flottante à deux dimensions.  Vous pouvez
+ainsi recevoir des données de défilement précises, par exemple d'un pavé
+tactile moderne.
+
+@par Ancienne syntaxe
+@code
+void LUMCALL mouse_wheel_callback(int position);
+@endcode
+
+@par Nouvelle syntaxe
+@code
+void scroll_callback(LUMwindow* window, double xoffset, double yoffset);
+@endcode
+
+@par Fonctions supprimées
+`lumGetMouseWheel`
+
+
+@subsection moving_repeat Action de répétition de touche
+
+L'activation `LUM_KEY_REPEAT` a été supprimée : la répétition est toujours
+active, pour les touches comme pour les caractères.  Une nouvelle action de
+touche, `LUM_REPEAT`, a été ajoutée pour que la
+[fonction de rappel de clavier](@ref LUMkeyfun) distingue un premier appui
+d'une répétition.  Notez que @ref lumGetKey ne retourne toujours que
+`LUM_PRESS` ou `LUM_RELEASE`.
+
+
+@subsection moving_keys Saisie des touches physiques
+
+Les symboles de touche de Lumina correspondent aux touches physiques, à la
+différence de GLFW 2 où ils correspondaient aux valeurs produites par la
+disposition clavier courante.  Ils sont nommés d'après les valeurs qu'ils
+auraient avec la disposition américaine standard, mais c'est une simple
+commodité, la plupart des programmeurs étant supposés connaître cette
+disposition.  Autrement dit, `LUM_KEY_LEFT_BRACKET` désigne toujours une seule
+touche, au même endroit, quelles que soient les dispositions clavier de vos
+utilisateurs.
+
+Le mécanisme de saisie des touches n'a jamais été conçu pour la saisie de
+texte, même s'il fonctionnait un peu mieux à cet usage dans GLFW 2.  Si vous
+l'employiez ainsi, utilisez plutôt la fonction de rappel de caractère, avec
+GLFW 2 comme avec Lumina : elle vous donne les caractères saisis, et non les
+touches enfoncées.
+
+Lumina dispose de symboles pour toutes les touches d'un clavier standard à 105
+touches : au lieu de vous demander s'il faut tester `a` ou `A`, vous testez
+désormais @ref LUM_KEY_A.
+
+
+@subsection moving_joystick Changements des fonctions de manette
+
+La fonction `lumGetJoystickPos` a été renommée en @ref lumGetJoystickAxes.
+
+La fonction `lumGetJoystickParam` et les symboles `LUM_PRESENT`, `LUM_AXES` et
+`LUM_BUTTONS` ont été remplacés par la fonction @ref lumJoystickPresent, ainsi
+que par les nombres d'axes et de boutons retournés par @ref lumGetJoystickAxes
+et @ref lumGetJoystickButtons.
+
+
+@subsection moving_mbcs Prise en charge MBCS sous Win32
+
+Le portage Win32 de Lumina ne compile pas en
+[mode MBCS](https://msdn.microsoft.com/en-us/library/5z097dxa.aspx).
+Cependant, comme l'usage de la version Unicode de l'API Win32 n'affecte pas le
+processus dans son ensemble, mais seulement les fenêtres créées avec elle, rien
+n'empêche d'appeler des fonctions MBCS depuis d'autres parties de la même
+application.  Même si une application utilisant Lumina contient du code en mode
+MBCS, Lumina n'a donc pas besoin de le prendre en charge.
+
+
+@subsection moving_windows Prise en charge des versions de Windows antérieures à XP
+
+Toute prise en charge explicite des versions de Windows antérieures à XP a été
+supprimée.  Aucun code n'empêche activement Lumina de fonctionner sur ces
+versions, mais elle emploie des fonctions Win32 qui leur manquent.
+
+Windows XP est sorti en 2001 et, à ce jour (janvier 2015), il a non seulement
+remplacé presque toutes les versions antérieures, mais se fait lui-même
+rapidement remplacer par Windows 7 et 8.  La bibliothèque MSDN ne fournit même
+plus de documentation pour les versions antérieures à Windows 2000, ce qui rend
+difficile de maintenir la compatibilité avec elles, à supposer que l'effort en
+vaille la peine.
+
+L'API Win32 n'est pas restée figée non plus, et Lumina emploie de nombreuses
+fonctions présentes seulement à partir de Windows XP.  Prendre en charge un
+système aussi récent que XP — récent du point de vue de GLFW 2, qui gère encore
+Windows 95 — impose déjà de vérifier à l'exécution la présence de plusieurs
+fonctions qui n'existent que sur les versions modernes de Windows.
+
+
+@subsection moving_syskeys Capture des raccourcis système
+
+La possibilité de désactiver et de capturer les raccourcis système comme
+Alt+Tab a été supprimée.  Les applications modernes, jeux, visualisations
+scientifiques ou autres, sont aujourd'hui censées être de bonnes citoyennes du
+bureau et laisser ces raccourcis fonctionner, même en mode plein écran.
+
+
+@subsection moving_terminate Terminaison automatique
+
+Lumina n'enregistre pas @ref lumTerminate auprès d'`atexit` à l'initialisation,
+car `exit` appelle les fonctions enregistrées depuis le thread appelant ; or,
+s'il est permis d'appeler `exit` depuis n'importe quel thread, @ref
+lumTerminate ne doit être appelée que depuis le thread principal.
+
+Pour libérer toutes les ressources allouées par Lumina, appelez vous-même @ref
+lumTerminate depuis le thread principal, avant la fin du programme.  Notez que
+cela détruit toutes les fenêtres qui ne l'ont pas déjà été par @ref
+lumDestroyWindow, invalidant les handles de fenêtre que vous détenez encore.
+
+
+@subsection moving_glu Inclusion de l'en-tête GLU
+
+Lumina n'inclut pas l'en-tête GLU par défaut, et GLU a été déprécié par
+[Khronos](https://en.wikipedia.org/wiki/Khronos_Group).  __Un nouveau projet ne
+devrait pas utiliser GLU__, mais si vous en avez besoin pour du code ancien
+porté vers Lumina, vous pouvez demander à l'en-tête de Lumina de l'inclure en
+définissant @ref LUM_INCLUDE_GLU avant son inclusion.
+
+@par Ancienne syntaxe
+@code
+#include <GL/lumina.h>
+@endcode
+
+@par Nouvelle syntaxe
+@code
+#define LUM_INCLUDE_GLU
+#include <Lumina/lumina.h>
+@endcode
+
+Beaucoup de bibliothèques remplacent les fonctionnalités de GLU.  Pour les
+fonctions utilitaires de matrices, voyez les bibliothèques mathématiques comme
+[GLM](https://github.com/g-truc/glm) (en C++),
+[linmath.h](https://github.com/datenwolf/linmath.h) (en C) et d'autres.  Pour
+les fonctions de tessellation, voyez par exemple
+[libtess2](https://github.com/memononen/libtess2).
+
+
+@section moving_tables Tables de correspondance des noms
+
+
+@subsection moving_renamed_functions Fonctions renommées
+
+| GLFW 2                      | Lumina                        | Notes |
+| --------------------------- | ----------------------------- | ----- |
+| `lumOpenWindow`            | @ref lumCreateWindow         | Toutes les profondeurs de bits sont désormais des indices
+| `lumCloseWindow`           | @ref lumDestroyWindow        |       |
+| `lumOpenWindowHint`        | @ref lumWindowHint           | Accepte désormais tous les symboles `LUM_*_BITS` |
+| `lumEnable`                | @ref lumSetInputMode         |       |
+| `lumDisable`               | @ref lumSetInputMode         |       |
+| `lumGetMousePos`           | @ref lumGetCursorPos         |       |
+| `lumSetMousePos`           | @ref lumSetCursorPos         |       |
+| `lumSetMousePosCallback`   | @ref lumSetCursorPosCallback |       |
+| `lumSetMouseWheelCallback` | @ref lumSetScrollCallback    | Reçoit des décalages de défilement à deux dimensions, en double |
+| `lumGetJoystickPos`        | @ref lumGetJoystickAxes      |       |
+| `lumGetWindowParam`        | @ref lumGetWindowAttrib      |       |
+| `lumGetGLVersion`          | @ref lumGetWindowAttrib      | Utilisez `LUM_CONTEXT_VERSION_MAJOR`, `LUM_CONTEXT_VERSION_MINOR` et `LUM_CONTEXT_REVISION` |
+| `lumGetDesktopMode`        | @ref lumGetVideoMode         | Retourne le mode courant d'un écran |
+| `lumGetJoystickParam`      | @ref lumJoystickPresent      | Les nombres d'axes et de boutons sont fournis par @ref lumGetJoystickAxes et @ref lumGetJoystickButtons |
+
+
+@subsection moving_renamed_types Types renommés
+
+| GLFW 2              | Lumina                | Notes |
+| ------------------- | --------------------- |       |
+| `LUMmousewheelfun` | @ref LUMscrollfun    |       |
+| `LUMmouseposfun`   | @ref LUMcursorposfun |       |
+
+
+@subsection moving_renamed_tokens Symboles renommés
+
+| GLFW 2                      | Lumina                       | Notes |
+| --------------------------- | ---------------------------- | ----- |
+| `LUM_OPENGL_VERSION_MAJOR` | `LUM_CONTEXT_VERSION_MAJOR` | Renommé car il vaut aussi pour OpenGL ES |
+| `LUM_OPENGL_VERSION_MINOR` | `LUM_CONTEXT_VERSION_MINOR` | Renommé car il vaut aussi pour OpenGL ES |
+| `LUM_FSAA_SAMPLES`         | `LUM_SAMPLES`               | Renommé pour coller à l'API OpenGL |
+| `LUM_ACTIVE`               | `LUM_FOCUSED`               | Renommé pour coller à la fonction de rappel de focus |
+| `LUM_WINDOW_NO_RESIZE`     | `LUM_RESIZABLE`             | La valeur par défaut a été inversée |
+| `LUM_MOUSE_CURSOR`         | `LUM_CURSOR`                | Utilisé avec @ref lumSetInputMode |
+| `LUM_KEY_ESC`              | `LUM_KEY_ESCAPE`            |       |
+| `LUM_KEY_DEL`              | `LUM_KEY_DELETE`            |       |
+| `LUM_KEY_PAGEUP`           | `LUM_KEY_PAGE_UP`           |       |
+| `LUM_KEY_PAGEDOWN`         | `LUM_KEY_PAGE_DOWN`         |       |
+| `LUM_KEY_KP_NUM_LOCK`      | `LUM_KEY_NUM_LOCK`          |       |
+| `LUM_KEY_LCTRL`            | `LUM_KEY_LEFT_CONTROL`      |       |
+| `LUM_KEY_LSHIFT`           | `LUM_KEY_LEFT_SHIFT`        |       |
+| `LUM_KEY_LALT`             | `LUM_KEY_LEFT_ALT`          |       |
+| `LUM_KEY_LSUPER`           | `LUM_KEY_LEFT_SUPER`        |       |
+| `LUM_KEY_RCTRL`            | `LUM_KEY_RIGHT_CONTROL`     |       |
+| `LUM_KEY_RSHIFT`           | `LUM_KEY_RIGHT_SHIFT`       |       |
+| `LUM_KEY_RALT`             | `LUM_KEY_RIGHT_ALT`         |       |
+| `LUM_KEY_RSUPER`           | `LUM_KEY_RIGHT_SUPER`       |       |
+
+*/

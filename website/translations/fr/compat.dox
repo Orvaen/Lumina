@@ -1,0 +1,298 @@
+/*!
+
+@page compat_guide Conformité aux standards
+
+@tableofcontents
+
+Ce guide décrit les différentes extensions d'API qu'emploie cette version de
+Lumina.  Il énumère ce qui relève pour l'essentiel de détails d'implémentation,
+mais qui n'en reste pas moins indispensable à connaître pour qui compte
+déployer son application sur un large parc de machines.
+
+Les informations de ce guide ne font pas partie de l'API Lumina : ce sont de
+simples préconditions au fonctionnement de certaines parties de la
+bibliothèque sur une machine donnée.  Chacune d'elles peut changer dans une
+version future de Lumina sans que cela soit considéré comme une rupture de
+l'API.
+
+
+@section compat_x11 Extensions X11, protocoles et standards IPC
+
+Comme Lumina utilise Xlib directement, sans bibliothèque de boîte à outils
+intermédiaire, elle est seule responsable de bien s'entendre avec les
+nombreux et divers gestionnaires de fenêtres en usage sur les systèmes de type
+Unix.  Pour que les applications et les gestionnaires de fenêtres s'entendent
+bien, plusieurs standards et conventions règlent les comportements qui sortent
+du périmètre de l'API X11 ; les plus importants sont l'
+[Inter-Client Communication Conventions Manual](https://www.tronche.com/gui/x/icccm/)
+(ICCCM) et les
+[Extended Window Manager Hints](https://standards.freedesktop.org/wm-spec/wm-spec-latest.html)
+(EWMH).
+
+Lumina utilise la propriété de fenêtre `_MOTIF_WM_HINTS` pour prendre en charge
+les fenêtres sans bordure.  Si le gestionnaire de fenêtres en cours
+d'exécution ne gère pas cette propriété, l'indice `LUM_DECORATED` restera sans
+effet.
+
+Lumina utilise le protocole ICCCM `WM_DELETE_WINDOW` pour intercepter la
+tentative de fermeture d'une fenêtre Lumina par l'utilisateur.  Si le
+gestionnaire de fenêtres ne gère pas ce protocole, la fonction de rappel de
+fermeture ne sera jamais appelée.
+
+Lumina utilise le protocole EWMH `_NET_WM_PING`, qui permet au gestionnaire de
+fenêtres d'avertir l'utilisateur quand l'application ne répond plus,
+c'est-à-dire quand elle a cessé de traiter les événements.  Si le gestionnaire
+de fenêtres ne gère pas ce protocole, l'utilisateur ne sera pas averti si
+l'application se bloque.
+
+Lumina utilise l'état de fenêtre EWMH `_NET_WM_STATE_FULLSCREEN` pour demander
+au gestionnaire de fenêtres de mettre la fenêtre Lumina en plein écran.  Si le
+gestionnaire ne gère pas cet état, les fenêtres plein écran risquent de mal
+fonctionner.  Lumina dispose d'un chemin de repli si cet état est indisponible,
+mais chaque gestionnaire de fenêtres se comporte légèrement différemment sur ce
+point.
+
+Lumina utilise la propriété de fenêtre EWMH `_NET_WM_BYPASS_COMPOSITOR` pour
+demander à un gestionnaire de fenêtres compositant de ne plus rediriger les
+fenêtres Lumina en plein écran.  Si le gestionnaire compose mais ne gère pas
+cette propriété, des copies supplémentaires peuvent être effectuées à chaque
+échange de tampons des fenêtres plein écran.
+
+Lumina utilise le
+[protocole de gestionnaire de presse-papiers](https://www.freedesktop.org/wiki/ClipboardManager/)
+pour transmettre au gestionnaire de presse-papiers la chaîne détenue par une
+fenêtre Lumina sur le point d'être détruite.  S'il n'y a pas de gestionnaire de
+presse-papiers en cours d'exécution, cette chaîne deviendra indisponible une
+fois la fenêtre détruite.
+
+Lumina utilise le
+[protocole de glisser-déposer X](https://www.freedesktop.org/wiki/Specifications/XDND/)
+pour fournir les événements de dépôt de fichier.  Si l'application à l'origine
+du glisser ne gère pas ce protocole, le glisser-déposer ne fonctionnera pas.
+
+Lumina utilise l'extension XRandR 1.3 pour la prise en charge multi-écran.  Si
+le serveur X ne gère pas cette version de cette extension, la prise en charge
+multi-écran ne fonctionnera pas et un unique écran couvrant tout le bureau sera
+signalé.
+
+Lumina utilise les extensions XRandR 1.3 et Xf86vidmode pour la prise en charge
+des rampes gamma.  Si le serveur X ne gère pas l'une ou l'autre, ou aucune des
+deux, cette prise en charge ne fonctionnera pas.
+
+Lumina utilise l'extension Xkb et la répétition automatique détectable pour les
+entrées clavier.  Si le serveur X ne gère pas cette extension, un chemin de
+repli sans Xkb est employé.
+
+Lumina utilise l'extension XInput2 pour fournir un mouvement de souris brut,
+sans accélération, lorsque le curseur est désactivé.  Si le serveur X ne gère
+pas cette extension, le mouvement accéléré habituel est utilisé.
+
+Lumina utilise à la fois l'extension XRender et le gestionnaire de composition
+pour prendre en charge les tampons d'image de fenêtre transparents.  Si le
+serveur X ne gère pas cette extension, ou s'il n'y a pas de gestionnaire de
+composition, l'indice de tampon d'image `LUM_TRANSPARENT_FRAMEBUFFER` restera
+sans effet.
+
+Lumina utilise à la fois l'extension Xcursor et les conventions de curseur
+freedesktop pour fournir un jeu étendu de formes de curseur standard.  Si le
+serveur X ne gère pas cette extension, ou si le thème de curseur courant ne
+suit pas ces conventions, les formes `LUM_RESIZE_NWSE_CURSOR`,
+`LUM_RESIZE_NESW_CURSOR` et `LUM_NOT_ALLOWED_CURSOR` seront indisponibles et
+d'autres formes pourront utiliser des images héritées.
+
+
+@section compat_wayland Protocoles Wayland et standards IPC
+
+Comme Lumina utilise libwayland directement, sans bibliothèque de boîte à
+outils intermédiaire, elle est seule responsable de bien s'entendre avec chaque
+compositeur en usage sur les systèmes de type Unix.  La plupart des
+fonctionnalités sont fournies par le protocole de base, la gestion du curseur
+par la bibliothèque d'aide libwayland-cursor, l'intégration EGL par
+libwayland-egl et la gestion du clavier par
+[libxkbcommon](https://xkbcommon.org/).  Lumina emploie en outre quelques
+protocoles de wayland-protocols pour offrir des fonctionnalités
+supplémentaires, lorsque le compositeur les gère.
+
+Lumina utilise xkbcommon 0.5.0 pour la prise en charge des touches et de la
+saisie de texte.  Les versions antérieures ne sont pas prises en charge.
+
+Lumina utilise le [protocole
+xdg-shell](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/stable/xdg-shell/xdg-shell.xml)
+pour une meilleure gestion des fenêtres.  Ce protocole fait partie de
+wayland-protocols 1.12, et il est indispensable pour que Lumina affiche une
+fenêtre.
+
+Lumina utilise le [protocole de pointeur
+relatif](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/unstable/relative-pointer/relative-pointer-unstable-v1.xml)
+avec le [protocole de contraintes de
+pointeur](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml)
+pour implémenter le curseur désactivé.  Ces deux protocoles font partie de
+wayland-protocols 1.1 et sont obligatoires à la compilation.  Si le compositeur
+ne gère pas les deux, désactiver le curseur restera sans effet.
+
+Lumina utilise le [protocole d'inhibition de
+l'inactivité](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml)
+pour empêcher l'économiseur d'écran de démarrer.  Ce protocole fait partie de
+wayland-protocols 1.6 et est obligatoire à la compilation.  Si le compositeur
+ne le gère pas, l'économiseur d'écran peut démarrer même sur des fenêtres
+plein écran.
+
+Lumina utilise le [protocole
+xdg-decoration](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml)
+pour demander que des décorations soient dessinées autour de ses fenêtres.  Ce
+protocole fait partie de wayland-protocols 1.15 et est obligatoire à la
+compilation.  Si le compositeur ne le gère pas, un cadre très simple sera
+dessiné par Lumina elle-même, à l'aide du [protocole
+viewporter](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/stable/viewporter/viewporter.xml)
+et des
+[sous-surfaces](https://cgit.freedesktop.org/wayland/wayland/tree/protocol/wayland.xml#n2598).
+Ce protocole fait partie de wayland-protocols 1.4 et est obligatoire à la
+compilation.  Si le compositeur ne le gère pas non plus, aucune décoration ne
+sera dessinée autour des fenêtres.
+
+
+@section compat_glx Extensions GLX
+
+L'API GLX est l'API employée par défaut pour créer des contextes OpenGL sur les
+systèmes de type Unix utilisant le système X Window.
+
+Lumina utilise les fonctions `GLXFBConfig` de GLX 1.3 pour énumérer et choisir
+les formats de pixel des tampons d'image.  Si GLX 1.3 n'est pas pris en charge,
+@ref lumInit échouera.
+
+Lumina utilise les extensions `GLX_MESA_swap_control`, `GLX_EXT_swap_control`
+et `GLX_SGI_swap_control` pour la synchronisation verticale (ou _vsync_), dans
+cet ordre de préférence.  Si aucune n'est disponible, appeler @ref
+lumSwapInterval restera sans effet.
+
+Lumina utilise l'extension `GLX_ARB_multisample` pour créer des contextes avec
+anticrénelage par multiéchantillonnage.  Si cette extension est indisponible,
+l'indice `LUM_SAMPLES` restera sans effet.
+
+Lumina utilise l'extension `GLX_ARB_create_context` quand elle est disponible,
+même pour créer des contextes OpenGL de version 2.1 et antérieures.  Si elle
+est indisponible, les indices `LUM_CONTEXT_VERSION_MAJOR` et
+`LUM_CONTEXT_VERSION_MINOR` ne seront que partiellement pris en charge,
+l'indice `LUM_CONTEXT_DEBUG` restera sans effet, et régler `LUM_OPENGL_PROFILE`
+ou `LUM_OPENGL_FORWARD_COMPAT` sur `LUM_TRUE` fera échouer @ref
+lumCreateWindow.
+
+Lumina utilise l'extension `GLX_ARB_create_context_profile` pour prendre en
+charge les profils de contexte.  Si elle est indisponible, régler l'indice
+`LUM_OPENGL_PROFILE` sur autre chose que `LUM_OPENGL_ANY_PROFILE`, ou
+`LUM_CLIENT_API` sur autre chose que `LUM_OPENGL_API` ou `LUM_NO_API`, fera
+échouer @ref lumCreateWindow.
+
+Lumina utilise l'extension `GLX_ARB_context_flush_control` pour contrôler si un
+contexte est vidé lorsqu'il est libéré, c'est-à-dire rendu non courant.  Si
+elle est indisponible, l'indice `LUM_CONTEXT_RELEASE_BEHAVIOR` restera sans
+effet et le contexte sera toujours vidé à sa libération.
+
+Lumina utilise les extensions `GLX_ARB_framebuffer_sRGB` et
+`GLX_EXT_framebuffer_sRGB` pour prendre en charge les tampons d'image sRGB.  Si
+les deux sont indisponibles, l'indice `LUM_SRGB_CAPABLE` restera sans effet.
+
+
+@section compat_wgl Extensions WGL
+
+L'API WGL sert à créer des contextes OpenGL sous Microsoft Windows et sur les
+autres implémentations de l'API Win32, comme Wine.
+
+Lumina utilise l'extension `WGL_EXT_extension_string` ou
+`WGL_ARB_extension_string` pour vérifier la présence de toutes les autres
+extensions WGL listées ci-dessous.  Si les deux sont disponibles, celle en EXT
+est préférée.  Si aucune ne l'est, aucune autre extension n'est employée et de
+nombreuses fonctionnalités de Lumina liées à la création de contexte resteront
+sans effet ou produiront des erreurs.
+
+Lumina utilise l'extension `WGL_EXT_swap_control` pour la synchronisation
+verticale (ou _vsync_).  Si elle est indisponible, appeler @ref
+lumSwapInterval restera sans effet.
+
+Lumina utilise les extensions `WGL_ARB_pixel_format` et `WGL_ARB_multisample`
+pour créer des contextes avec anticrénelage par multiéchantillonnage.  Si elles
+sont indisponibles, l'indice `LUM_SAMPLES` restera sans effet.
+
+Lumina utilise l'extension `WGL_ARB_create_context` quand elle est disponible,
+même pour créer des contextes OpenGL de version 2.1 et antérieures.  Si elle
+est indisponible, les indices `LUM_CONTEXT_VERSION_MAJOR` et
+`LUM_CONTEXT_VERSION_MINOR` ne seront que partiellement pris en charge,
+l'indice `LUM_CONTEXT_DEBUG` restera sans effet, et régler `LUM_OPENGL_PROFILE`
+ou `LUM_OPENGL_FORWARD_COMPAT` sur `LUM_TRUE` fera échouer @ref
+lumCreateWindow.
+
+Lumina utilise l'extension `WGL_ARB_create_context_profile` pour prendre en
+charge les profils de contexte.  Si elle est indisponible, régler l'indice
+`LUM_OPENGL_PROFILE` sur autre chose que `LUM_OPENGL_ANY_PROFILE` fera échouer
+@ref lumCreateWindow.
+
+Lumina utilise l'extension `WGL_ARB_context_flush_control` pour contrôler si un
+contexte est vidé lorsqu'il est libéré, c'est-à-dire rendu non courant.  Si
+elle est indisponible, l'indice `LUM_CONTEXT_RELEASE_BEHAVIOR` restera sans
+effet et le contexte sera toujours vidé à sa libération.
+
+Lumina utilise les extensions `WGL_ARB_framebuffer_sRGB` et
+`WGL_EXT_framebuffer_sRGB` pour prendre en charge les tampons d'image sRGB.  Si
+les deux sont indisponibles, l'indice `LUM_SRGB_CAPABLE` restera sans effet.
+
+
+@section compat_osx OpenGL sous macOS
+
+La prise en charge d'OpenGL 3.2 et au-delà est apparue avec OS X 10.7, et
+encore, uniquement pour les contextes à profil core et compatibles en avant.
+Celle d'OpenGL 4.1 est apparue avec OS X 10.9, également limitée aux contextes
+à profil core et compatibles en avant.  Il n'existe toujours aucun mécanisme
+pour demander des contextes de débogage ou sans erreur.  Les versions de
+Mac OS X antérieures à 10.7 ne gèrent au mieux qu'OpenGL 2.1.
+
+C'est pourquoi, sous OS X 10.7 et au-delà, les indices
+`LUM_CONTEXT_VERSION_MAJOR` et `LUM_CONTEXT_VERSION_MINOR` feront échouer @ref
+lumCreateWindow si on leur donne la version 3.0 ou 3.1.  L'indice
+`LUM_OPENGL_PROFILE` doit valoir `LUM_OPENGL_CORE_PROFILE` pour créer des
+contextes OpenGL 3.2 et ultérieurs.  Les indices `LUM_CONTEXT_DEBUG` et
+`LUM_CONTEXT_NO_ERROR` sont ignorés.
+
+De même, sous Mac OS X 10.6 et antérieurs, les indices
+`LUM_CONTEXT_VERSION_MAJOR` et `LUM_CONTEXT_VERSION_MINOR` échoueront pour une
+version supérieure à 2.1, régler `LUM_OPENGL_PROFILE` ou
+`LUM_OPENGL_FORWARD_COMPAT` sur une valeur autre que celle par défaut fera
+échouer @ref lumCreateWindow, et l'indice `LUM_CONTEXT_DEBUG` est ignoré.
+
+
+@section compat_vulkan Chargeur et API Vulkan
+
+Par défaut, Lumina utilise le chargeur Vulkan standard du système pour accéder
+à l'API Vulkan sur toutes les plateformes sauf macOS.  Il est installé aussi
+bien par les pilotes graphiques que par les SDK Vulkan.  Si le chargeur ou au
+moins un ICD minimalement fonctionnel manque, @ref lumVulkanSupported
+retournera `LUM_FALSE` et toutes les autres fonctions liées à Vulkan échoueront
+avec une erreur @ref LUM_API_UNAVAILABLE.
+
+
+@section compat_wsi Extensions WSI de Vulkan
+
+Les extensions WSI de Vulkan servent à créer des surfaces Vulkan pour les
+fenêtres Lumina sur toutes les plateformes prises en charge.
+
+Lumina utilise les extensions `VK_KHR_surface` et `VK_KHR_win32_surface` pour
+créer des surfaces sous Microsoft Windows.  Si l'une d'elles est indisponible,
+@ref lumGetRequiredInstanceExtensions retournera une liste vide et la création
+de surface de fenêtre échouera.
+
+Lumina utilise `VK_KHR_surface` et, au choix, `VK_MVK_macos_surface` ou
+`VK_EXT_metal_surface` pour créer des surfaces sous macOS.  Si l'une d'elles
+est indisponible, @ref lumGetRequiredInstanceExtensions retournera une liste
+vide et la création de surface de fenêtre échouera.
+
+Lumina utilise `VK_KHR_surface` et, au choix, `VK_KHR_xlib_surface` ou
+`VK_KHR_xcb_surface` pour créer des surfaces sous X11.  Si `VK_KHR_surface`
+manque, ou si `VK_KHR_xlib_surface` et `VK_KHR_xcb_surface` manquent toutes les
+deux, @ref lumGetRequiredInstanceExtensions retournera une liste vide et la
+création de surface de fenêtre échouera.
+
+Lumina utilise les extensions `VK_KHR_surface` et `VK_KHR_wayland_surface` pour
+créer des surfaces sous Wayland.  Si l'une d'elles est indisponible, @ref
+lumGetRequiredInstanceExtensions retournera une liste vide et la création de
+surface de fenêtre échouera.
+
+*/

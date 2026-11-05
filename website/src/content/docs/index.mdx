@@ -1,0 +1,112 @@
+---
+title: Lumina
+description: A multi-platform library for OpenGL, OpenGL ES and Vulkan application development — windows, contexts, surfaces, input and events, behind one small C API.
+template: splash
+hero:
+  tagline: Windows, contexts, surfaces, input and events for OpenGL, OpenGL ES and Vulkan — behind one small C API.
+  image:
+    file: ../../assets/lumina.svg
+  actions:
+    - text: Open a window
+      link: /guides/first-window/
+      icon: right-arrow
+    - text: API reference
+      link: /reference/
+      icon: open-book
+      variant: minimal
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import LumCard from '../../components/LumCard.astro';
+
+## A complete program
+
+```c
+#include <Lumina/lumina.h>
+
+int main(void)
+{
+    if (!lumInit())
+        return -1;
+
+    LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+    {
+        .width       = 640,
+        .height      = 480,
+        .title       = "Hello Lumina",
+        .makeCurrent = LUM_ON
+    });
+
+    if (!window)
+    {
+        lumTerminate();
+        return -1;
+    }
+
+    while (!lumWindowShouldClose(window))
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        lumSwapBuffers(window);
+        lumPollEvents();
+    }
+
+    lumTerminate();
+    return 0;
+}
+```
+
+<div class="lum-grid not-content">
+  <LumCard title="One API, four platforms" icon="platforms">
+    The same code builds against Win32, Cocoa, X11 and Wayland. Pick the
+    platform at run time, or let Lumina choose.
+  </LumCard>
+  <LumCard title="No dependencies to chase" icon="bare">
+    Only the headers and libraries your OS already ships. No context-creation
+    or rendering headers are needed to build Lumina itself.
+  </LumCard>
+  <LumCard title="Events, not polling loops" icon="events">
+    Keyboard, mouse, gamepad, drag-and-drop, monitor hotplug and window state,
+    all delivered through callbacks you own.
+  </LumCard>
+  <LumCard title="Vulkan ready" icon="vulkan">
+    Query the required instance extensions and create a window surface without
+    writing platform-specific code.
+  </LumCard>
+</div>
+
+## Find your way around
+
+<div class="lum-grid not-content">
+  <LumCard title="Open a window" icon="firstwindow" href="/guides/first-window/">
+    The shortest complete program there is, explained line by line. Start here.
+  </LumCard>
+  <LumCard title="Getting started" icon="start" href="/guides/getting-started/">
+    The longer tutorial: a complete program that draws a rotating triangle.
+  </LumCard>
+  <LumCard title="Introduction to the API" icon="init" href="/guides/introduction/">
+    Initialization, error handling, versioning and the design rules the whole
+    API follows.
+  </LumCard>
+  <LumCard title="All functions" icon="reference" href="/reference/">
+    Alphabetical index of every function, with the area it belongs to.
+  </LumCard>
+  <LumCard title="Constants" icon="constants" href="/reference/constants/">
+    Key codes, modifier flags, window hints, error codes and every other
+    constant.
+  </LumCard>
+  <LumCard title="Compiling Lumina" icon="build" href="/guides/compiling-lumina/">
+    Build the library with CMake, or add its sources to your own build.
+  </LumCard>
+  <LumCard title="Building applications" icon="package" href="/guides/building-applications/">
+    Include the header and link the library from CMake, pkg-config or by hand.
+  </LumCard>
+</div>
+
+<Aside title="Lumina is a fork of GLFW">
+  Lumina continues [GLFW](https://www.glfw.org/) 3.4 after upstream development
+  stopped. The API is the same; only the names changed — `glfwCreateWindow`
+  became `lumCreateWindow`, `GLFWwindow` became `LUMwindow`, `GLFW_KEY_ESCAPE`
+  became `LUM_KEY_ESCAPE`. These pages are generated from Lumina's own headers
+  and guides, so they always describe the code in this repository.
+</Aside>

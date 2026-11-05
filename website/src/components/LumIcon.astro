@@ -1,0 +1,15 @@
+---
+// Inlines an icon from the shared set. The same module backs the icons the
+// generator writes into the reference pages, so both stay in step.
+import { renderIcon } from '../../scripts/lib/icons.mjs';
+
+interface Props {
+  name: string;
+  size?: number;
+}
+
+const { name, size = 40 } = Astro.props;
+const svg = renderIcon(name, { size });
+---
+
+<Fragment set:html={svg} />

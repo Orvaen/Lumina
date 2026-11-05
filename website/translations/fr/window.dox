@@ -1,0 +1,1540 @@
+/*!
+
+@page window_guide Guide des fenêtres
+
+@tableofcontents
+
+Ce guide présente les fonctions de Lumina liées aux fenêtres.  Pour le détail
+d'une fonction de cette catégorie, voyez @ref window.  Il existe aussi des
+guides pour les autres domaines de Lumina.
+
+ - @ref intro_guide
+ - @ref context_guide
+ - @ref vulkan_guide
+ - @ref monitor_guide
+ - @ref input_guide
+
+
+@section window_object Objets fenêtre
+
+L'objet @ref LUMwindow encapsule à la fois une fenêtre et un contexte.  Il se
+crée avec @ref lumCreateWindow et se détruit avec @ref lumDestroyWindow, ou
+@ref lumTerminate s'il en reste.  La fenêtre et le contexte étant
+indissociables, le pointeur sert à la fois de handle de contexte et de handle
+de fenêtre.
+
+Pour observer le flux d'événements fourni aux différentes fonctions de rappel
+liées aux fenêtres, lancez le programme de test `events`.
+
+
+@subsection window_creation Créer une fenêtre
+
+Une fenêtre et son contexte OpenGL ou OpenGL ES se créent avec @ref
+lumCreateWindowEx, qui prend tous ses paramètres dans un @ref LUMwindowdesc et
+retourne un handle vers l'objet fenêtre créé.  Voici par exemple comment créer
+une fenêtre de 640 sur 480 en mode fenêtré :
+
+@code
+LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width  = 640,
+    .height = 480,
+    .title  = "Mon titre"
+});
+@endcode
+
+Si la création échoue, `NULL` est retourné : il faut donc vérifier la valeur de
+retour.
+
+Le handle de la fenêtre est passé à toutes les fonctions liées aux fenêtres et
+fourni avec tous les événements d'entrée, afin que les gestionnaires sachent
+quelle fenêtre a reçu l'événement.
+
+
+@anchor window_creation_desc
+__Tout champ du descripteur laissé à zéro prend la valeur par défaut de la
+bibliothèque__ : vous n'écrivez donc que ce qui en diffère.  C'est ce qui
+permet de créer une fenêtre en une seule expression, aussi configurée soit-elle :
+
+@code
+LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width       = 1280,
+    .height      = 720,
+    .title       = "Lumina",
+    .glMajor     = 3,
+    .glMinor     = 3,
+    .glProfile   = LUM_OPENGL_CORE_PROFILE,
+    .samples     = 4,
+    .resizable   = LUM_OFF,
+    .makeCurrent = LUM_ON
+});
+@endcode
+
+Les options qui sont des interrupteurs emploient @ref LUMtoggle plutôt qu'un
+booléen ordinaire.  Plusieurs valent vrai par défaut — une fenêtre est
+redimensionnable, visible et décorée sauf indication contraire — et un booléen
+ne saurait distinguer « désactivé » de « non précisé », les deux valant zéro.
+`LUM_ON` et `LUM_OFF` disent lequel vous voulez ; omettre le champ conserve la
+valeur par défaut.
+
+Deux cas méritent un mot, parce que zéro y signifie déjà « par défaut » :
+
+ - Demander un tampon de zéro bit exactement, par exemple une fenêtre sans
+   tampon de profondeur, s'écrit `.depthBits = LUM_BITS_NONE`.  Un simple `0`
+   signifierait la valeur par défaut de 24, et `LUM_DONT_CARE` signifie
+   l'absence de préférence.
+ - Créer une fenêtre sans contexte d'API cliente, comme Vulkan l'exige,
+   s'écrit `.context = LUM_OFF` plutôt qu'en réglant l'API cliente sur
+   `LUM_NO_API`, dont la valeur est zéro.
+
+Régler `.makeCurrent` sur `LUM_ON` rend le nouveau contexte courant sur le
+thread appelant : un appel séparé à @ref lumMakeContextCurrent devient inutile.
+Le descripteur n'est lu que pendant l'appel et n'a pas besoin de lui survivre.
+
+@note On peut aussi créer une fenêtre avec @ref lumCreateWindow, qui prend ses
+paramètres par position et lit le reste dans l'état global d'indices posé par
+@ref lumWindowHint.  C'est ainsi que Lumina fonctionnait avant la version 3.4
+et cela marche toujours, mais un descripteur garde les paramètres ensemble, au
+même endroit, sans état à préparer et à réinitialiser autour de chaque appel.
+
+
+@subsubsection window_full_screen Fenêtres plein écran
+
+Pour créer une fenêtre plein écran, vous devez indiquer l'écran qu'elle doit
+occuper.  Dans la plupart des cas, l'écran principal de l'utilisateur est un
+bon choix.  Pour en savoir plus sur la récupération des écrans, voyez @ref
+monitor_monitors.
+
+@code
+LUMwindow* window = lumCreateWindow(640, 480, "Mon titre", lumGetPrimaryMonitor(), NULL);
+@endcode
+
+Une fenêtre plein écran couvre toute la zone d'affichage d'un écran, sans
+bordure ni décoration.
+
+Une fenêtre en mode fenêtré se met en plein écran en lui attribuant un écran
+avec @ref lumSetWindowMonitor, et une fenêtre plein écran repasse en mode
+fenêtré en le lui retirant avec la même fonction.
+
+Chaque champ de la structure @ref LUMvidmode correspond à un paramètre de
+fonction ou à un indice de fenêtre ; ensemble, ils forment le _mode vidéo
+souhaité_ de cette fenêtre.  Le mode vidéo pris en charge le plus proche du
+mode souhaité sera appliqué à l'écran choisi, tant que la fenêtre a le focus.
+Pour en savoir plus sur la récupération des modes vidéo, voyez @ref
+monitor_modes.
+
+Champ du mode vidéo      | Correspond à
+----------------         | --------------
+LUMvidmode.width       | paramètre `width` de @ref lumCreateWindow
+LUMvidmode.height      | paramètre `height` de @ref lumCreateWindow
+LUMvidmode.redBits     | indice @ref LUM_RED_BITS
+LUMvidmode.greenBits   | indice @ref LUM_GREEN_BITS
+LUMvidmode.blueBits    | indice @ref LUM_BLUE_BITS
+LUMvidmode.refreshRate | indice @ref LUM_REFRESH_RATE
+
+Une fois la fenêtre plein écran créée, vous pouvez changer sa résolution, son
+taux de rafraîchissement et son écran avec @ref lumSetWindowMonitor.  Si seule
+la résolution vous intéresse, @ref lumSetWindowSize suffit.  Dans tous les cas,
+le nouveau mode vidéo est choisi de la même façon que celui retenu par @ref
+lumCreateWindow.  Si la fenêtre a un contexte OpenGL ou OpenGL ES, il n'est pas
+affecté.
+
+Par défaut, le mode vidéo d'origine de l'écran est restauré et la fenêtre
+réduite en icône si elle perd le focus, pour permettre à l'utilisateur de
+revenir au bureau.  Ce comportement se désactive avec l'indice de fenêtre
+[LUM_AUTO_ICONIFY](@ref LUM_AUTO_ICONIFY_hint), par exemple si vous voulez
+couvrir simultanément plusieurs écrans de fenêtres plein écran.
+
+Si un écran est déconnecté, toutes les fenêtres qui y étaient en plein écran
+repassent en mode fenêtré.  Voyez @ref monitor_event pour en savoir plus.
+
+
+@subsubsection window_windowed_full_screen Fenêtres « plein écran fenêtré »
+
+Si le mode souhaité le plus proche est le mode courant, le mode vidéo n'est pas
+changé : la création de la fenêtre est plus rapide et le basculement entre
+applications bien plus fluide.  On parle parfois de fenêtre _plein écran
+fenêtré_ ou _plein écran sans bordure_ ; cela reste une fenêtre plein écran.
+Pour en créer une, demandez le mode vidéo courant.
+
+@code
+const LUMvidmode* mode = lumGetVideoMode(monitor);
+
+lumWindowHint(LUM_RED_BITS, mode->redBits);
+lumWindowHint(LUM_GREEN_BITS, mode->greenBits);
+lumWindowHint(LUM_BLUE_BITS, mode->blueBits);
+lumWindowHint(LUM_REFRESH_RATE, mode->refreshRate);
+
+LUMwindow* window = lumCreateWindow(mode->width, mode->height, "Mon titre", monitor, NULL);
+@endcode
+
+Cela fonctionne aussi pour une fenêtre en mode fenêtré que l'on passe en plein
+écran.
+
+@code
+const LUMvidmode* mode = lumGetVideoMode(monitor);
+
+lumSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+@endcode
+
+Notez que @ref lumGetVideoMode retourne le mode vidéo _courant_ d'un écran : si
+vous avez déjà une fenêtre plein écran sur cet écran et que vous voulez la
+passer en plein écran fenêtré, vous devez avoir sauvegardé la résolution du
+bureau au préalable.
+
+
+@subsection window_destruction Détruire une fenêtre
+
+Quand une fenêtre ne sert plus, détruisez-la avec @ref lumDestroyWindow.
+
+@code
+lumDestroyWindow(window);
+@endcode
+
+La destruction d'une fenêtre réussit toujours.  Avant la destruction effective,
+toutes les fonctions de rappel sont retirées : plus aucun événement ne sera
+délivré pour cette fenêtre.  Les fenêtres restantes à l'appel de @ref
+lumTerminate sont également détruites.
+
+Quand une fenêtre plein écran est détruite, le mode vidéo d'origine de son
+écran est restauré, mais la rampe gamma reste inchangée.
+
+
+@subsection window_hints Indices de création de fenêtre
+
+Plusieurs indices peuvent être posés avant la création d'une fenêtre et de son
+contexte.  Certains concernent la fenêtre elle-même, d'autres le tampon d'image
+ou le contexte.  Ils reprennent leur valeur par défaut à chaque initialisation
+de la bibliothèque par @ref lumInit.  Les indices à valeur entière se posent
+individuellement avec @ref lumWindowHint, ceux à valeur chaîne avec @ref
+lumWindowHintString.  Vous pouvez tous les réinitialiser d'un coup avec @ref
+lumDefaultWindowHints.
+
+Certains indices sont propres à une plateforme.  On peut toujours les poser sur
+n'importe quelle plateforme, mais ils n'agiront que sur la leur ; les autres
+les ignoreront.  Les poser ne demande aucun en-tête ni aucun appel spécifique à
+une plateforme.
+
+@note Les indices de fenêtre doivent être posés avant la création de la fenêtre
+et du contexte auxquels vous voulez donner ces attributs.  Ils jouent le rôle
+d'arguments supplémentaires de @ref lumCreateWindow.
+
+
+@subsubsection window_hints_hard Contraintes dures et souples
+
+Certains indices sont des contraintes dures : ils doivent correspondre
+_exactement_ aux capacités disponibles pour que la création de la fenêtre et du
+contexte réussisse.  Les indices qui ne sont pas des contraintes dures sont
+satisfaits au plus près, mais le contexte et le tampon d'image obtenus peuvent
+différer de ce qui a été demandé.
+
+Les indices suivants sont toujours des contraintes dures :
+- @ref LUM_STEREO
+- @ref LUM_DOUBLEBUFFER
+- [LUM_CLIENT_API](@ref LUM_CLIENT_API_hint)
+- [LUM_CONTEXT_CREATION_API](@ref LUM_CONTEXT_CREATION_API_hint)
+
+Les indices suivants sont en outre des contraintes dures lorsqu'on demande un
+contexte OpenGL, mais sont ignorés pour un contexte OpenGL ES :
+- [LUM_OPENGL_FORWARD_COMPAT](@ref LUM_OPENGL_FORWARD_COMPAT_hint)
+- [LUM_OPENGL_PROFILE](@ref LUM_OPENGL_PROFILE_hint)
+
+
+@subsubsection window_hints_wnd Indices liés à la fenêtre
+
+@anchor LUM_RESIZABLE_hint
+__LUM_RESIZABLE__ indique si la fenêtre en mode fenêtré sera redimensionnable
+_par l'utilisateur_.  Elle restera redimensionnable par la fonction @ref
+lumSetWindowSize.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet
+indice est ignoré pour les fenêtres plein écran et sans décoration.
+
+@anchor LUM_VISIBLE_hint
+__LUM_VISIBLE__ indique si la fenêtre en mode fenêtré sera initialement
+visible.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet indice est
+ignoré pour les fenêtres plein écran.
+
+@anchor LUM_DECORATED_hint
+__LUM_DECORATED__ indique si la fenêtre en mode fenêtré aura des décorations :
+bordure, bouton de fermeture, etc.  Une fenêtre sans décoration ne sera pas
+redimensionnable par l'utilisateur, mais lui permettra tout de même de produire
+des événements de fermeture sur certaines plateformes.  Les valeurs possibles
+sont `LUM_TRUE` et `LUM_FALSE`.  Cet indice est ignoré pour les fenêtres plein
+écran.
+
+@anchor LUM_FOCUSED_hint
+__LUM_FOCUSED__ indique si la fenêtre en mode fenêtré recevra le focus à sa
+création.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet indice
+est ignoré pour les fenêtres plein écran et celles initialement masquées.
+
+@anchor LUM_AUTO_ICONIFY_hint
+__LUM_AUTO_ICONIFY__ indique si la fenêtre plein écran se réduira
+automatiquement en icône, en restaurant le mode vidéo précédent, à la perte du
+focus.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet indice est
+ignoré pour les fenêtres en mode fenêtré.
+
+@anchor LUM_FLOATING_hint
+__LUM_FLOATING__ indique si la fenêtre en mode fenêtré flottera au-dessus des
+fenêtres ordinaires, ce qu'on appelle aussi toujours au premier plan.  C'est
+surtout destiné au débogage et ne permet pas d'implémenter correctement des
+fenêtres plein écran.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+Cet indice est ignoré pour les fenêtres plein écran.
+
+@anchor LUM_MAXIMIZED_hint
+__LUM_MAXIMIZED__ indique si la fenêtre en mode fenêtré sera maximisée à sa
+création.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Cet indice
+est ignoré pour les fenêtres plein écran.
+
+@anchor LUM_CENTER_CURSOR_hint
+__LUM_CENTER_CURSOR__ indique si le curseur doit être centré sur les fenêtres
+plein écran nouvellement créées.  Les valeurs possibles sont `LUM_TRUE` et
+`LUM_FALSE`.  Cet indice est ignoré pour les fenêtres en mode fenêtré.
+
+@anchor LUM_TRANSPARENT_FRAMEBUFFER_hint
+__LUM_TRANSPARENT_FRAMEBUFFER__ indique si le tampon d'image de la fenêtre sera
+transparent.  S'il est activé et pris en charge par le système, le canal alpha
+du tampon d'image servira à composer celui-ci avec l'arrière-plan.  Cela
+n'affecte pas les décorations de la fenêtre.  Les valeurs possibles sont
+`LUM_TRUE` et `LUM_FALSE`.
+
+@anchor LUM_FOCUS_ON_SHOW_hint
+__LUM_FOCUS_ON_SHOW__ indique si la fenêtre recevra le focus lors de l'appel à
+@ref lumShowWindow.  Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+@anchor LUM_SCALE_TO_MONITOR
+__LUM_SCALE_TO_MONITOR__ indique si la zone de contenu de la fenêtre doit être
+redimensionnée en fonction du
+[facteur d'échelle de l'écran](@ref monitor_scale) sur lequel elle se trouve.
+Cela vaut aussi pour le placement initial, à la création.  Les valeurs
+possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+Cet indice n'a d'effet que sur les plateformes où coordonnées d'écran et pixels
+correspondent toujours un pour un, comme Windows et X11.  Sur des plateformes
+comme macOS, la résolution du tampon d'image change indépendamment de la taille
+de la fenêtre.
+
+@anchor LUM_MOUSE_PASSTHROUGH_hint
+__LUM_MOUSE_PASSTHROUGH__ indique si la fenêtre est transparente aux entrées
+souris, laissant les événements passer à la fenêtre située derrière.  Ce n'est
+pris en charge que pour les fenêtres sans décoration ; une fenêtre décorée avec
+cette option se comportera différemment selon la plateforme.  Les valeurs
+possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+
+@subsubsection window_hints_fb Indices liés au tampon d'image
+
+@anchor LUM_RED_BITS
+@anchor LUM_GREEN_BITS
+@anchor LUM_BLUE_BITS
+@anchor LUM_ALPHA_BITS
+@anchor LUM_DEPTH_BITS
+@anchor LUM_STENCIL_BITS
+__LUM_RED_BITS__, __LUM_GREEN_BITS__, __LUM_BLUE_BITS__, __LUM_ALPHA_BITS__,
+__LUM_DEPTH_BITS__ et __LUM_STENCIL_BITS__ indiquent les profondeurs de bits
+souhaitées pour les différentes composantes du tampon d'image par défaut.  La
+valeur `LUM_DONT_CARE` signifie que l'application n'a pas de préférence.
+
+@anchor LUM_ACCUM_RED_BITS
+@anchor LUM_ACCUM_GREEN_BITS
+@anchor LUM_ACCUM_BLUE_BITS
+@anchor LUM_ACCUM_ALPHA_BITS
+__LUM_ACCUM_RED_BITS__, __LUM_ACCUM_GREEN_BITS__, __LUM_ACCUM_BLUE_BITS__ et
+__LUM_ACCUM_ALPHA_BITS__ indiquent les profondeurs de bits souhaitées pour les
+différentes composantes du tampon d'accumulation.  La valeur `LUM_DONT_CARE`
+signifie que l'application n'a pas de préférence.
+
+Les tampons d'accumulation sont une fonctionnalité héritée d'OpenGL et ne
+devraient pas être employés dans du code neuf.
+
+@anchor LUM_AUX_BUFFERS
+__LUM_AUX_BUFFERS__ indique le nombre souhaité de tampons auxiliaires.  La
+valeur `LUM_DONT_CARE` signifie que l'application n'a pas de préférence.
+
+Les tampons auxiliaires sont une fonctionnalité héritée d'OpenGL et ne
+devraient pas être employés dans du code neuf.
+
+@anchor LUM_STEREO
+__LUM_STEREO__ indique s'il faut utiliser le rendu stéréoscopique d'OpenGL.
+Les valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  C'est une contrainte
+dure.
+
+@anchor LUM_SAMPLES
+__LUM_SAMPLES__ indique le nombre souhaité d'échantillons pour le
+multiéchantillonnage.  Zéro le désactive.  La valeur `LUM_DONT_CARE` signifie
+que l'application n'a pas de préférence.
+
+@anchor LUM_SRGB_CAPABLE
+__LUM_SRGB_CAPABLE__ indique si le tampon d'image doit gérer le sRGB.  Les
+valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+@note __OpenGL :__ s'il est activé et pris en charge par le système, l'état
+`GL_FRAMEBUFFER_SRGB` commandera le rendu sRGB.  Par défaut, le rendu sRGB sera
+désactivé.
+
+@note __OpenGL ES :__ s'il est activé et pris en charge par le système, le
+contexte aura toujours le rendu sRGB activé.
+
+@anchor LUM_DOUBLEBUFFER
+@anchor LUM_DOUBLEBUFFER_hint
+__LUM_DOUBLEBUFFER__ indique si le tampon d'image doit être en double tampon.
+Vous le voudrez presque toujours.  C'est une contrainte dure.  Les valeurs
+possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+
+@subsubsection window_hints_mtr Indices liés à l'écran
+
+@anchor LUM_REFRESH_RATE
+__LUM_REFRESH_RATE__ indique le taux de rafraîchissement souhaité pour les
+fenêtres plein écran.  La valeur `LUM_DONT_CARE` signifie que le taux le plus
+élevé disponible sera utilisé.  Cet indice est ignoré pour les fenêtres en mode
+fenêtré.
+
+
+@subsubsection window_hints_ctx Indices liés au contexte
+
+@anchor LUM_CLIENT_API_hint
+__LUM_CLIENT_API__ indique pour quelle API cliente créer le contexte.  Les
+valeurs possibles sont `LUM_OPENGL_API`, `LUM_OPENGL_ES_API` et `LUM_NO_API`.
+C'est une contrainte dure.
+
+@anchor LUM_CONTEXT_CREATION_API_hint
+__LUM_CONTEXT_CREATION_API__ indique quelle API de création de contexte
+employer.  Les valeurs possibles sont `LUM_NATIVE_CONTEXT_API`,
+`LUM_EGL_CONTEXT_API` et `LUM_OSMESA_CONTEXT_API`.  C'est une contrainte dure.
+Si aucune API cliente n'est demandée, cet indice est ignoré.
+
+Une [bibliothèque de chargement d'extensions](@ref context_glext_auto) qui
+présume connaître l'API ayant servi à créer le contexte courant peut échouer si
+vous changez cet indice.  On le résout en lui faisant charger les fonctions via
+@ref lumGetProcAddress.
+
+@note @wayland L'API EGL _est_ l'API native de création de contexte : cet
+indice n'aura donc aucun effet.
+
+@note @x11 Sur certains systèmes Linux, créer des contextes à la fois par l'API
+native et par EGL dans un même processus fait planter l'application.
+Tenez-vous-en pour l'instant à une seule des deux sous Linux.
+
+@note __OSMesa :__ comme son nom l'indique, un contexte OpenGL créé avec OSMesa
+ne met pas à jour le contenu de la fenêtre lors de l'échange de ses tampons.
+Utilisez des fonctions OpenGL ou les fonctions d'accès natif OSMesa @ref
+lumGetOSMesaColorBuffer et @ref lumGetOSMesaDepthBuffer pour récupérer le
+contenu du tampon d'image.
+
+@anchor LUM_CONTEXT_VERSION_MAJOR_hint
+@anchor LUM_CONTEXT_VERSION_MINOR_hint
+__LUM_CONTEXT_VERSION_MAJOR__ et __LUM_CONTEXT_VERSION_MINOR__ indiquent la
+version de l'API cliente avec laquelle le contexte créé doit être compatible.
+Leur comportement exact dépend de l'API cliente demandée.
+
+Il n'existe aucun moyen de demander au pilote un contexte de la plus haute
+version prise en charge, mais Lumina tentera de le fournir si vous demandez un
+contexte en version 1.0, qui est la valeur par défaut de ces indices.
+
+Ne confondez pas ces indices avec @ref LUM_VERSION_MAJOR et @ref
+LUM_VERSION_MINOR, qui donnent la version de l'API de l'en-tête de Lumina.
+
+@note __OpenGL :__ ces indices ne sont pas des contraintes dures, mais la
+création échouera si la version OpenGL du contexte créé est inférieure à celle
+demandée.  Il est donc parfaitement sûr de garder la valeur par défaut 1.0 pour
+du code ancien : vous obtiendrez tout de même des contextes rétrocompatibles en
+version 3.0 et au-delà quand ils sont disponibles.
+
+@note __OpenGL ES :__ ces indices ne sont pas des contraintes dures, mais la
+création échouera si la version OpenGL ES du contexte créé est inférieure à
+celle demandée.  De plus, OpenGL ES 1.x ne peut être retourné si 2.0 ou
+ultérieur a été demandé, et réciproquement : OpenGL ES 3.x est rétrocompatible
+avec 2.0, mais OpenGL ES 2.0 ne l'est pas avec 1.x.
+
+@note @macos Le système ne prend en charge que les contextes à profil core pour
+OpenGL 3.2 et au-delà.  Avant de créer un contexte OpenGL 3.2 ou ultérieur,
+vous devez positionner l'indice
+[LUM_OPENGL_PROFILE](@ref LUM_OPENGL_PROFILE_hint) en conséquence.  Les
+contextes OpenGL 3.0 et 3.1 ne sont pas du tout pris en charge sous macOS.
+
+@anchor LUM_OPENGL_FORWARD_COMPAT_hint
+__LUM_OPENGL_FORWARD_COMPAT__ indique si le contexte OpenGL doit être
+compatible en avant, c'est-à-dire débarrassé de tout ce qui est déprécié dans
+la version d'OpenGL demandée.  À n'employer que si la version demandée est 3.0
+ou supérieure.  Si OpenGL ES est demandé, cet indice est ignoré.
+
+La compatibilité en avant est décrite en détail dans le
+[manuel de référence OpenGL](https://www.opengl.org/registry/).
+
+@anchor LUM_CONTEXT_DEBUG_hint
+@anchor LUM_OPENGL_DEBUG_CONTEXT_hint
+__LUM_CONTEXT_DEBUG__ indique si le contexte doit être créé en mode débogage,
+ce qui peut offrir des rapports d'erreur et de diagnostic supplémentaires.  Les
+valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.
+
+Les contextes de débogage OpenGL et OpenGL ES sont décrits en détail par
+l'extension
+[GL_KHR_debug](https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_debug.txt).
+
+@note `LUM_CONTEXT_DEBUG` est le nouveau nom introduit dans Lumina 3.4.
+L'ancien nom `LUM_OPENGL_DEBUG_CONTEXT` reste disponible par compatibilité.
+
+@anchor LUM_OPENGL_PROFILE_hint
+__LUM_OPENGL_PROFILE__ indique pour quel profil OpenGL créer le contexte.  Les
+valeurs possibles sont `LUM_OPENGL_CORE_PROFILE` ou
+`LUM_OPENGL_COMPAT_PROFILE`, ou `LUM_OPENGL_ANY_PROFILE` pour ne pas en
+demander de particulier.  Si vous demandez une version d'OpenGL inférieure à
+3.2, il faut employer `LUM_OPENGL_ANY_PROFILE`.  Si OpenGL ES est demandé, cet
+indice est ignoré.
+
+Les profils OpenGL sont décrits en détail dans le
+[manuel de référence OpenGL](https://www.opengl.org/registry/).
+
+@anchor LUM_CONTEXT_ROBUSTNESS_hint
+__LUM_CONTEXT_ROBUSTNESS__ indique la stratégie de robustesse qu'emploiera le
+contexte.  Ce peut être `LUM_NO_RESET_NOTIFICATION` ou
+`LUM_LOSE_CONTEXT_ON_RESET`, ou `LUM_NO_ROBUSTNESS` pour n'en demander aucune.
+
+@anchor LUM_CONTEXT_RELEASE_BEHAVIOR_hint
+__LUM_CONTEXT_RELEASE_BEHAVIOR__ indique le comportement de libération
+qu'emploiera le contexte.  Les valeurs possibles sont
+`LUM_ANY_RELEASE_BEHAVIOR`, `LUM_RELEASE_BEHAVIOR_FLUSH` ou
+`LUM_RELEASE_BEHAVIOR_NONE`.  Avec `LUM_ANY_RELEASE_BEHAVIOR`, le comportement
+par défaut de l'API de création de contexte s'applique.  Avec
+`LUM_RELEASE_BEHAVIOR_FLUSH`, le pipeline est vidé chaque fois que le contexte
+cesse d'être courant.  Avec `LUM_RELEASE_BEHAVIOR_NONE`, il ne l'est pas.
+
+Les comportements de libération de contexte sont décrits en détail par
+l'extension
+[GL_KHR_context_flush_control](https://www.opengl.org/registry/specs/KHR/context_flush_control.txt).
+
+@anchor LUM_CONTEXT_NO_ERROR_hint
+__LUM_CONTEXT_NO_ERROR__ indique si le contexte doit produire des erreurs.  Les
+valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Si cette option est activée,
+les situations qui auraient produit une erreur provoquent à la place un
+comportement indéfini.
+
+Le mode sans erreur d'OpenGL et d'OpenGL ES est décrit en détail par
+l'extension
+[GL_KHR_no_error](https://www.opengl.org/registry/specs/KHR/no_error.txt).
+
+
+@subsubsection window_hints_win32 Indices propres à Win32
+
+@anchor LUM_WIN32_KEYBOARD_MENU_hint
+__LUM_WIN32_KEYBOARD_MENU__ indique s'il faut autoriser l'accès au menu de la
+fenêtre par les raccourcis clavier Alt+Espace et Alt-puis-Espace.  Ignoré sur
+les autres plateformes.
+
+
+@subsubsection window_hints_osx Indices propres à macOS
+
+@anchor LUM_COCOA_RETINA_FRAMEBUFFER_hint
+__LUM_COCOA_RETINA_FRAMEBUFFER__ indique s'il faut utiliser des tampons d'image
+en pleine résolution sur les écrans Retina.  Les valeurs possibles sont
+`LUM_TRUE` et `LUM_FALSE`.  Ignoré sur les autres plateformes.
+
+@anchor LUM_COCOA_FRAME_NAME_hint
+__LUM_COCOA_FRAME_NAME__ indique le nom, encodé en UTF-8, à employer pour
+l'enregistrement automatique du cadre de la fenêtre ; s'il est vide, cet
+enregistrement est désactivé pour la fenêtre.  Ignoré sur les autres
+plateformes.  Se pose avec @ref lumWindowHintString.
+
+@anchor LUM_COCOA_GRAPHICS_SWITCHING_hint
+__LUM_COCOA_GRAPHICS_SWITCHING__ indique s'il faut participer à la commutation
+graphique automatique, c'est-à-dire laisser le système choisir le GPU intégré
+pour le contexte OpenGL et le déplacer d'un GPU à l'autre si nécessaire, ou
+bien le forcer à toujours tourner sur le GPU dédié.  Cela ne concerne que les
+systèmes dotés à la fois d'un GPU intégré et d'un GPU dédié.  Les valeurs
+possibles sont `LUM_TRUE` et `LUM_FALSE`.  Ignoré sur les autres plateformes.
+
+Les programmes et outils simples auront intérêt à l'activer pour économiser
+l'énergie, tandis que les jeux et autres applications au rendu avancé voudront
+le laisser désactivé.
+
+Une application en bundle qui souhaite participer à la commutation graphique
+automatique devrait également le déclarer dans son `Info.plist`, en mettant la
+clé `NSSupportsAutomaticGraphicsSwitching` à `true`.
+
+
+@subsubsection window_hints_x11 Indices de fenêtre propres à X11
+
+@anchor LUM_X11_CLASS_NAME_hint
+@anchor LUM_X11_INSTANCE_NAME_hint
+__LUM_X11_CLASS_NAME__ et __LUM_X11_INSTANCE_NAME__ indiquent les parties
+classe et instance souhaitées, encodées en ASCII, de la propriété de fenêtre
+ICCCM `WM_CLASS`.  Elles se posent avec @ref lumWindowHintString.
+
+
+@subsubsection window_hints_values Valeurs prises en charge et valeurs par défaut
+
+Indice de fenêtre             | Valeur par défaut           | Valeurs possibles
+----------------------------- | --------------------------- | ----------------
+LUM_RESIZABLE                | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_VISIBLE                  | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_DECORATED                | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_FOCUSED                  | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_AUTO_ICONIFY             | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_FLOATING                 | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_MAXIMIZED                | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_CENTER_CURSOR            | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_TRANSPARENT_FRAMEBUFFER  | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_FOCUS_ON_SHOW            | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_SCALE_TO_MONITOR         | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_MOUSE_PASSTHROUGH        | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_RED_BITS                 | 8                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_GREEN_BITS               | 8                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_BLUE_BITS                | 8                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_ALPHA_BITS               | 8                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_DEPTH_BITS               | 24                          | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_STENCIL_BITS             | 8                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_ACCUM_RED_BITS           | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_ACCUM_GREEN_BITS         | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_ACCUM_BLUE_BITS          | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_ACCUM_ALPHA_BITS         | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_AUX_BUFFERS              | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_SAMPLES                  | 0                           | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_REFRESH_RATE             | `LUM_DONT_CARE`            | 0 à `INT_MAX` ou `LUM_DONT_CARE`
+LUM_STEREO                   | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_SRGB_CAPABLE             | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_DOUBLEBUFFER             | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_CLIENT_API               | `LUM_OPENGL_API`           | `LUM_OPENGL_API`, `LUM_OPENGL_ES_API` ou `LUM_NO_API`
+LUM_CONTEXT_CREATION_API     | `LUM_NATIVE_CONTEXT_API`   | `LUM_NATIVE_CONTEXT_API`, `LUM_EGL_CONTEXT_API` ou `LUM_OSMESA_CONTEXT_API`
+LUM_CONTEXT_VERSION_MAJOR    | 1                           | Tout numéro de version majeure valide de l'API cliente choisie
+LUM_CONTEXT_VERSION_MINOR    | 0                           | Tout numéro de version mineure valide de l'API cliente choisie
+LUM_CONTEXT_ROBUSTNESS       | `LUM_NO_ROBUSTNESS`        | `LUM_NO_ROBUSTNESS`, `LUM_NO_RESET_NOTIFICATION` ou `LUM_LOSE_CONTEXT_ON_RESET`
+LUM_CONTEXT_RELEASE_BEHAVIOR | `LUM_ANY_RELEASE_BEHAVIOR` | `LUM_ANY_RELEASE_BEHAVIOR`, `LUM_RELEASE_BEHAVIOR_FLUSH` ou `LUM_RELEASE_BEHAVIOR_NONE`
+LUM_OPENGL_FORWARD_COMPAT    | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_CONTEXT_DEBUG            | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_OPENGL_PROFILE           | `LUM_OPENGL_ANY_PROFILE`   | `LUM_OPENGL_ANY_PROFILE`, `LUM_OPENGL_COMPAT_PROFILE` ou `LUM_OPENGL_CORE_PROFILE`
+LUM_WIN32_KEYBOARD_MENU      | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_COCOA_RETINA_FRAMEBUFFER | `LUM_TRUE`                 | `LUM_TRUE` ou `LUM_FALSE`
+LUM_COCOA_FRAME_NAME         | `""`                        | Un nom d'enregistrement automatique de cadre, en UTF-8
+LUM_COCOA_GRAPHICS_SWITCHING | `LUM_FALSE`                | `LUM_TRUE` ou `LUM_FALSE`
+LUM_X11_CLASS_NAME           | `""`                        | Un nom de classe `WM_CLASS` encodé en ASCII
+LUM_X11_INSTANCE_NAME        | `""`                        | Un nom d'instance `WM_CLASS` encodé en ASCII
+
+
+@section window_events Traitement des événements de fenêtre
+
+Voyez @ref events.
+
+
+@section window_properties Propriétés et événements de fenêtre
+
+@subsection window_userptr Pointeur utilisateur
+
+Chaque fenêtre dispose d'un pointeur utilisateur, que l'on positionne avec @ref
+lumSetWindowUserPointer et que l'on relit avec @ref lumGetWindowUserPointer.
+Vous pouvez l'utiliser comme bon vous semble ; Lumina ne le modifiera pas de
+toute la vie de la fenêtre.
+
+Sa valeur initiale est `NULL`.
+
+
+@subsection window_close Fermeture de fenêtre et indicateur de fermeture
+
+Quand l'utilisateur tente de fermer la fenêtre, par exemple en cliquant sur le
+bouton de fermeture ou par un raccourci comme Alt+F4, l'_indicateur de
+fermeture_ de la fenêtre est positionné.  La fenêtre n'est pourtant pas
+détruite et, à moins que vous ne guettiez ce changement d'état, rien d'autre
+ne se produit.
+
+L'état courant de cet indicateur est retourné par @ref lumWindowShouldClose ;
+on peut le positionner ou l'effacer directement avec @ref
+lumSetWindowShouldClose.  L'usage courant est de s'en servir comme condition de
+la boucle principale.
+
+@code
+while (!lumWindowShouldClose(window))
+{
+    render(window);
+
+    lumSwapBuffers(window);
+    lumPollEvents();
+}
+@endcode
+
+Si vous souhaitez être averti que l'utilisateur tente de fermer une fenêtre,
+installez une fonction de rappel de fermeture.
+
+@code
+lumSetWindowCloseCallback(window, window_close_callback);
+@endcode
+
+Elle est appelée juste _après_ que l'indicateur a été positionné.  Elle permet
+par exemple de filtrer les demandes de fermeture et d'effacer à nouveau
+l'indicateur tant que certaines conditions ne sont pas réunies.
+
+@code
+void window_close_callback(LUMwindow* window)
+{
+    if (!time_to_close)
+        lumSetWindowShouldClose(window, LUM_FALSE);
+}
+@endcode
+
+
+@subsection window_size Taille de la fenêtre
+
+La taille d'une fenêtre se change avec @ref lumSetWindowSize.  Pour une fenêtre
+en mode fenêtré, cela règle la taille, en
+[coordonnées d'écran](@ref coordinate_systems), de sa _zone de contenu_.  Le
+système de fenêtrage peut imposer des limites.
+
+@code
+lumSetWindowSize(window, 640, 480);
+@endcode
+
+Pour une fenêtre plein écran, la taille indiquée devient la nouvelle résolution
+du mode vidéo souhaité.  Le mode pris en charge le plus proche est appliqué
+immédiatement et la fenêtre est redimensionnée à la résolution de ce mode.
+
+Si vous souhaitez être averti du redimensionnement d'une fenêtre, par
+l'utilisateur, le système ou votre propre code, installez une fonction de
+rappel de taille.
+
+@code
+lumSetWindowSizeCallback(window, window_size_callback);
+@endcode
+
+Elle reçoit la nouvelle taille, en coordonnées d'écran, de la zone de contenu
+de la fenêtre redimensionnée.
+
+@code
+void window_size_callback(LUMwindow* window, int width, int height)
+{
+}
+@endcode
+
+@ref lumGetWindowSize permet aussi d'obtenir directement la taille courante
+d'une fenêtre.
+
+@code
+int width, height;
+lumGetWindowSize(window, &width, &height);
+@endcode
+
+@note Ne passez pas la taille de la fenêtre à `glViewport` ni à d'autres appels
+OpenGL raisonnant en pixels.  Elle est en coordonnées d'écran, pas en pixels.
+Pour ces appels, utilisez la [taille du tampon d'image](@ref window_fbsize),
+qui est en pixels.
+
+Les fonctions ci-dessus travaillent sur la zone de contenu, mais une fenêtre
+décorée possède généralement une barre de titre et un cadre autour de ce
+rectangle.  Vous en obtenez les débordements avec @ref lumGetWindowFrameSize.
+
+@code
+int left, top, right, bottom;
+lumGetWindowFrameSize(window, &left, &top, &right, &bottom);
+@endcode
+
+Les valeurs retournées sont les distances, en coordonnées d'écran, entre les
+bords de la zone de contenu et les bords correspondants de la fenêtre
+complète.  Comme ce sont des distances et non des coordonnées, elles sont
+toujours nulles ou positives.
+
+
+@subsection window_fbsize Taille du tampon d'image
+
+Si la taille d'une fenêtre se mesure en coordonnées d'écran, OpenGL travaille
+en pixels : la taille que vous passez à `glViewport`, par exemple, doit être en
+pixels.  Sur certaines machines, coordonnées d'écran et pixels coïncident, sur
+d'autres non.  Un second jeu de fonctions donne la taille, en pixels, du tampon
+d'image d'une fenêtre.
+
+Si vous souhaitez être averti du redimensionnement du tampon d'image d'une
+fenêtre, par l'utilisateur ou par le système, installez une fonction de rappel
+de taille.
+
+@code
+lumSetFramebufferSizeCallback(window, framebuffer_size_callback);
+@endcode
+
+Elle reçoit la nouvelle taille du tampon d'image, qui peut par exemple servir à
+mettre à jour le viewport OpenGL.
+
+@code
+void framebuffer_size_callback(LUMwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+@endcode
+
+@ref lumGetFramebufferSize permet aussi d'obtenir directement la taille
+courante du tampon d'image d'une fenêtre.
+
+@code
+int width, height;
+lumGetFramebufferSize(window, &width, &height);
+glViewport(0, 0, width, height);
+@endcode
+
+La taille d'un tampon d'image peut changer indépendamment de celle de la
+fenêtre, par exemple si on fait glisser la fenêtre d'un écran ordinaire vers un
+écran haute densité.
+
+
+@subsection window_scale Facteur d'échelle du contenu d'une fenêtre
+
+Le facteur d'échelle du contenu d'une fenêtre se récupère avec @ref
+lumGetWindowContentScale.
+
+@code
+float xscale, yscale;
+lumGetWindowContentScale(window, &xscale, &yscale);
+@endcode
+
+Ce facteur est le rapport entre le DPI courant et le DPI par défaut de la
+plateforme.  Il compte particulièrement pour le texte et les éléments
+d'interface.  Si les dimensions en pixels de votre interface, multipliées par
+ce facteur, rendent bien sur votre machine, elles devraient paraître d'une
+taille raisonnable sur les autres machines, quels que soient leur DPI et leurs
+réglages d'échelle.  Cela suppose que les réglages système soient à peu près
+corrects.
+
+Sur les systèmes où chaque écran peut avoir son propre facteur d'échelle, celui
+de la fenêtre dépend de l'écran sur lequel le système considère qu'elle se
+trouve.
+
+Si vous souhaitez être averti du changement de ce facteur, que ce soit à cause
+d'un réglage système ou d'un déplacement vers un écran au facteur différent,
+installez une fonction de rappel de facteur d'échelle.
+
+@code
+lumSetWindowContentScaleCallback(window, window_content_scale_callback);
+@endcode
+
+Elle reçoit le nouveau facteur d'échelle de la fenêtre.
+
+@code
+void window_content_scale_callback(LUMwindow* window, float xscale, float yscale)
+{
+    set_interface_scale(xscale, yscale);
+}
+@endcode
+
+Sur les plateformes où pixels et coordonnées d'écran coïncident toujours, la
+fenêtre devra être redimensionnée pour paraître de la même taille après un
+déplacement vers un écran au facteur différent.  Pour que ce soit fait
+automatiquement, à la création comme lors des changements ultérieurs,
+positionnez l'indice de fenêtre @ref LUM_SCALE_TO_MONITOR.
+
+
+@subsection window_sizelimits Limites de taille d'une fenêtre
+
+Les tailles minimale et maximale de la zone de contenu d'une fenêtre en mode
+fenêtré s'imposent avec @ref lumSetWindowSizeLimits.  L'utilisateur peut
+redimensionner la fenêtre à n'importe quelle taille et proportion dans ces
+limites, sauf si la proportion est elle aussi fixée.
+
+@code
+lumSetWindowSizeLimits(window, 200, 200, 400, 400);
+@endcode
+
+Pour n'indiquer qu'une taille minimale ou qu'une maximale, mettez l'autre
+couple à `LUM_DONT_CARE`.
+
+@code
+lumSetWindowSizeLimits(window, 640, 480, LUM_DONT_CARE, LUM_DONT_CARE);
+@endcode
+
+Pour désactiver les limites de taille, mettez-les toutes à `LUM_DONT_CARE`.
+
+La proportion de la zone de contenu d'une fenêtre en mode fenêtré s'impose avec
+@ref lumSetWindowAspectRatio.  L'utilisateur peut redimensionner librement,
+sauf si des limites de taille sont également posées, mais la taille sera
+contrainte pour conserver la proportion.
+
+@code
+lumSetWindowAspectRatio(window, 16, 9);
+@endcode
+
+La proportion s'exprime par un numérateur et un dénominateur, correspondant
+respectivement à la largeur et à la hauteur.  Si vous voulez qu'une fenêtre
+conserve sa proportion actuelle, utilisez sa taille courante comme rapport.
+
+@code
+int width, height;
+lumGetWindowSize(window, &width, &height);
+lumSetWindowAspectRatio(window, width, height);
+@endcode
+
+Pour désactiver la contrainte de proportion, mettez les deux termes à
+`LUM_DONT_CARE`.
+
+Vous pouvez poser à la fois des limites de taille et une proportion, mais le
+résultat est indéfini si elles entrent en conflit.
+
+
+@subsection window_pos Position de la fenêtre
+
+La position d'une fenêtre en mode fenêtré se change avec @ref lumSetWindowPos.
+Cela déplace la fenêtre pour que le coin supérieur gauche de sa zone de contenu
+se trouve aux [coordonnées d'écran](@ref coordinate_systems) indiquées.  Le
+système de fenêtrage peut imposer des limites au placement.
+
+@code
+lumSetWindowPos(window, 100, 100);
+@endcode
+
+Si vous souhaitez être averti du déplacement d'une fenêtre, par l'utilisateur,
+le système ou votre propre code, installez une fonction de rappel de position.
+
+@code
+lumSetWindowPosCallback(window, window_pos_callback);
+@endcode
+
+Elle reçoit la nouvelle position, en coordonnées d'écran, du coin supérieur
+gauche de la zone de contenu après déplacement.
+
+@code
+void window_pos_callback(LUMwindow* window, int xpos, int ypos)
+{
+}
+@endcode
+
+@ref lumGetWindowPos permet aussi d'obtenir directement la position courante de
+la zone de contenu de la fenêtre.
+
+@code
+int xpos, ypos;
+lumGetWindowPos(window, &xpos, &ypos);
+@endcode
+
+
+@subsection window_title Titre de la fenêtre
+
+Toutes les fenêtres Lumina ont un titre, même si les fenêtres sans décoration
+ou en plein écran peuvent ne pas l'afficher, ou ne l'afficher que dans une
+barre des tâches ou une interface analogue.  Vous posez un titre encodé en
+UTF-8 avec @ref lumSetWindowTitle.
+
+@code
+lumSetWindowTitle(window, "Ma fenêtre");
+@endcode
+
+La chaîne indiquée est copiée avant que la fonction ne rende la main : inutile
+de la conserver.
+
+Tant que votre fichier source est encodé en UTF-8, vous pouvez employer
+n'importe quel caractère Unicode directement dans le source.
+
+@code
+lumSetWindowTitle(window, "ラストエグザイル");
+@endcode
+
+Avec C++11 ou C11, vous pouvez utiliser un littéral de chaîne UTF-8.
+
+@code
+lumSetWindowTitle(window, u8"Ceci est toujours une chaîne UTF-8");
+@endcode
+
+
+@subsection window_icon Icône de la fenêtre
+
+Les fenêtres décorées portent une icône sur certaines plateformes.  Vous la
+posez en fournissant une liste d'images candidates à @ref lumSetWindowIcon.
+
+@code
+LUMimage images[2];
+images[0] = load_icon("my_icon.png");
+images[1] = load_icon("my_icon_small.png");
+
+lumSetWindowIcon(window, 2, images);
+@endcode
+
+Les données d'image sont en RVBA 32 bits, petit-boutiste, non prémultiplié,
+c'est-à-dire huit bits par canal avec le rouge en premier.  Les pixels sont
+rangés de façon canonique, en lignes successives, à partir du coin supérieur
+gauche.
+
+Pour revenir à l'icône par défaut, passez un tableau d'images vide.
+
+@code
+lumSetWindowIcon(window, 0, NULL);
+@endcode
+
+
+@subsection window_monitor Écran de la fenêtre
+
+Une fenêtre plein écran est associée à un écran donné.  Vous obtenez son handle
+avec @ref lumGetWindowMonitor.
+
+@code
+LUMmonitor* monitor = lumGetWindowMonitor(window);
+@endcode
+
+Ce handle est l'un de ceux que retourne @ref lumGetMonitors.
+
+Pour une fenêtre en mode fenêtré, cette fonction retourne `NULL`.  C'est ainsi
+qu'on distingue une fenêtre plein écran d'une fenêtre en mode fenêtré.
+
+Vous pouvez déplacer une fenêtre d'un écran à l'autre, ou la faire passer entre
+plein écran et mode fenêtré, avec @ref lumSetWindowMonitor.  Pour la mettre en
+plein écran, sur le même écran ou sur un autre, indiquez l'écran, la résolution
+et le taux de rafraîchissement voulus ; les arguments de position sont ignorés.
+
+@code
+const LUMvidmode* mode = lumGetVideoMode(monitor);
+
+lumSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+@endcode
+
+Pour la repasser en mode fenêtré, indiquez la position et la taille voulues ;
+l'argument de taux de rafraîchissement est ignoré.
+
+@code
+lumSetWindowMonitor(window, NULL, xpos, ypos, width, height, 0);
+@endcode
+
+Cela restaure les réglages antérieurs de la fenêtre : décorée ou non,
+flottante, redimensionnable, limites de taille ou de proportion, etc.  Pour
+rendre à une fenêtre initialement fenêtrée sa taille et sa position d'origine,
+sauvegardez-les avant de la passer en plein écran, puis repassez-les comme
+ci-dessus.
+
+
+@subsection window_iconify Réduction en icône
+
+Une fenêtre se réduit en icône, c'est-à-dire se minimise, avec @ref
+lumIconifyWindow.
+
+@code
+lumIconifyWindow(window);
+@endcode
+
+Quand une fenêtre plein écran est réduite en icône, le mode vidéo d'origine de
+son écran est restauré jusqu'à ce que l'utilisateur ou l'application la
+restaure.
+
+Une fenêtre réduite se restaure avec @ref lumRestoreWindow.  Cette fonction
+restaure aussi les fenêtres maximisées.
+
+@code
+lumRestoreWindow(window);
+@endcode
+
+Quand une fenêtre plein écran est restaurée, le mode vidéo souhaité est
+réappliqué à son écran.
+
+Si vous souhaitez être averti qu'une fenêtre est réduite ou restaurée, par
+l'utilisateur, le système ou votre propre code, installez une fonction de
+rappel de réduction.
+
+@code
+lumSetWindowIconifyCallback(window, window_iconify_callback);
+@endcode
+
+Elle reçoit les changements d'état de réduction de la fenêtre.
+
+@code
+void window_iconify_callback(LUMwindow* window, int iconified)
+{
+    if (iconified)
+    {
+        // La fenêtre a été réduite en icône
+    }
+    else
+    {
+        // La fenêtre a été restaurée
+    }
+}
+@endcode
+
+Vous pouvez aussi obtenir l'état courant avec @ref lumGetWindowAttrib.
+
+@code
+int iconified = lumGetWindowAttrib(window, LUM_ICONIFIED);
+@endcode
+
+
+@subsection window_maximize Maximisation
+
+Une fenêtre se maximise avec @ref lumMaximizeWindow.
+
+@code
+lumMaximizeWindow(window);
+@endcode
+
+Une fenêtre plein écran ne peut pas être maximisée ; lui passer cette fonction
+ne fait rien.
+
+Une fenêtre maximisée se restaure avec @ref lumRestoreWindow.  Cette fonction
+restaure aussi les fenêtres réduites en icône.
+
+@code
+lumRestoreWindow(window);
+@endcode
+
+Si vous souhaitez être averti qu'une fenêtre est maximisée ou restaurée, par
+l'utilisateur, le système ou votre propre code, installez une fonction de
+rappel de maximisation.
+
+@code
+lumSetWindowMaximizeCallback(window, window_maximize_callback);
+@endcode
+
+Elle reçoit les changements d'état de maximisation de la fenêtre.
+
+@code
+void window_maximize_callback(LUMwindow* window, int maximized)
+{
+    if (maximized)
+    {
+        // La fenêtre a été maximisée
+    }
+    else
+    {
+        // La fenêtre a été restaurée
+    }
+}
+@endcode
+
+Vous pouvez aussi obtenir l'état courant avec @ref lumGetWindowAttrib.
+
+@code
+int maximized = lumGetWindowAttrib(window, LUM_MAXIMIZED);
+@endcode
+
+Par défaut, une fenêtre nouvellement créée n'est pas maximisée.  Vous pouvez
+changer cela en posant l'indice de fenêtre
+[LUM_MAXIMIZED](@ref LUM_MAXIMIZED_hint) avant la création.
+
+@code
+lumWindowHint(LUM_MAXIMIZED, LUM_TRUE);
+@endcode
+
+
+@subsection window_hide Visibilité de la fenêtre
+
+Une fenêtre en mode fenêtré se masque avec @ref lumHideWindow.
+
+@code
+lumHideWindow(window);
+@endcode
+
+Elle devient alors complètement invisible pour l'utilisateur, y compris dans la
+barre des tâches, le dock ou la liste des fenêtres.  Une fenêtre plein écran ne
+peut pas être masquée ; appeler @ref lumHideWindow sur elle ne fait rien.
+
+Une fenêtre masquée s'affiche avec @ref lumShowWindow.
+
+@code
+lumShowWindow(window);
+@endcode
+
+Par défaut, cette fonction donne également le focus à la fenêtre.  Posez
+l'indice [LUM_FOCUS_ON_SHOW](@ref LUM_FOCUS_ON_SHOW_hint) pour changer ce
+comportement sur toutes les fenêtres nouvellement créées, ou modifiez-le sur
+une fenêtre existante avec @ref lumSetWindowAttrib.
+
+Vous pouvez aussi obtenir l'état de visibilité courant avec @ref
+lumGetWindowAttrib.
+
+@code
+int visible = lumGetWindowAttrib(window, LUM_VISIBLE);
+@endcode
+
+Par défaut, une fenêtre nouvellement créée est visible.  Vous pouvez changer
+cela en posant l'indice [LUM_VISIBLE](@ref LUM_VISIBLE_hint) avant la création.
+
+@code
+lumWindowHint(LUM_VISIBLE, LUM_FALSE);
+@endcode
+
+Une fenêtre créée masquée est complètement invisible pour l'utilisateur
+jusqu'à son affichage.  C'est utile si vous devez la préparer davantage avant
+de la montrer, par exemple la déplacer à un endroit précis.
+
+
+@subsection window_focus Focus de la fenêtre
+
+Une fenêtre reçoit le focus et passe au premier plan avec @ref lumFocusWindow.
+
+@code
+lumFocusWindow(window);
+@endcode
+
+Gardez à l'esprit qu'il peut être très perturbant pour l'utilisateur qu'une
+fenêtre soit forcée au premier plan.  Pour attirer son attention de façon moins
+intrusive, voyez les [demandes d'attention](@ref window_attention).
+
+Si vous souhaitez être averti qu'une fenêtre gagne ou perd le focus, par
+l'utilisateur, le système ou votre propre code, installez une fonction de
+rappel de focus.
+
+@code
+lumSetWindowFocusCallback(window, window_focus_callback);
+@endcode
+
+Elle reçoit les changements d'état de focus de la fenêtre.
+
+@code
+void window_focus_callback(LUMwindow* window, int focused)
+{
+    if (focused)
+    {
+        // La fenêtre a reçu le focus
+    }
+    else
+    {
+        // La fenêtre a perdu le focus
+    }
+}
+@endcode
+
+Vous pouvez aussi obtenir l'état de focus courant avec @ref lumGetWindowAttrib.
+
+@code
+int focused = lumGetWindowAttrib(window, LUM_FOCUSED);
+@endcode
+
+Par défaut, une fenêtre nouvellement créée reçoit le focus.  Vous pouvez
+changer cela en posant l'indice [LUM_FOCUSED](@ref LUM_FOCUSED_hint) avant la
+création.
+
+@code
+lumWindowHint(LUM_FOCUSED, LUM_FALSE);
+@endcode
+
+
+@subsection window_attention Demande d'attention
+
+Si vous souhaitez signaler un événement à l'utilisateur sans l'interrompre,
+vous pouvez demander son attention avec @ref lumRequestWindowAttention.
+
+@code
+lumRequestWindowAttention(window);
+@endcode
+
+Le système mettra en évidence la fenêtre indiquée ou, sur les plateformes qui
+ne le permettent pas, l'application entière.  Une fois que l'utilisateur y a
+prêté attention, le système met automatiquement fin à la demande.
+
+
+@subsection window_refresh Dommage et rafraîchissement de fenêtre
+
+Si vous souhaitez être averti que le contenu d'une fenêtre est endommagé et
+doit être redessiné, installez une fonction de rappel de rafraîchissement.
+
+@code
+lumSetWindowRefreshCallback(m_handle, window_refresh_callback);
+@endcode
+
+Elle est appelée lorsque le contenu de la fenêtre doit être rafraîchi.
+
+@code
+void window_refresh_callback(LUMwindow* window)
+{
+    draw_editor_ui(window);
+    lumSwapBuffers(window);
+}
+@endcode
+
+@note Sur les systèmes de fenêtrage compositants comme Aero, Compiz ou Aqua, où
+le contenu des fenêtres est conservé hors écran, cette fonction de rappel peut
+n'être appelée que lors du redimensionnement de la fenêtre ou du tampon
+d'image.
+
+
+@subsection window_transparency Transparence des fenêtres
+
+Lumina prend en charge deux sortes de transparence : celle du tampon d'image et
+celle de la fenêtre entière.  Une même fenêtre ne doit pas employer les deux ;
+le résultat serait indéfini.
+
+Les deux exigent que la plateforme les permette, ce que ne font pas toutes les
+versions de toutes les plateformes que gère Lumina : des mécanismes existent
+donc pour vérifier que la fenêtre est réellement transparente.
+
+Le tampon d'image d'une fenêtre peut être rendu transparent, pixel par pixel et
+image par image, avec l'indice de fenêtre
+[LUM_TRANSPARENT_FRAMEBUFFER](@ref LUM_TRANSPARENT_FRAMEBUFFER_hint).
+
+@code
+lumWindowHint(LUM_TRANSPARENT_FRAMEBUFFER, LUM_TRUE);
+@endcode
+
+Si le système le permet, la zone de contenu de la fenêtre sera composée avec
+l'arrière-plan à l'aide du canal alpha par pixel du tampon d'image.  Cela exige
+que la composition du bureau soit activée sur le système, et n'affecte pas les
+décorations de la fenêtre.
+
+Vous pouvez vérifier que le tampon d'image a bien été rendu transparent avec
+l'attribut de fenêtre
+[LUM_TRANSPARENT_FRAMEBUFFER](@ref LUM_TRANSPARENT_FRAMEBUFFER_attrib).
+
+@code
+if (lumGetWindowAttrib(window, LUM_TRANSPARENT_FRAMEBUFFER))
+{
+    // le tampon d'image de la fenêtre est actuellement transparent
+}
+@endcode
+
+Lumina est livrée avec un exemple activant la transparence du tampon d'image,
+nommé `gears`.
+
+L'opacité de la fenêtre entière, décorations comprises, se règle avec @ref
+lumSetWindowOpacity.
+
+@code
+lumSetWindowOpacity(window, 0.5f);
+@endcode
+
+L'opacité (ou alpha) est un nombre fini positif entre zéro et un, où 0
+correspond à une transparence totale et 1 à une opacité totale.  L'opacité
+initiale d'une fenêtre nouvellement créée vaut 1.
+
+L'opacité courante d'une fenêtre se demande avec @ref lumGetWindowOpacity.
+
+@code
+float opacity = lumGetWindowOpacity(window);
+@endcode
+
+Si le système ne gère pas la transparence de la fenêtre entière, cette fonction
+retourne toujours un.
+
+Lumina est livrée avec un programme de test permettant de régler cette opacité
+à l'exécution, nommé `window`.
+
+Si vous voulez employer l'une de ces méthodes pour afficher un calque
+temporaire, par exemple une notification, les indices et attributs de fenêtre
+@ref LUM_FLOATING et @ref LUM_MOUSE_PASSTHROUGH pourront vous être utiles.
+
+
+@subsection window_attribs Attributs de fenêtre
+
+Une fenêtre possède plusieurs attributs que l'on obtient avec @ref
+lumGetWindowAttrib.  Certains reflètent un état qui peut changer au gré des
+interactions de l'utilisateur, par exemple le focus ; d'autres reflètent des
+propriétés intrinsèques, par exemple le type de bordure.  Certains concernent
+la fenêtre, d'autres son contexte OpenGL ou OpenGL ES.
+
+@code
+if (lumGetWindowAttrib(window, LUM_FOCUSED))
+{
+    // la fenêtre a le focus
+}
+@endcode
+
+Les attributs [LUM_DECORATED](@ref LUM_DECORATED_attrib),
+[LUM_RESIZABLE](@ref LUM_RESIZABLE_attrib),
+[LUM_FLOATING](@ref LUM_FLOATING_attrib),
+[LUM_AUTO_ICONIFY](@ref LUM_AUTO_ICONIFY_attrib) et
+[LUM_FOCUS_ON_SHOW](@ref LUM_FOCUS_ON_SHOW_attrib) se modifient avec @ref
+lumSetWindowAttrib.
+
+@code
+lumSetWindowAttrib(window, LUM_RESIZABLE, LUM_FALSE);
+@endcode
+
+
+
+@subsubsection window_attribs_wnd Attributs liés à la fenêtre
+
+@anchor LUM_FOCUSED_attrib
+__LUM_FOCUSED__ indique si la fenêtre a le focus.  Voyez @ref window_focus pour
+le détail.
+
+@anchor LUM_ICONIFIED_attrib
+__LUM_ICONIFIED__ indique si la fenêtre est réduite en icône.  Voyez @ref
+window_iconify pour le détail.
+
+@anchor LUM_MAXIMIZED_attrib
+__LUM_MAXIMIZED__ indique si la fenêtre est maximisée.  Voyez @ref
+window_maximize pour le détail.
+
+@anchor LUM_HOVERED_attrib
+__LUM_HOVERED__ indique si le curseur se trouve actuellement directement
+au-dessus de la zone de contenu de la fenêtre, sans autre fenêtre entre les
+deux.  Voyez @ref cursor_enter pour le détail.
+
+@anchor LUM_VISIBLE_attrib
+__LUM_VISIBLE__ indique si la fenêtre est visible.  Voyez @ref window_hide pour
+le détail.
+
+@anchor LUM_RESIZABLE_attrib
+__LUM_RESIZABLE__ indique si la fenêtre est redimensionnable _par
+l'utilisateur_.  Cela se pose avant la création avec l'indice
+[LUM_RESIZABLE](@ref LUM_RESIZABLE_hint), ou après avec @ref
+lumSetWindowAttrib.
+
+@anchor LUM_DECORATED_attrib
+__LUM_DECORATED__ indique si la fenêtre a des décorations : bordure, bouton de
+fermeture, etc.  Cela se pose avant la création avec l'indice
+[LUM_DECORATED](@ref LUM_DECORATED_hint), ou après avec @ref
+lumSetWindowAttrib.
+
+@anchor LUM_AUTO_ICONIFY_attrib
+__LUM_AUTO_ICONIFY__ indique si la fenêtre plein écran se réduit en icône à la
+perte du focus.  Cela se pose avant la création avec l'indice
+[LUM_AUTO_ICONIFY](@ref LUM_AUTO_ICONIFY_hint), ou après avec @ref
+lumSetWindowAttrib.
+
+@anchor LUM_FLOATING_attrib
+__LUM_FLOATING__ indique si la fenêtre est flottante, c'est-à-dire toujours au
+premier plan.  Cela se pose avant la création avec l'indice
+[LUM_FLOATING](@ref LUM_FLOATING_hint), ou après avec @ref lumSetWindowAttrib.
+
+@anchor LUM_TRANSPARENT_FRAMEBUFFER_attrib
+__LUM_TRANSPARENT_FRAMEBUFFER__ indique si la fenêtre a un tampon d'image
+transparent, c'est-à-dire si son contenu est composé avec l'arrière-plan via le
+canal alpha du tampon d'image.  Voyez @ref window_transparency pour le détail.
+
+@anchor LUM_FOCUS_ON_SHOW_attrib
+__LUM_FOCUS_ON_SHOW__ indique si la fenêtre recevra le focus lors de l'appel à
+@ref lumShowWindow.  Cela se pose avant la création avec l'indice
+[LUM_FOCUS_ON_SHOW](@ref LUM_FOCUS_ON_SHOW_hint), ou après avec @ref
+lumSetWindowAttrib.
+
+@anchor LUM_MOUSE_PASSTHROUGH_attrib
+__LUM_MOUSE_PASSTHROUGH__ indique si la fenêtre est transparente aux entrées
+souris, laissant les événements passer à la fenêtre située derrière.  Cela se
+pose avant la création avec l'indice
+[LUM_MOUSE_PASSTHROUGH](@ref LUM_MOUSE_PASSTHROUGH_hint), ou après avec @ref
+lumSetWindowAttrib.  Ce n'est pris en charge que pour les fenêtres sans
+décoration ; une fenêtre décorée avec cette option se comportera différemment
+selon la plateforme.
+
+
+@subsubsection window_attribs_ctx Attributs liés au contexte
+
+@anchor LUM_CLIENT_API_attrib
+__LUM_CLIENT_API__ indique l'API cliente que fournit le contexte de la
+fenêtre : `LUM_OPENGL_API`, `LUM_OPENGL_ES_API` ou `LUM_NO_API`.
+
+@anchor LUM_CONTEXT_CREATION_API_attrib
+__LUM_CONTEXT_CREATION_API__ indique l'API de création employée pour créer le
+contexte de la fenêtre : `LUM_NATIVE_CONTEXT_API`, `LUM_EGL_CONTEXT_API` ou
+`LUM_OSMESA_CONTEXT_API`.
+
+@anchor LUM_CONTEXT_VERSION_MAJOR_attrib
+@anchor LUM_CONTEXT_VERSION_MINOR_attrib
+@anchor LUM_CONTEXT_REVISION_attrib
+__LUM_CONTEXT_VERSION_MAJOR__, __LUM_CONTEXT_VERSION_MINOR__ et
+__LUM_CONTEXT_REVISION__ indiquent la version de l'API cliente du contexte de
+la fenêtre.
+
+@note Ne confondez pas ces attributs avec `LUM_VERSION_MAJOR`,
+`LUM_VERSION_MINOR` et `LUM_VERSION_REVISION`, qui donnent la version de l'API
+de l'en-tête de Lumina.
+
+@anchor LUM_OPENGL_FORWARD_COMPAT_attrib
+__LUM_OPENGL_FORWARD_COMPAT__ vaut `LUM_TRUE` si le contexte de la fenêtre est
+compatible en avant, `LUM_FALSE` sinon.
+
+@anchor LUM_CONTEXT_DEBUG_attrib
+@anchor LUM_OPENGL_DEBUG_CONTEXT_attrib
+__LUM_CONTEXT_DEBUG__ vaut `LUM_TRUE` si le contexte de la fenêtre est en mode
+débogage, `LUM_FALSE` sinon.
+
+@par
+C'est le nouveau nom, introduit dans Lumina 3.4.  L'ancien nom
+`LUM_OPENGL_DEBUG_CONTEXT` reste disponible par compatibilité.
+
+@anchor LUM_OPENGL_PROFILE_attrib
+__LUM_OPENGL_PROFILE__ indique le profil OpenGL qu'emploie le contexte.  Il
+vaut `LUM_OPENGL_CORE_PROFILE` ou `LUM_OPENGL_COMPAT_PROFILE` si le contexte
+emploie un profil connu, ou `LUM_OPENGL_ANY_PROFILE` si le profil est inconnu
+ou s'il s'agit d'un contexte OpenGL ES.  Notez que le profil retourné peut ne
+pas correspondre aux bits de profil des drapeaux du contexte : Lumina tente
+d'autres moyens de le détecter lorsque aucun bit n'est positionné.
+
+@anchor LUM_CONTEXT_RELEASE_BEHAVIOR_attrib
+__LUM_CONTEXT_RELEASE_BEHAVIOR__ indique le comportement de libération
+qu'emploie le contexte.  Les valeurs possibles sont
+`LUM_ANY_RELEASE_BEHAVIOR`, `LUM_RELEASE_BEHAVIOR_FLUSH` ou
+`LUM_RELEASE_BEHAVIOR_NONE`.  Avec `LUM_ANY_RELEASE_BEHAVIOR`, le comportement
+par défaut de l'API de création de contexte s'applique.  Avec
+`LUM_RELEASE_BEHAVIOR_FLUSH`, le pipeline est vidé chaque fois que le contexte
+cesse d'être courant.  Avec `LUM_RELEASE_BEHAVIOR_NONE`, il ne l'est pas.
+
+@anchor LUM_CONTEXT_NO_ERROR_attrib
+__LUM_CONTEXT_NO_ERROR__ indique si le contexte produit des erreurs.  Les
+valeurs possibles sont `LUM_TRUE` et `LUM_FALSE`.  Si cette option est activée,
+les situations qui auraient produit une erreur provoquent à la place un
+comportement indéfini.
+
+@anchor LUM_CONTEXT_ROBUSTNESS_attrib
+__LUM_CONTEXT_ROBUSTNESS__ indique la stratégie de robustesse qu'emploie le
+contexte.  Elle vaut `LUM_LOSE_CONTEXT_ON_RESET` ou
+`LUM_NO_RESET_NOTIFICATION` si le contexte de la fenêtre gère la robustesse,
+`LUM_NO_ROBUSTNESS` sinon.
+
+
+@subsubsection window_attribs_fb Attributs liés au tampon d'image
+
+Lumina n'expose pas la plupart des attributs du tampon d'image par défaut,
+c'est-à-dire celui attaché à la fenêtre, car on peut les demander directement à
+OpenGL, OpenGL ES ou Vulkan.  La seule exception est
+[LUM_DOUBLEBUFFER](@ref LUM_DOUBLEBUFFER_attrib), qu'OpenGL ES ne fournit pas.
+
+Si vous employez OpenGL ou OpenGL ES en version 3.0 ou ultérieure, la fonction
+`glGetFramebufferAttachmentParameteriv` permet d'obtenir le nombre de bits des
+canaux rouge, vert, bleu, alpha, profondeur et stencil.  Sinon, employez
+`glGetIntegerv`.
+
+Le nombre d'échantillons MSAA s'obtient toujours avec `glGetIntegerv`.  Pour
+les contextes gérant les objets de tampon d'image, c'est le nombre
+d'échantillons du tampon d'image actuellement lié qui est retourné.
+
+Attribut          | glGetIntegerv     | glGetFramebufferAttachmentParameteriv
+------------      | ----------------- | -------------------------------------
+Bits rouge        | `GL_RED_BITS`     | `GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE`
+Bits vert         | `GL_GREEN_BITS`   | `GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE`
+Bits bleu         | `GL_BLUE_BITS`    | `GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE`
+Bits alpha        | `GL_ALPHA_BITS`   | `GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE`
+Bits profondeur   | `GL_DEPTH_BITS`   | `GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE`
+Bits stencil      | `GL_STENCIL_BITS` | `GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE`
+Échantillons MSAA | `GL_SAMPLES`      | _Non fourni par cette fonction_
+
+Lors d'un appel à `glGetFramebufferAttachmentParameteriv`, les tailles rouge,
+vert, bleu et alpha se demandent sur `GL_BACK_LEFT`, tandis que celles de
+profondeur et de stencil se demandent respectivement sur les attachements
+`GL_DEPTH` et `GL_STENCIL`.
+
+@anchor LUM_DOUBLEBUFFER_attrib
+__LUM_DOUBLEBUFFER__ indique si la fenêtre est en double tampon lors du rendu
+avec OpenGL ou OpenGL ES.  Cela se pose avant la création avec l'indice de
+fenêtre [LUM_DOUBLEBUFFER](@ref LUM_DOUBLEBUFFER_hint).
+
+
+@section buffer_swap Échange des tampons
+
+Par défaut, les fenêtres Lumina sont en double tampon.  Vous disposez donc de
+deux tampons de rendu : un tampon avant (front buffer) et un tampon arrière
+(back buffer).  Le tampon avant est celui qui est affiché, le tampon arrière
+celui dans lequel vous dessinez.
+
+Une fois l'image entièrement dessinée, il est temps d'échanger les deux pour
+afficher ce qui a été dessiné et commencer une nouvelle image.  Cela se fait
+avec @ref lumSwapBuffers.
+
+@code
+lumSwapBuffers(window);
+@endcode
+
+Il est parfois utile de choisir le moment de l'échange.  La fonction @ref
+lumSwapInterval permet d'indiquer le nombre minimal de rafraîchissements
+d'écran que le pilote doit attendre, à partir de l'appel à @ref lumSwapBuffers,
+avant d'échanger les tampons :
+
+@code
+lumSwapInterval(1);
+@endcode
+
+Si l'intervalle vaut zéro, l'échange a lieu immédiatement à l'appel de @ref
+lumSwapBuffers, sans attendre de rafraîchissement.  Sinon, au moins autant de
+balayages s'écoulent entre chaque échange.  Un intervalle de zéro peut servir
+au test de performances, quand on ne veut pas mesurer le temps d'attente du
+balayage vertical ; un intervalle de un, en revanche, évite le déchirement
+d'image.
+
+Notez que cela peut ne pas fonctionner sur toutes les machines : certains
+pilotes ont des réglages contrôlés par l'utilisateur qui écrasent l'intervalle
+demandé par l'application.
+
+Un contexte gérant l'extension `WGL_EXT_swap_control_tear` ou
+`GLX_EXT_swap_control_tear` accepte en outre des intervalles d'échange
+_négatifs_, ce qui autorise le pilote à échanger immédiatement même si une
+image arrive un peu en retard.  On échange alors un risque de déchirement
+visible contre une fréquence d'images plus stable.  Vous pouvez tester ces
+extensions avec @ref lumExtensionSupported.
+
+*/

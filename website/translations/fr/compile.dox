@@ -1,0 +1,415 @@
+/*!
+
+@page compile_guide Compiler Lumina
+
+@tableofcontents
+
+Cette page traite de la compilation de la bibliothèque Lumina elle-même.  Pour
+construire des applications qui utilisent Lumina, voyez @ref build_guide.
+
+
+@section compile_cmake Avec CMake
+
+Lumina se comporte comme la plupart des bibliothèques qui utilisent CMake : ce
+guide décrit donc surtout la séquence habituelle configurer, générer, compiler.
+Si vous la connaissez déjà par d'autres projets, allez directement aux sections
+@ref compile_deps et @ref compile_options, propres à Lumina.
+
+Lumina utilise [CMake](https://cmake.org/) pour produire les fichiers de projet
+ou les makefiles de votre environnement de développement.  Pour compiler
+Lumina, produisez d'abord ces fichiers avec CMake, puis servez-vous-en pour
+compiler la bibliothèque.
+
+Sous Windows et macOS, vous pouvez
+[télécharger CMake](https://cmake.org/download/) depuis son site.
+
+Sur un système de type Unix comme Linux, FreeBSD ou Cygwin, ou si vous disposez
+d'un système de paquets comme Fink, MacPorts ou Homebrew, installez son paquet
+CMake.
+
+CMake est un outil complexe et ce guide ne montre que quelques-unes des façons
+possibles de configurer et compiler Lumina.  Le projet CMake dispose de son
+propre [guide de l'utilisateur](https://cmake.org/cmake/help/latest/guide/user-interaction/),
+bien plus détaillé, qui couvre tout ce qui, dans ce guide, n'est pas propre à
+Lumina.  Il peut utilement l'accompagner.
+
+
+@subsection compile_deps Installer les dépendances
+
+Les environnements de développement C/C++ de Visual Studio, Xcode et MinGW
+fournissent toutes les dépendances nécessaires à la compilation de Lumina,
+mais sur les systèmes de type Unix comme Linux et FreeBSD, il vous faudra
+quelques paquets supplémentaires.
+
+
+@subsubsection compile_deps_x11 Dépendances pour X11
+
+Pour compiler Lumina pour X11, les paquets de développement X11 doivent être
+installés.  Ils ne sont pas nécessaires pour construire ou exécuter des
+programmes qui utilisent Lumina.
+
+Sur Debian et ses dérivées comme Ubuntu et Linux Mint, le méta-paquet
+`xorg-dev` tire les paquets de développement de tout X11.
+
+@code{.sh}
+sudo apt install xorg-dev
+@endcode
+
+Sur Fedora et ses dérivées comme Red Hat, les paquets d'extension X11
+`libXcursor-devel`, `libXi-devel`, `libXinerama-devel` et `libXrandr-devel`
+requis par Lumina tirent toutes ses autres dépendances.
+
+@code{.sh}
+sudo dnf install libXcursor-devel libXi-devel libXinerama-devel libXrandr-devel
+@endcode
+
+Sur FreeBSD, les en-têtes X11 s'installent avec les paquets X11 destinés à
+l'utilisateur final : si un serveur X tourne, vous devriez aussi avoir les
+en-têtes.  Sinon, installez le paquet `xorgproto`.
+
+@code{.sh}
+pkg install xorgproto
+@endcode
+
+Sur Cygwin, le paquet `xorgproto` de la section Devel de l'installateur
+graphique installe les en-têtes et les autres fichiers de développement de tout
+X11.
+
+Une fois les dépendances requises en place, passez à @ref compile_generate.
+
+
+@subsubsection compile_deps_wayland Dépendances pour Wayland et X11
+
+Pour compiler Lumina à la fois pour Wayland et X11, les paquets de
+développement X11, Wayland et xkbcommon doivent être installés.  Ils ne sont
+pas nécessaires pour construire ou exécuter des programmes qui utilisent
+Lumina.  Vous devrez également positionner l'option CMake @ref
+LUM_BUILD_WAYLAND à l'étape suivante, lors de la génération des fichiers de
+build.
+
+Sur Debian et ses dérivées comme Ubuntu et Linux Mint, il vous faudra les
+paquets `libwayland-dev`, `libxkbcommon-dev` et `wayland-protocols`, ainsi que
+le méta-paquet `xorg-dev`.  Ils tireront toutes les autres dépendances.
+
+@code{.sh}
+sudo apt install libwayland-dev libxkbcommon-dev wayland-protocols xorg-dev
+@endcode
+
+Sur Fedora et ses dérivées comme Red Hat, il vous faudra les paquets
+`wayland-devel`, `libxkbcommon-devel`, `wayland-protocols-devel`,
+`libXcursor-devel`, `libXi-devel`, `libXinerama-devel` et `libXrandr-devel`.
+Ils tireront toutes les autres dépendances.
+
+@code{.sh}
+sudo dnf install wayland-devel libxkbcommon-devel wayland-protocols-devel libXcursor-devel libXi-devel libXinerama-devel libXrandr-devel
+@endcode
+
+Sur FreeBSD, il vous faudra les paquets `wayland`, `libxkbcommon` et
+`wayland-protocols`.  Les en-têtes X11 s'installent avec les paquets X11
+destinés à l'utilisateur final : si un serveur X tourne, vous devriez aussi les
+avoir.  Sinon, installez le paquet `xorgproto`.
+
+@code{.sh}
+pkg install wayland libxkbcommon wayland-protocols xorgproto
+@endcode
+
+Une fois les dépendances requises en place, passez à @ref compile_generate.
+
+
+@subsection compile_generate Produire les fichiers de build avec CMake
+
+Une fois toutes les dépendances réunies, il est temps de produire les fichiers
+de projet ou les makefiles de votre environnement de développement.  CMake a
+besoin de deux chemins pour cela :
+
+ - le chemin du répertoire racine de l'arborescence des sources de Lumina (pas
+   son sous-répertoire `src`)
+ - le chemin du répertoire où seront placés les fichiers de build produits et
+   les binaires compilés
+
+Si les deux sont identiques, on parle de build dans l'arborescence ; sinon, de
+build hors arborescence.
+
+Les builds hors arborescence sont recommandés : ils évitent d'encombrer
+l'arborescence des sources et permettent d'avoir plusieurs répertoires de build
+pour différentes configurations, tous sur les mêmes sources.
+
+Quand on ne construit qu'une seule configuration, l'usage courant est un
+répertoire de build nommé `build` à la racine de l'arborescence des sources.
+
+
+@subsubsection compile_generate_gui Produire avec l'interface graphique de CMake
+
+Lancez l'interface graphique de CMake et indiquez les chemins des répertoires
+de sources et de build décrits ci-dessus.  Appuyez ensuite sur _Configure_ puis
+_Generate_.
+
+Si vous modifiez une variable CMake de la liste, appuyez sur _Configure_ puis
+_Generate_ pour que les nouvelles valeurs prennent effet.  La liste des
+variables se remplit après la première étape de configuration.
+
+Par défaut, Lumina utilise X11 sur Linux et les autres systèmes de type Unix
+hors macOS.  Pour inclure également la prise en charge de Wayland, cochez
+l'option @ref LUM_BUILD_WAYLAND dans la section Lumina de la liste des
+variables, puis appliquez la nouvelle valeur comme décrit ci-dessus.
+
+Une fois produits les fichiers de projet ou les makefiles de votre
+environnement, passez à @ref compile_compile.
+
+
+@subsubsection compile_generate_cli Produire avec CMake en ligne de commande
+
+Pour créer un répertoire de build, passez les répertoires de sources et de
+build à la commande `cmake`.  Les chemins peuvent être relatifs ou absolus.  Le
+répertoire de build est créé s'il n'existe pas déjà.
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build
+@endcode
+
+L'usage courant est de nommer le répertoire de build `build` et de le placer à
+la racine de l'arborescence des sources, quand on ne prévoit qu'une seule
+configuration.
+
+@code{.sh}
+cd path/to/lumina
+cmake -S . -B build
+@endcode
+
+Sans autre drapeau, cela produit des fichiers de projet Visual Studio sous
+Windows et des makefiles ailleurs.  Vous pouvez choisir d'autres cibles avec le
+drapeau `-G`.
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build -G Xcode
+@endcode
+
+Par défaut, Lumina utilise X11 sur Linux et les autres systèmes de type Unix
+hors macOS.  Pour inclure également la prise en charge de Wayland, positionnez
+l'option CMake @ref LUM_BUILD_WAYLAND.
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build -D LUM_BUILD_WAYLAND=1
+@endcode
+
+Une fois produits les fichiers de projet ou les makefiles de votre
+environnement, passez à @ref compile_compile.
+
+
+@subsection compile_compile Compiler la bibliothèque
+
+Vous devriez maintenant disposer de toutes les dépendances requises et des
+fichiers de projet ou makefiles nécessaires à la compilation de Lumina.
+Compilez la bibliothèque avec ces fichiers comme vous le feriez pour n'importe
+quel autre projet.
+
+Avec Visual Studio, ouvrez `Lumina.sln` et utilisez le menu Générer.  Avec
+Xcode, ouvrez `Lumina.xcodeproj` et utilisez le menu Project.
+
+Sous Linux, macOS et les autres variantes d'Unix, lancez `make`.
+
+@code{.sh}
+cd path/to/build
+make
+@endcode
+
+Avec MinGW, c'est `mingw32-make`.
+
+@code{.sh}
+cd path/to/build
+mingw32-make
+@endcode
+
+N'importe quel répertoire de build CMake peut aussi être construit avec la
+commande `cmake` et le drapeau `--build`.
+
+@code{.sh}
+cmake --build path/to/build
+@endcode
+
+Cela lance l'outil de build propre à la plateforme pour laquelle le répertoire
+a été produit.
+
+Une fois la bibliothèque Lumina compilée, vous êtes prêt à construire votre
+application en la liant à Lumina.  Voyez @ref build_guide pour en savoir plus.
+
+
+@section compile_options Options CMake
+
+Les fichiers CMake de Lumina proposent plusieurs options, dont toutes ne sont
+pas disponibles sur toutes les plateformes prises en charge.  Certaines sont
+des standards de fait parmi les projets utilisant CMake et n'ont donc pas de
+préfixe `LUM_`.
+
+Si vous utilisez l'interface graphique de CMake, elles y sont listées et
+modifiables.  En ligne de commande, vous pouvez utiliser l'interface ncurses
+`ccmake` pour les régler.  Certains systèmes de paquets, comme Ubuntu et
+d'autres distributions dérivées de Debian GNU/Linux, placent cet outil dans un
+paquet `cmake-curses-gui` distinct.
+
+Enfin, si vous ne voulez aucune interface, réglez les options depuis la ligne
+de commande `cmake` avec le drapeau `-D`.
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build -D BUILD_SHARED_LIBS=ON
+@endcode
+
+
+@subsection compile_options_shared Options CMake partagées
+
+@anchor BUILD_SHARED_LIBS
+__BUILD_SHARED_LIBS__ détermine si Lumina est construite en bibliothèque
+statique ou en DLL / bibliothèque partagée / bibliothèque dynamique.  Cette
+option est désactivée par défaut, produisant une bibliothèque Lumina statique.
+Cette variable n'a pas de préfixe `LUM_` parce qu'elle est définie par CMake.
+Si vous voulez changer le type de bibliothèque pour Lumina seule, au sein d'un
+projet plus vaste, voyez @ref LUM_LIBRARY_TYPE.
+
+@anchor LUM_LIBRARY_TYPE
+__LUM_LIBRARY_TYPE__ permet de surcharger @ref BUILD_SHARED_LIBS pour Lumina
+uniquement, sans toucher aux autres bibliothèques d'un projet plus vaste.
+Lorsqu'elle est définie, sa valeur doit être un type de bibliothèque CMake
+valide : `STATIC` pour construire Lumina en bibliothèque statique, `SHARED`
+pour une bibliothèque partagée / dynamique / DLL, ou `OBJECT` pour en faire une
+bibliothèque d'objets CMake.
+
+@anchor LUM_BUILD_EXAMPLES
+__LUM_BUILD_EXAMPLES__ détermine si les exemples de Lumina sont construits avec
+la bibliothèque.  Activée par défaut, sauf si Lumina est construite comme
+sous-projet d'un projet CMake plus vaste.
+
+@anchor LUM_BUILD_TESTS
+__LUM_BUILD_TESTS__ détermine si les programmes de test de Lumina sont
+construits avec la bibliothèque.  Activée par défaut, sauf si Lumina est
+construite comme sous-projet d'un projet CMake plus vaste.
+
+@anchor LUM_BUILD_DOCS
+__LUM_BUILD_DOCS__ détermine si la documentation de Lumina est construite avec
+la bibliothèque.  Activée par défaut si CMake trouve
+[Doxygen](https://www.doxygen.nl/) lors de la configuration.
+
+
+@subsection compile_options_win32 Options CMake propres à Win32
+
+@anchor LUM_BUILD_WIN32
+__LUM_BUILD_WIN32__ détermine s'il faut inclure la prise en charge de Win32 à
+la compilation de la bibliothèque.  Cette option n'est disponible que lors
+d'une compilation pour Windows.  Activée par défaut.
+
+@anchor USE_MSVC_RUNTIME_LIBRARY_DLL
+__USE_MSVC_RUNTIME_LIBRARY_DLL__ détermine s'il faut utiliser la version DLL ou
+la version bibliothèque statique de la bibliothèque d'exécution Visual C++.
+Lorsqu'elle est activée, la version DLL est employée.  Activée par défaut.
+
+À partir de CMake 3.15, vous pouvez positionner la variable CMake standard
+[CMAKE_MSVC_RUNTIME_LIBRARY](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html)
+au lieu de cette option propre à Lumina.
+
+@anchor LUM_USE_HYBRID_HPG
+__LUM_USE_HYBRID_HPG__ détermine s'il faut exporter les symboles
+`NvOptimusEnablement` et `AmdPowerXpressRequestHighPerformance`, qui imposent
+l'usage du GPU haute performance sur les systèmes Nvidia Optimus et AMD
+PowerXpress.  Ces symboles doivent être exportés par l'exécutable pour que le
+pilote les détecte : la surcharge ne fonctionnera donc pas si Lumina est
+construite en DLL.  Désactivée par défaut, laissant le système d'exploitation
+et le pilote décider.
+
+
+@subsection compile_options_macos Options CMake propres à macOS
+
+@anchor LUM_BUILD_COCOA
+__LUM_BUILD_COCOA__ détermine s'il faut inclure la prise en charge de Cocoa à
+la compilation de la bibliothèque.  Cette option n'est disponible que lors
+d'une compilation pour macOS.  Activée par défaut.
+
+
+@subsection compile_options_unix Options CMake propres aux systèmes de type Unix
+
+@anchor LUM_BUILD_WAYLAND
+__LUM_BUILD_WAYLAND__ détermine s'il faut inclure la prise en charge de Wayland
+à la compilation de la bibliothèque.  Cette option n'est disponible que lors
+d'une compilation pour Linux et les autres systèmes de type Unix hors macOS.
+Désactivée par défaut.
+
+@anchor LUM_BUILD_X11
+__LUM_BUILD_X11__ détermine s'il faut inclure la prise en charge de X11 à la
+compilation de la bibliothèque.  Cette option n'est disponible que lors d'une
+compilation pour Linux et les autres systèmes de type Unix hors macOS.  Activée
+par défaut.
+
+
+@section compile_mingw_cross Compilation croisée avec CMake et MinGW
+
+Cygwin comme de nombreuses distributions Linux proposent des paquets MinGW ou
+MinGW-w64.  Cygwin a par exemple les paquets `mingw64-i686-gcc` et
+`mingw64-x86_64-gcc` pour les versions 32 et 64 bits de MinGW-w64, tandis que
+Debian GNU/Linux et ses dérivées comme Ubuntu ont le paquet `mingw-w64` pour
+les deux.
+
+Lumina fournit des fichiers de chaîne d'outils CMake dans le sous-répertoire
+`CMake`, qui préparent la compilation croisée de binaires Windows.  Pour les
+utiliser, positionnez la variable CMake `CMAKE_TOOLCHAIN_FILE` avec le drapeau
+`-D` lors de la configuration et de la génération des fichiers de build.
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build -D CMAKE_TOOLCHAIN_FILE=path/to/file
+@endcode
+
+Le fichier exact à utiliser dépend du préfixe employé par les binaires MinGW ou
+MinGW-w64 de votre système.  On le voit généralement dans le répertoire /usr.
+Par exemple, les paquets MinGW-w64 d'Ubuntu comme de Cygwin utilisent
+`/usr/x86_64-w64-mingw32` pour les compilateurs 64 bits ; l'invocation correcte
+est donc :
+
+@code{.sh}
+cmake -S path/to/lumina -B path/to/build -D CMAKE_TOOLCHAIN_FILE=CMake/x86_64-w64-mingw32.cmake
+@endcode
+
+Le chemin du fichier de chaîne d'outils est relatif au chemin de l'arborescence
+des sources de Lumina passé au drapeau `-S`, pas au répertoire courant.
+
+Pour plus de détails, voyez le
+[guide des chaînes d'outils CMake](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html).
+
+
+@section compile_manual Compiler Lumina à la main
+
+Si vous souhaitez compiler Lumina sans son environnement de build CMake, vous
+devrez prendre en charge vous-même une partie au moins de la détection de
+plateforme.  Des macros de préprocesseur activent la prise en charge des
+plateformes — les systèmes de fenêtrage — disponibles.  D'autres macros,
+facultatives et propres à une plateforme, couvrent diverses fonctionnalités.
+
+À la compilation, Lumina attend que les macros de configuration nécessaires
+soient définies en ligne de commande.  Les fichiers CMake de Lumina les
+posent comme définitions de compilation privées sur la cible Lumina ; si vous
+compilez les sources à la main, c'est à vous de les définir.
+
+Le système de fenêtrage sert à créer les fenêtres et à gérer les entrées, les
+écrans, les rampes gamma et le presse-papiers.  Les choix sont :
+
+ - @b _LUM_COCOA pour utiliser les frameworks Cocoa
+ - @b _LUM_WIN32 pour utiliser l'API Win32
+ - @b _LUM_X11 pour utiliser le système X Window
+ - @b _LUM_WAYLAND pour utiliser l'API Wayland (incomplet)
+
+Les macros @b _LUM_WAYLAND et @b _LUM_X11 peuvent être combinées ; on obtient
+alors une bibliothèque qui tente de détecter la plateforme appropriée à
+l'initialisation.
+
+Si vous construisez Lumina en bibliothèque partagée / dynamique / DLL, vous
+devez également définir @b _LUM_BUILD_DLL.  Sinon, vous ne devez pas la
+définir.
+
+Si vous utilisez un nom personnalisé pour les bibliothèques Vulkan, EGL, GLX,
+OSMesa, OpenGL, GLESv1 ou GLESv2, vous pouvez remplacer les noms par défaut en
+définissant celles dont vous avez besoin parmi @b _LUM_VULKAN_LIBRARY, @b
+_LUM_EGL_LIBRARY, @b _LUM_GLX_LIBRARY, @b _LUM_OSMESA_LIBRARY, @b
+_LUM_OPENGL_LIBRARY, @b _LUM_GLESV1_LIBRARY et @b _LUM_GLESV2_LIBRARY.  Sinon,
+Lumina emploiera ses noms par défaut.
+
+@note Aucune des @ref build_macros ne doit être définie pendant la compilation
+de Lumina.  Si vous en définissez dans vos fichiers de build, veillez à ce
+qu'elles ne s'appliquent pas aux sources de Lumina.
+
+*/

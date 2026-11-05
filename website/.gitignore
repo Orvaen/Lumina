@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+
+# Written by scripts/generate.mjs from the headers and docs/*.dox, for every
+# locale. Run `npm run generate` to recreate them.
+src/content/docs/overview.md
+src/content/docs/guides/
+src/content/docs/about/
+src/content/docs/reference/
+src/content/docs/*/overview.md
+src/content/docs/*/guides/
+src/content/docs/*/about/
+src/content/docs/*/reference/
+public/spaces.svg

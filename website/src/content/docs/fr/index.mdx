@@ -1,0 +1,126 @@
+---
+title: Lumina
+description: Une bibliothèque multiplateforme pour le développement OpenGL, OpenGL ES et Vulkan — fenêtres, contextes, surfaces, entrées et événements, derrière une petite API C.
+template: splash
+hero:
+  tagline: Fenêtres, contextes, surfaces, entrées et événements pour OpenGL, OpenGL ES et Vulkan — derrière une seule petite API C.
+  image:
+    file: ../../../assets/lumina.svg
+  actions:
+    - text: Ouvrir une fenêtre
+      link: /fr/guides/first-window/
+      icon: right-arrow
+    - text: Référence de l'API
+      link: /fr/reference/
+      icon: open-book
+      variant: minimal
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import LumCard from '../../../components/LumCard.astro';
+
+## Un programme complet
+
+```c
+#include <Lumina/lumina.h>
+
+int main(void)
+{
+    if (!lumInit())
+        return -1;
+
+    LUMwindow* window = lumCreateWindowEx(&(LUMwindowdesc)
+    {
+        .width       = 640,
+        .height      = 480,
+        .title       = "Bonjour Lumina",
+        .makeCurrent = LUM_ON
+    });
+
+    if (!window)
+    {
+        lumTerminate();
+        return -1;
+    }
+
+    while (!lumWindowShouldClose(window))
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        lumSwapBuffers(window);
+        lumPollEvents();
+    }
+
+    lumTerminate();
+    return 0;
+}
+```
+
+<div class="lum-grid not-content">
+  <LumCard title="Une API, quatre plateformes" icon="platforms">
+    Le même code se compile pour Win32, Cocoa, X11 et Wayland. Choisissez la
+    plateforme à l'exécution, ou laissez Lumina décider.
+  </LumCard>
+  <LumCard title="Aucune dépendance à chercher" icon="bare">
+    Rien d'autre que les en-têtes et bibliothèques déjà fournis par votre
+    système. Compiler Lumina ne demande aucun en-tête de création de contexte
+    ni de rendu.
+  </LumCard>
+  <LumCard title="Des événements, pas une boucle d'interrogation" icon="events">
+    Clavier, souris, manette, glisser-déposer, branchement d'écran et état des
+    fenêtres : tout arrive par des fonctions de rappel (callbacks) que vous
+    écrivez.
+  </LumCard>
+  <LumCard title="Prêt pour Vulkan" icon="vulkan">
+    Interrogez les extensions d'instance nécessaires et créez une surface de
+    fenêtre sans écrire une ligne de code propre à une plateforme.
+  </LumCard>
+</div>
+
+## Par où commencer
+
+<div class="lum-grid not-content">
+  <LumCard title="Ouvrir une fenêtre" icon="firstwindow" href="/fr/guides/first-window/">
+    Le programme complet le plus court qui soit, expliqué ligne par ligne.
+    Commencez ici.
+  </LumCard>
+  <LumCard title="Premiers pas" icon="start" href="/fr/guides/getting-started/">
+    Le tutoriel plus long : un programme complet qui affiche un triangle en
+    rotation.
+  </LumCard>
+  <LumCard title="Introduction à l'API" icon="init" href="/fr/guides/introduction/">
+    Initialisation, gestion des erreurs, versions, et les règles de conception
+    que suit toute l'API.
+  </LumCard>
+  <LumCard title="Toutes les fonctions" icon="reference" href="/fr/reference/">
+    Index alphabétique de chaque fonction, avec le domaine auquel elle
+    appartient.
+  </LumCard>
+  <LumCard title="Constantes" icon="constants" href="/fr/reference/constants/">
+    Codes de touches, indicateurs de modificateurs, indices de fenêtre, codes
+    d'erreur et toutes les autres constantes.
+  </LumCard>
+  <LumCard title="Compiler Lumina" icon="build" href="/fr/guides/compiling-lumina/">
+    Construisez la bibliothèque avec CMake, ou ajoutez ses sources à votre
+    propre build.
+  </LumCard>
+  <LumCard title="Compiler une application" icon="package" href="/fr/guides/building-applications/">
+    Incluez l'en-tête et liez la bibliothèque depuis CMake, pkg-config ou à la
+    main.
+  </LumCard>
+</div>
+
+<Aside title="Lumina est un fork de GLFW">
+  Lumina reprend [GLFW](https://www.glfw.org/) 3.4 là où son développement
+  amont s'est arrêté. L'API est la même, seuls les noms changent :
+  `glfwCreateWindow` est devenu `lumCreateWindow`, `GLFWwindow` est devenu
+  `LUMwindow`, `GLFW_KEY_ESCAPE` est devenu `LUM_KEY_ESCAPE`. Ces pages sont
+  générées depuis les en-têtes et les guides de Lumina, elles décrivent donc
+  toujours le code de ce dépôt.
+</Aside>
+
+<Aside type="caution" title="Traduction en cours">
+  La référence de l'API est générée depuis les commentaires des en-têtes C :
+  ses libellés sont traduits, sa prose reste en anglais. Un guide pas encore
+  traduit s'affiche automatiquement en anglais.
+</Aside>

@@ -1,0 +1,246 @@
+/*!
+
+@page news Notes de version
+
+@tableofcontents
+
+
+@section news_34 Notes de version pour la version 3.4
+
+@subsection features_34 Nouveautés de la version 3.4
+
+@subsubsection runtime_platform_34 Choix de la plateforme à l'exécution
+
+Lumina peut désormais être compilée pour plusieurs backends et choisir entre
+eux à l'exécution, via l'indice d'initialisation @ref LUM_PLATFORM.  Après
+l'initialisation, la plateforme retenue se demande avec @ref lumGetPlatform.
+Vous pouvez vérifier que la prise en charge d'une plateforme donnée est
+compilée avec @ref lumPlatformSupported.
+
+
+@subsubsection standard_cursors_34 Davantage de curseurs standard
+
+Lumina fournit désormais les formes de curseur standard @ref
+LUM_RESIZE_NWSE_CURSOR et @ref LUM_RESIZE_NESW_CURSOR pour le
+redimensionnement en diagonale, @ref LUM_RESIZE_ALL_CURSOR pour le
+redimensionnement dans toutes les directions, et @ref LUM_NOT_ALLOWED_CURSOR
+pour signaler qu'une action n'est pas permise.
+
+Contrairement à l'ensemble d'origine, ces formes peuvent ne pas être
+disponibles partout ; leur création échoue alors avec la nouvelle erreur @ref
+LUM_CURSOR_UNAVAILABLE.
+
+Les curseurs de redimensionnement horizontal et vertical s'appellent désormais
+@ref LUM_RESIZE_EW_CURSOR et @ref LUM_RESIZE_NS_CURSOR, et le curseur en forme
+de main pointant @ref LUM_POINTING_HAND_CURSOR.  Les anciens noms restent
+disponibles.
+
+Pour en savoir plus, voyez @ref cursor_standard.
+
+
+@subsubsection mouse_passthrough_34 Événements souris traversants
+
+Lumina fournit désormais l'indice de fenêtre
+[LUM_MOUSE_PASSTHROUGH](@ref LUM_MOUSE_PASSTHROUGH_hint), qui rend une fenêtre
+transparente aux entrées souris : les événements passent à la fenêtre située
+derrière.  Cela se modifie aussi après la création de la fenêtre, via
+l'[attribut de fenêtre](@ref LUM_MOUSE_PASSTHROUGH_attrib) correspondant.
+
+
+@subsubsection features_34_angle_backend Choix du backend de rendu ANGLE
+
+Lumina fournit désormais l'indice d'initialisation
+[LUM_ANGLE_PLATFORM_TYPE](@ref LUM_ANGLE_PLATFORM_TYPE_hint), pour demander un
+backend de rendu précis lorsqu'on utilise
+[ANGLE](https://chromium.googlesource.com/angle/angle/) pour créer des
+contextes OpenGL ES.
+
+
+@subsubsection features_34_init_allocator Allocateur mémoire personnalisé
+
+Lumina permet désormais de brancher un allocateur mémoire personnalisé à
+l'initialisation, avec @ref lumInitAllocator.  L'allocateur est une structure
+de type @ref LUMallocator contenant des pointeurs de fonction correspondant aux
+fonctions `malloc`, `realloc` et `free` de la bibliothèque standard.
+
+Pour en savoir plus, voyez @ref init_allocator.
+
+
+@subsubsection features_34_win32_keymenu Accès clavier au menu de fenêtre sous Windows
+
+Lumina fournit désormais l'indice de fenêtre
+[LUM_WIN32_KEYBOARD_MENU](@ref LUM_WIN32_KEYBOARD_MENU_hint), qui active
+l'accès clavier au menu de la fenêtre par les raccourcis Alt+Espace et
+Alt-puis-Espace.  Cela peut être utile aux applications plus orientées
+interface graphique.
+
+
+@subsection caveats Réserves pour la version 3.4
+
+@subsubsection native_34 Plusieurs ensembles de fonctions d'accès natif
+
+Comme Lumina permet désormais de choisir la plateforme — le système de
+fenêtrage — à l'exécution, un binaire de la bibliothèque peut exporter les
+fonctions d'accès natif de plusieurs plateformes.  À partir de la version 3.4,
+vous ne devez plus supposer que Lumina s'exécute sur une plateforme au seul
+motif qu'elle en exporte les fonctions d'accès natif.  Après l'initialisation,
+demandez la plateforme retenue avec @ref lumGetPlatform.
+
+
+@subsubsection version_string_34 Le format de la chaîne de version a changé
+
+Comme Lumina permet désormais de choisir la plateforme — le système de
+fenêtrage — à l'exécution, la chaîne de version retournée par @ref
+lumGetVersionString a été étoffée.  Elle contient maintenant les noms de toutes
+les API de toutes les plateformes que le binaire prend en charge.
+
+
+@subsubsection joysticks_34 La prise en charge des manettes s'initialise à la demande
+
+La partie manettes de Lumina s'initialise désormais à la première utilisation,
+principalement pour contourner des pilotes Windows défectueux qui font mettre
+plusieurs secondes à DirectInput pour énumérer les périphériques.
+
+Ce changement passera généralement inaperçu.  Toutefois, si votre application
+attend des événements sans avoir d'abord appelé une fonction de manette ni créé
+de fenêtre visible, l'attente risque de ne jamais se débloquer, Lumina ne
+s'étant pas encore abonnée aux événements système liés aux manettes.
+
+Pour y remédier, appelez n'importe quelle fonction de manette avant d'attendre
+des événements, par exemple en installant une
+[fonction de rappel de manette](@ref joystick_event).
+
+
+@subsubsection standalone_34 Tests et exemples désactivés en sous-projet
+
+Lumina ne compile plus les tests ni les exemples lorsqu'elle est ajoutée comme
+sous-répertoire d'un autre projet CMake.  Pour les activer, positionnez les
+variables de cache @ref LUM_BUILD_TESTS et @ref LUM_BUILD_EXAMPLES avant
+d'ajouter le sous-répertoire de Lumina.
+
+@code{.cmake}
+set(LUM_BUILD_EXAMPLES ON CACHE BOOL "" FORCE)
+set(LUM_BUILD_TESTS ON CACHE BOOL "" FORCE)
+add_subdirectory(path/to/lumina)
+@endcode
+
+
+@subsubsection initmenu_34 Le menu principal de macOS est créé à l'initialisation
+
+Lumina crée désormais le menu principal et achève l'initialisation de
+NSApplication pendant l'initialisation.  Les programmes qui ne veulent pas de
+menu principal peuvent le désactiver avec l'indice d'initialisation
+[LUM_COCOA_MENUBAR](@ref LUM_COCOA_MENUBAR_hint).
+
+
+@subsubsection corevideo_34 La dépendance à CoreVideo a été retirée
+
+Lumina ne dépend plus du framework CoreVideo sur macOS ; il n'est plus
+nécessaire de l'indiquer à la compilation ni à l'édition des liens.
+
+
+@subsubsection caveat_fbtransparency_34 La transparence du tampon d'image exige la transparence DWM
+
+Lumina ne prend plus en charge la transparence du tampon d'image activée par
+@ref LUM_TRANSPARENT_FRAMEBUFFER sous Windows 7 lorsque la transparence DWM est
+désactivée (le réglage Transparence sous Personnalisation > Couleur de la
+fenêtre).
+
+
+@subsection deprecations_34 Éléments dépréciés en version 3.4
+
+@subsection removals_34 Suppressions en 3.4
+
+@subsubsection vulkan_static_34 L'option CMake LUM_VULKAN_STATIC a été retirée
+
+Cette option servait à compiler Lumina en liaison directe avec le chargeur
+Vulkan, au lieu d'utiliser le chargement dynamique pour obtenir
+`vkGetInstanceProcAddr` à l'initialisation.  Cela se fait désormais en appelant
+@ref lumInitVulkanLoader avant l'initialisation.
+
+Si vous avez besoin de compatibilité ascendante, cette macro peut encore être
+définie pour Lumina 3.4 et restera sans effet.  L'appel à @ref
+lumInitVulkanLoader peut être activé conditionnellement dans votre code en
+testant les macros @ref LUM_VERSION_MAJOR et @ref LUM_VERSION_MINOR.
+
+
+@subsubsection osmesa_option_34 L'option CMake LUM_USE_OSMESA a été retirée
+
+Cette option servait à compiler Lumina pour la plateforme Null.  Celle-ci est
+désormais toujours prise en charge.  Pour produire un binaire qui ne prenne en
+charge que cette plateforme, comme le faisait cette option CMake, vous devez
+désormais désactiver la plateforme par défaut du système cible, c'est-à-dire
+mettre à faux l'option CMake @ref LUM_BUILD_WIN32, @ref LUM_BUILD_COCOA ou @ref
+LUM_BUILD_X11.
+
+Vous pouvez toutes les mettre à faux : celles qui ne s'appliquent pas au
+système cible seront ignorées.
+
+
+@subsubsection wl_shell_34 La prise en charge du protocole wl_shell a été retirée
+
+La prise en charge du protocole wl_shell a été retirée ; Lumina ne prend plus
+en charge que le protocole XDG-Shell.  Si votre compositeur Wayland ne gère pas
+XDG-Shell, l'initialisation de Lumina échouera.
+
+
+@subsection symbols_34 Nouveaux symboles en version 3.4
+
+@subsubsection functions_34 Nouvelles fonctions en version 3.4
+
+ - @ref lumInitAllocator
+ - @ref lumGetPlatform
+ - @ref lumPlatformSupported
+ - @ref lumInitVulkanLoader
+
+
+@subsubsection types_34 Nouveaux types en version 3.4
+
+ - @ref LUMallocator
+ - @ref LUMallocatefun
+ - @ref LUMreallocatefun
+ - @ref LUMdeallocatefun
+
+
+@subsubsection constants_34 Nouvelles constantes en version 3.4
+
+ - @ref LUM_PLATFORM
+ - @ref LUM_ANY_PLATFORM
+ - @ref LUM_PLATFORM_WIN32
+ - @ref LUM_PLATFORM_COCOA
+ - @ref LUM_PLATFORM_WAYLAND
+ - @ref LUM_PLATFORM_X11
+ - @ref LUM_PLATFORM_NULL
+ - @ref LUM_PLATFORM_UNAVAILABLE
+ - @ref LUM_POINTING_HAND_CURSOR
+ - @ref LUM_RESIZE_EW_CURSOR
+ - @ref LUM_RESIZE_NS_CURSOR
+ - @ref LUM_RESIZE_NWSE_CURSOR
+ - @ref LUM_RESIZE_NESW_CURSOR
+ - @ref LUM_RESIZE_ALL_CURSOR
+ - @ref LUM_MOUSE_PASSTHROUGH
+ - @ref LUM_NOT_ALLOWED_CURSOR
+ - @ref LUM_CURSOR_UNAVAILABLE
+ - @ref LUM_WIN32_KEYBOARD_MENU
+ - @ref LUM_CONTEXT_DEBUG
+ - @ref LUM_FEATURE_UNAVAILABLE
+ - @ref LUM_FEATURE_UNIMPLEMENTED
+ - @ref LUM_ANGLE_PLATFORM_TYPE
+ - @ref LUM_ANGLE_PLATFORM_TYPE_NONE
+ - @ref LUM_ANGLE_PLATFORM_TYPE_OPENGL
+ - @ref LUM_ANGLE_PLATFORM_TYPE_OPENGLES
+ - @ref LUM_ANGLE_PLATFORM_TYPE_D3D9
+ - @ref LUM_ANGLE_PLATFORM_TYPE_D3D11
+ - @ref LUM_ANGLE_PLATFORM_TYPE_VULKAN
+ - @ref LUM_ANGLE_PLATFORM_TYPE_METAL
+ - @ref LUM_X11_XCB_VULKAN_SURFACE
+
+
+@section news_archive Notes de version des versions antérieures
+
+- [Notes de version 3.3](https://www.glfw.org/docs/3.3/news.html)
+- [Notes de version 3.2](https://www.glfw.org/docs/3.2/news.html)
+- [Notes de version 3.1](https://www.glfw.org/docs/3.1/news.html)
+- [Notes de version 3.0](https://www.glfw.org/docs/3.0/news.html)
+
+*/

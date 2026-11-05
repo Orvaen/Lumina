@@ -1,0 +1,224 @@
+/*!
+
+@page first_window Ouvrir une fenêtre
+
+@tableofcontents
+
+Voici le programme Lumina complet le plus court qui soit : une cinquantaine de
+lignes qui ouvrent une fenêtre, la remplissent d'une couleur et quittent quand
+vous la fermez ou appuyez sur _Échap_.  C'est la page à lire en premier : rien
+d'autre dans cette documentation n'en est un prérequis.
+
+Ce code n'est pas un extrait écrit pour la page.  C'est `examples/minimal.c`,
+compilé chaque fois que les exemples de Lumina sont construits : il ne peut donc
+pas devenir obsolète.
+
+@section first_window_whole Le programme en entier
+
+@snippet minimal.c code
+
+Voilà tout le programme.  Si Lumina se construit déjà chez vous, copiez-le dans
+un fichier, compilez-le comme décrit dans @ref first_window_build ci-dessous, et
+vous avez une fenêtre.
+
+Le reste de cette page en explique chaque partie.
+
+
+@section first_window_walk Ce que fait chaque partie
+
+@subsection first_window_include Inclure les en-têtes
+
+@code
+#define GLAD_GL_IMPLEMENTATION
+#include <glad/gl.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
+@endcode
+
+Le seul en-tête dont Lumina ait besoin est `Lumina/lumina.h`.  Les deux autres
+lignes amènent [glad](https://gen.glad.sh/), une bibliothèque de chargement
+d'extensions (extension loader library), parce que l'en-tête OpenGL livré avec
+votre environnement de développement peut être très ancien — sous Windows, il
+s'arrête généralement à OpenGL 1.2.
+
+`LUM_INCLUDE_NONE` indique à Lumina de ne pas inclure d'en-tête OpenGL de son
+côté, glad en ayant déjà fourni un.  Vous pouvez omettre les deux lignes de glad
+si la version d'OpenGL exposée par l'en-tête de votre système vous suffit, ou si
+vous ne dessinez encore rien.  Voyez @ref build_include pour l'éventail complet
+des possibilités.
+
+@subsection first_window_errors Être informé des erreurs
+
+@code
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Lumina error: %s\n", description);
+}
+@endcode
+
+Installée avec @ref lumSetErrorCallback, cette fonction de rappel (callback) est
+appelée chaque fois qu'une fonction de Lumina échoue, avec une description
+lisible de ce qui s'est mal passé.  C'est la première chose à mettre en place,
+car elle fonctionne même avant l'initialisation de la bibliothèque ; sans elle,
+un échec ne vous apprend rien de plus que « quelque chose a retourné `NULL` ».
+
+@subsection first_window_init Initialiser la bibliothèque
+
+@code
+if (!lumInit())
+    return EXIT_FAILURE;
+@endcode
+
+@ref lumInit doit réussir avant tout autre appel, à l'exception de la fonction
+de rappel d'erreur et de quelques interrogations de version.  @ref lumTerminate,
+à l'autre bout du programme, annule cet appel et libère tout ce que Lumina avait
+alloué.
+
+@subsection first_window_create Créer la fenêtre
+
+@code
+window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width       = 640,
+    .height      = 480,
+    .title       = "My first Lumina window",
+    .makeCurrent = LUM_ON
+});
+@endcode
+
+@ref lumCreateWindowEx crée une fenêtre et son contexte OpenGL, et prend tout ce
+dont elle a besoin dans un @ref LUMwindowdesc.  __Tout champ omis prend la
+valeur par défaut de la bibliothèque__ : seuls les quatre qui comptent ici sont
+écrits — la taille de la zone de contenu, le titre de la fenêtre, et
+`makeCurrent`, qui demande que le nouveau contexte soit rendu courant sur ce
+thread immédiatement.
+
+Trois champs sont obligatoires : `width`, `height` et `title`.  Tout le reste,
+de la version d'OpenGL au nombre d'échantillons, a une valeur par défaut
+raisonnable.  La section @ref window_creation_desc du guide des fenêtres couvre
+le descripteur en entier ; @ref LUMwindowdesc en énumère tous les champs.
+
+@code
+if (!window)
+{
+    lumTerminate();
+    return EXIT_FAILURE;
+}
+@endcode
+
+La création d'une fenêtre peut échouer — le plus souvent parce que la version
+d'OpenGL demandée n'est pas disponible — et dans ce cas elle retourne `NULL`
+après avoir appelé votre fonction de rappel d'erreur.
+
+@subsection first_window_key Réagir au clavier
+
+@code
+static void key_callback(LUMwindow* window,
+                         int key, int scancode, int action, int mods)
+{
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
+}
+@endcode
+
+Dans Lumina, les entrées arrivent par des fonctions de rappel que vous écrivez
+et enregistrez, ici avec @ref lumSetKeyCallback.  Celle-ci guette _Échap_ et
+lève l'indicateur de fermeture de la fenêtre — exactement ce que fait un clic
+sur le bouton de fermeture.  Le @ref input_guide couvre tout le reste : texte,
+souris, défilement, manettes, et davantage.
+
+@subsection first_window_loader Charger les fonctions OpenGL
+
+@code
+gladLoadGL(lumGetProcAddress);
+lumSwapInterval(1);
+@endcode
+
+Les fonctions OpenGL autres que les plus anciennes doivent être recherchées à
+l'exécution.  @ref lumGetProcAddress s'occupe de la recherche et glad du
+stockage : un seul appel relie les deux.  Cela doit arriver après qu'un contexte
+est courant, ce dont `makeCurrent` s'est déjà chargé.
+
+Passer `1` à @ref lumSwapInterval demande que les échanges de tampons attendent
+le prochain retour vertical, ce qui plafonne la boucle au taux de
+rafraîchissement de l'écran au lieu de la laisser tourner à vide le plus vite
+possible.
+
+@subsection first_window_loop La boucle d'événements
+
+@code
+while (!lumWindowShouldClose(window))
+{
+    int width, height;
+    lumGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glClearColor(0.18f, 0.12f, 0.30f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    lumSwapBuffers(window);
+    lumPollEvents();
+}
+@endcode
+
+@ref lumWindowShouldClose rapporte l'indicateur de fermeture : la boucle se
+termine donc quand l'utilisateur ferme la fenêtre ou appuie sur _Échap_.
+
+À l'intérieur, @ref lumGetFramebufferSize donne la taille de la zone de dessin
+en pixels.  Demandez-la à chaque image plutôt que de la mémoriser : la fenêtre
+peut être redimensionnée, et sur un écran à haute densité elle ne vaut pas la
+taille que vous avez demandée en coordonnées d'écran.
+
+@ref lumSwapBuffers présente l'image que vous venez de dessiner, et
+@ref lumPollEvents traite tout ce qui est arrivé du système d'exploitation
+depuis le dernier appel — c'est lui qui déclenche vos fonctions de rappel.  Sans
+lui, la fenêtre ne répondrait jamais à rien.
+
+@subsection first_window_clean Arrêter proprement
+
+@code
+lumDestroyWindow(window);
+lumTerminate();
+@endcode
+
+@ref lumTerminate détruit de lui-même les fenêtres qui subsistent : l'appel
+explicite à @ref lumDestroyWindow n'est donc pas strictement nécessaire ici —
+mais être explicite coûte une ligne et garde la forme du programme claire.
+
+
+@section first_window_build Le compiler et l'exécuter
+
+Lumina doit être construite avant que quoi que ce soit puisse s'y lier, et les
+deux étapes sont distinctes :
+
+- @ref compile_guide construit la bibliothèque elle-même.  Avec CMake, cela
+  tient en trois commandes.
+- @ref build_guide lie votre programme avec elle, depuis CMake, pkg-config, ou
+  à la main.
+
+Si vous construisez Lumina depuis ce dépôt, l'exemple ci-dessus y est déjà.
+Configurez avec les exemples activés et le binaire est construit pour vous :
+
+@code{.sh}
+cmake -S . -B build
+cmake --build build --target minimal
+@endcode
+
+Le programme se trouve alors sous `build/examples`.  Lancez-le et vous obtenez
+une petite fenêtre violette qui se ferme sur _Échap_.
+
+@section first_window_next Où aller ensuite
+
+- @ref quick_guide est la version longue de cette page.  Il va jusqu'à un
+  triangle en rotation et présente davantage de l'API en chemin.
+- @ref intro_guide explique les règles que suit toute l'API : initialisation,
+  gestion des erreurs, versions et sûreté vis-à-vis des threads.
+- @ref window_guide couvre les fenêtres en entier — le descripteur complet, le
+  plein écran, les icônes, le redimensionnement, les attributs et toutes les
+  fonctions de rappel de fenêtre.
+- @ref input_guide couvre tout ce que l'utilisateur peut faire : clavier, texte,
+  souris, curseurs, fichiers déposés sur la fenêtre, joysticks et manettes.
+- @ref vulkan_guide montre ce qui change quand on dessine avec Vulkan plutôt
+  qu'OpenGL.  C'est pour l'essentiel un champ : `.context = LUM_OFF`.
+
+*/

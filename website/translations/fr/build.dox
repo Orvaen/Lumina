@@ -1,0 +1,352 @@
+/*!
+
+@page build_guide Compiler une application
+
+@tableofcontents
+
+Cette page traite de la compilation et de l'édition de liens des applications
+qui utilisent Lumina.  Pour savoir comment écrire de telles applications,
+commencez par le [tutoriel d'introduction](@ref quick_guide).  Pour compiler la
+bibliothèque Lumina elle-même, voyez @ref compile_guide.
+
+Ce n'est pas un cours sur la compilation ni sur l'édition de liens.  On suppose
+que vous savez compiler et lier un programme C, et que vous maîtrisez le
+compilateur de votre environnement de développement.  Le processus de
+compilation et d'édition de liens devrait être expliqué par vos supports
+d'apprentissage du C et par la documentation de votre environnement.
+
+
+@section build_include Inclure l'en-tête de Lumina
+
+Vous devriez inclure l'en-tête de Lumina dans les fichiers source où vous
+utilisez OpenGL ou Lumina.
+
+@code
+#include <Lumina/lumina.h>
+@endcode
+
+Cet en-tête définit toutes les constantes et déclare tous les types et
+prototypes de fonction de l'API Lumina.  Par défaut, il inclut aussi l'en-tête
+OpenGL de votre environnement de développement.  Voyez les
+[macros d'option](@ref build_macros) plus bas pour choisir les en-têtes
+OpenGL ES, entre autres.
+
+L'en-tête de Lumina définit également les macros spécifiques à la plateforme
+dont votre en-tête OpenGL a besoin, afin qu'il puisse être inclus sans aucun
+en-tête de système de fenêtrage.
+
+Il ne le fait que lorsque c'est nécessaire : si des en-têtes de système de
+fenêtrage sont déjà inclus, l'en-tête de Lumina n'essaie pas de redéfinir ces
+symboles.  L'inverse n'est pas vrai : `windows.h` ne supporte pas que des
+symboles Win32 aient déjà été définis.
+
+Autrement dit :
+
+ - Utilisez l'en-tête de Lumina pour inclure les en-têtes OpenGL ou OpenGL ES de façon portable
+ - N'incluez pas d'en-têtes de système de fenêtrage, sauf si vous utilisez ces API directement
+ - Si vous avez besoin de tels en-têtes, incluez-les avant celui de Lumina
+
+Si vous utilisez une bibliothèque de chargement d'extensions OpenGL comme
+[glad](https://github.com/Dav1dde/glad), son en-tête doit être inclus avant
+celui de Lumina.  Lumina tente de détecter tout en-tête OpenGL, OpenGL ES ou de
+chargeur d'extensions inclus avant elle, et désactive alors l'inclusion de
+l'en-tête OpenGL par défaut.  La plupart des chargeurs d'extensions définissent
+également des macros qui désactivent les en-têtes similaires situés après eux.
+
+@code
+#include <glad/gl.h>
+#include <Lumina/lumina.h>
+@endcode
+
+Ces deux mécanismes supposent que l'en-tête du chargeur d'extensions définisse
+une macro connue.  Si le vôtre ne le fait pas, ou si vous ignorez lequel vos
+utilisateurs choisiront, la macro @ref LUM_INCLUDE_NONE empêche explicitement
+l'en-tête de Lumina d'inclure l'en-tête OpenGL.  Cela vous permet aussi
+d'inclure les deux en-têtes dans n'importe quel ordre.
+
+@code
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
+#include <glad/gl.h>
+@endcode
+
+
+@subsection build_macros Macros d'option de l'en-tête de Lumina
+
+Ces macros peuvent être définies avant l'inclusion de l'en-tête de Lumina et
+modifient son comportement.
+
+@anchor LUM_DLL
+__LUM_DLL__ est obligatoire sous Windows lorsqu'on utilise la DLL de Lumina :
+elle indique au compilateur que les fonctions de Lumina sont définies dans une
+DLL.
+
+Les macros suivantes déterminent quel en-tête d'API OpenGL ou OpenGL ES est
+inclus.  Une seule peut être définie à la fois.
+
+@note Lumina ne fournit aucun des en-têtes d'API mentionnés ci-dessous.  Ils
+proviennent de votre environnement de développement ou de votre SDK OpenGL,
+OpenGL ES ou Vulkan, et la plupart se téléchargent depuis le
+[registre Khronos](https://www.khronos.org/registry/).
+
+@anchor LUM_INCLUDE_GLCOREARB
+__LUM_INCLUDE_GLCOREARB__ fait inclure à l'en-tête de Lumina l'en-tête moderne
+`GL/glcorearb.h` (`OpenGL/gl3.h` sur macOS) au lieu de l'en-tête OpenGL
+ordinaire.
+
+@anchor LUM_INCLUDE_ES1
+__LUM_INCLUDE_ES1__ fait inclure à l'en-tête de Lumina l'en-tête OpenGL ES 1.x
+`GLES/gl.h` au lieu de l'en-tête OpenGL ordinaire.
+
+@anchor LUM_INCLUDE_ES2
+__LUM_INCLUDE_ES2__ fait inclure à l'en-tête de Lumina l'en-tête OpenGL ES 2.0
+`GLES2/gl2.h` au lieu de l'en-tête OpenGL ordinaire.
+
+@anchor LUM_INCLUDE_ES3
+__LUM_INCLUDE_ES3__ fait inclure à l'en-tête de Lumina l'en-tête OpenGL ES 3.0
+`GLES3/gl3.h` au lieu de l'en-tête OpenGL ordinaire.
+
+@anchor LUM_INCLUDE_ES31
+__LUM_INCLUDE_ES31__ fait inclure à l'en-tête de Lumina l'en-tête OpenGL ES 3.1
+`GLES3/gl31.h` au lieu de l'en-tête OpenGL ordinaire.
+
+@anchor LUM_INCLUDE_ES32
+__LUM_INCLUDE_ES32__ fait inclure à l'en-tête de Lumina l'en-tête OpenGL ES 3.2
+`GLES3/gl32.h` au lieu de l'en-tête OpenGL ordinaire.
+
+@anchor LUM_INCLUDE_NONE
+__LUM_INCLUDE_NONE__ empêche l'en-tête de Lumina d'inclure le moindre en-tête
+d'API OpenGL ou OpenGL ES.  C'est utile en complément d'une bibliothèque de
+chargement d'extensions.
+
+Si aucune des macros d'inclusion ci-dessus n'est définie, l'en-tête OpenGL
+standard `GL/gl.h` (`OpenGL/gl.h` sur macOS) est inclus, à moins que Lumina ne
+détecte les gardes d'inclusion d'un en-tête OpenGL, OpenGL ES ou de chargeur
+d'extensions qu'elle connaît.
+
+Les macros suivantes commandent l'inclusion d'en-têtes d'API supplémentaires.
+On peut en définir autant qu'on veut simultanément, et les combiner avec l'une
+des macros ci-dessus.
+
+@anchor LUM_INCLUDE_VULKAN
+__LUM_INCLUDE_VULKAN__ fait inclure à l'en-tête de Lumina l'en-tête Vulkan
+`vulkan/vulkan.h`, en plus de l'en-tête OpenGL ou OpenGL ES retenu.
+
+@anchor LUM_INCLUDE_GLEXT
+__LUM_INCLUDE_GLEXT__ fait inclure à l'en-tête de Lumina l'en-tête d'extensions
+correspondant à l'en-tête OpenGL ou OpenGL ES retenu ci-dessus, après et en
+plus de celui-ci.
+
+@anchor LUM_INCLUDE_GLU
+__LUM_INCLUDE_GLU__ fait inclure l'en-tête GLU en plus de l'en-tête retenu
+ci-dessus.  À n'employer qu'avec l'en-tête OpenGL standard, et uniquement par
+compatibilité avec du code ancien.  GLU est déprécié et ne devrait pas être
+utilisé dans du code neuf.
+
+@note Aucune de ces macros ne doit être définie pendant la compilation de
+Lumina elle-même.  Si votre build inclut Lumina et que vous définissez l'une
+d'elles dans vos fichiers de build, veillez à ce qu'elle ne s'applique pas aux
+sources de Lumina.
+
+
+@section build_link Lier les bonnes bibliothèques
+
+Lumina est pour l'essentiel une enveloppe autour de diverses API propres aux
+plateformes ; elle doit donc être liée à de nombreuses bibliothèques système.
+Si vous utilisez Lumina en bibliothèque partagée, en bibliothèque dynamique ou
+en DLL, elle s'occupe de ces liens.  Si en revanche vous l'utilisez en
+bibliothèque statique, votre exécutable devra être lié à ces bibliothèques.
+
+Sous Windows et macOS, la liste des bibliothèques système est fixe et peut être
+écrite en dur dans votre environnement de build ; voyez la section
+correspondante plus bas.  Sous Linux et les autres systèmes de type Unix, elle
+varie, mais peut être obtenue de plusieurs façons décrites ci-dessous.
+
+Une bonne introduction générale à l'édition de liens est le
+[Beginner's Guide to Linkers](https://www.lurklurk.org/linkers/linkers.html) de
+David Drysdale.
+
+
+@subsection build_link_win32 Avec MinGW ou Visual C++ sous Windows
+
+La version statique de la bibliothèque Lumina s'appelle `lumina`.  Avec cette
+version, il faut aussi lier certaines bibliothèques qu'utilise Lumina.
+
+Lorsqu'on lie une application à la version statique de Lumina avec MinGW, il
+faut également lier explicitement `gdi32`.  D'autres chaînes d'outils, dont
+MinGW-w64, l'incluent dans leur jeu de bibliothèques par défaut, avec d'autres
+dépendances comme `user32` et `kernel32`.
+
+La bibliothèque d'import de la DLL Lumina s'appelle `luminadll`.  Pour compiler
+une application qui utilise la version DLL de Lumina, vous devez définir la
+macro @ref LUM_DLL _avant_ toute inclusion de l'en-tête de Lumina.  Cela se
+fait soit par une option du compilateur, soit par une définition dans votre
+code source.
+
+
+@subsection build_link_cmake_source Avec CMake et les sources de Lumina
+
+Cette section explique comment utiliser CMake pour compiler et lier Lumina en
+même temps que votre application.  Si vous préférez utiliser un binaire
+installé, voyez @ref build_link_cmake_package.
+
+Quelques changements dans votre `CMakeLists.txt` suffisent à faire construire
+l'arborescence des sources de Lumina avec votre application.
+
+Ajoutez à votre projet le répertoire racine des sources de Lumina.  Cela ajoute
+la cible `lumina` à votre projet.
+
+@code{.cmake}
+add_subdirectory(path/to/lumina)
+@endcode
+
+Une fois Lumina ajoutée, liez votre application à la cible `lumina`.  Cela
+ajoute la bibliothèque Lumina et ses dépendances d'édition de liens dans sa
+configuration actuelle, le répertoire d'inclusion de l'en-tête de Lumina et, le
+cas échéant, la macro @ref LUM_DLL.
+
+@code{.cmake}
+target_link_libraries(myapp lumina)
+@endcode
+
+Notez que la cible `lumina` ne dépend pas d'OpenGL : Lumina charge à
+l'exécution les bibliothèques OpenGL, OpenGL ES ou Vulkan dont elle a besoin.
+Si votre application appelle OpenGL directement au lieu d'utiliser une
+[bibliothèque de chargement d'extensions](@ref context_glext_auto) moderne,
+utilisez le paquet CMake OpenGL.
+
+@code{.cmake}
+find_package(OpenGL REQUIRED)
+@endcode
+
+Si OpenGL est trouvé, la cible `OpenGL::GL` est ajoutée à votre projet, avec
+les chemins de bibliothèque et d'inclusion.  Liez-la comme n'importe quelle
+autre bibliothèque.
+
+@code{.cmake}
+target_link_libraries(myapp OpenGL::GL)
+@endcode
+
+Pour un exemple minimal de programme construit avec CMake et les sources de
+Lumina, voyez le
+[Lumina CMake Starter](https://github.com/juliettef/GLFW-CMake-starter) sur
+GitHub.
+
+
+@subsection build_link_cmake_package Avec CMake et des binaires Lumina installés
+
+Cette section explique comment utiliser CMake pour lier Lumina une fois
+construite et installée.  Si vous préférez la construire avec votre
+application, voyez @ref build_link_cmake_source.
+
+Quelques changements dans votre `CMakeLists.txt` suffisent à localiser les
+fichiers de paquet et de cible produits à l'installation de Lumina.
+
+@code{.cmake}
+find_package(lumina 3.4 REQUIRED)
+@endcode
+
+Une fois Lumina ajoutée au projet, liez-la avec la cible `lumina`.  Cela ajoute
+la bibliothèque Lumina et ses dépendances d'édition de liens, le répertoire
+d'inclusion de l'en-tête de Lumina et, le cas échéant, la macro @ref LUM_DLL.
+
+@code{.cmake}
+target_link_libraries(myapp lumina)
+@endcode
+
+Notez que la cible `lumina` ne dépend pas d'OpenGL : Lumina charge à
+l'exécution les bibliothèques OpenGL, OpenGL ES ou Vulkan dont elle a besoin.
+Si votre application appelle OpenGL directement au lieu d'utiliser une
+[bibliothèque de chargement d'extensions](@ref context_glext_auto) moderne,
+utilisez le paquet CMake OpenGL.
+
+@code{.cmake}
+find_package(OpenGL REQUIRED)
+@endcode
+
+Si OpenGL est trouvé, la cible `OpenGL::GL` est ajoutée à votre projet, avec
+les chemins de bibliothèque et d'inclusion.  Liez-la comme n'importe quelle
+autre bibliothèque.
+
+@code{.cmake}
+target_link_libraries(myapp OpenGL::GL)
+@endcode
+
+
+@subsection build_link_pkgconfig Avec des makefiles et pkg-config sous Unix
+
+Lumina prend en charge
+[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) : le
+fichier pkg-config `lumina.pc` est produit lors de la construction de la
+bibliothèque et installé avec elle.  Un fichier pkg-config décrit tous les
+drapeaux de compilation et d'édition de liens, ainsi que les dépendances,
+nécessaires à l'usage d'une bibliothèque.  S'ils changent ou diffèrent d'un
+système à l'autre, vous obtiendrez automatiquement les bons.
+
+Une ligne de commande typique de compilation et d'édition de liens avec la
+version statique de Lumina peut ressembler à ceci :
+
+@code{.sh}
+cc $(pkg-config --cflags lumina) -o myprog myprog.c $(pkg-config --static --libs lumina)
+@endcode
+
+Si vous utilisez la version partagée de Lumina, omettez le drapeau `--static`.
+
+@code{.sh}
+cc $(pkg-config --cflags lumina) -o myprog myprog.c $(pkg-config --libs lumina)
+@endcode
+
+Vous pouvez aussi utiliser `lumina.pc` sans l'installer au préalable, grâce à
+la variable d'environnement `PKG_CONFIG_PATH`.
+
+@code{.sh}
+env PKG_CONFIG_PATH=path/to/lumina/src cc $(pkg-config --cflags lumina) -o myprog myprog.c $(pkg-config --libs lumina)
+@endcode
+
+Les dépendances n'incluent pas OpenGL, puisque Lumina charge à l'exécution les
+bibliothèques OpenGL, OpenGL ES ou Vulkan dont elle a besoin.  Si votre
+application appelle OpenGL directement au lieu d'utiliser une
+[bibliothèque de chargement d'extensions](@ref context_glext_auto) moderne,
+ajoutez le paquet pkg-config `gl`.
+
+@code{.sh}
+cc $(pkg-config --cflags lumina gl) -o myprog myprog.c $(pkg-config --libs lumina gl)
+@endcode
+
+
+@subsection build_link_xcode Avec Xcode sous macOS
+
+Si vous utilisez la version bibliothèque dynamique de Lumina, ajoutez-la aux
+dépendances du projet.
+
+Si vous utilisez la version bibliothèque statique, ajoutez-la aux dépendances
+du projet, ainsi que les frameworks Cocoa, OpenGL et IOKit.  Ils se trouvent
+tous dans `/System/Library/Frameworks`.
+
+
+@subsection build_link_osx En ligne de commande sous macOS
+
+Il est recommandé d'utiliser [pkg-config](@ref build_link_pkgconfig) pour
+construire en ligne de commande sous macOS : les nouvelles dépendances seront
+ajoutées automatiquement.  Si vous tenez à procéder à la main, vous devrez
+ajouter vous-même les frameworks et bibliothèques requis à votre ligne de
+commande, avec les options `-l` et `-framework`.
+
+Si vous utilisez la bibliothèque dynamique de Lumina, nommée
+`liblumina.3.dylib`, faites :
+
+@code{.sh}
+cc -o myprog myprog.c -llumina -framework Cocoa -framework OpenGL -framework IOKit
+@endcode
+
+Si vous utilisez la bibliothèque statique, nommée `liblumina3.a`, remplacez
+`-llumina` par `-llumina3`.
+
+Notez qu'on n'ajoute pas l'extension `.framework` au nom d'un framework
+lorsqu'on le lie en ligne de commande.
+
+@note Votre machine possède peut-être une bibliothèque OpenGL du type
+`libGL.*.dylib`, mais elle est destinée au système X Window et ne fonctionnera
+pas avec la version native macOS de Lumina.
+
+*/

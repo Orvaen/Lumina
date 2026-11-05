@@ -1,0 +1,351 @@
+/*!
+
+@page context_guide Guide des contextes
+
+@tableofcontents
+
+Ce guide présente les fonctions de Lumina liées aux contextes OpenGL et
+OpenGL ES.  Pour le détail d'une fonction de cette catégorie, voyez @ref
+context.  Il existe aussi des guides pour les autres domaines de l'API Lumina.
+
+ - @ref intro_guide
+ - @ref window_guide
+ - @ref vulkan_guide
+ - @ref monitor_guide
+ - @ref input_guide
+
+
+@section context_object Objets contexte
+
+Un objet fenêtre encapsule à la fois une fenêtre de premier niveau et un
+contexte OpenGL ou OpenGL ES.  Il se crée avec @ref lumCreateWindow et se
+détruit avec @ref lumDestroyWindow ou @ref lumTerminate.  Voyez @ref
+window_creation pour en savoir plus.
+
+Comme la fenêtre et le contexte sont indissociables, l'objet fenêtre sert aussi
+de handle de contexte.
+
+Pour essayer la création de différents types de contextes et observer leurs
+propriétés, lancez le programme de test `lumina_info`.
+
+@note Vulkan n'a pas de contexte, et l'instance Vulkan se crée via l'API Vulkan
+elle-même.  Si vous comptez utiliser Vulkan pour dessiner dans une fenêtre,
+désactivez la création du contexte en réglant l'indice
+[LUM_CLIENT_API](@ref LUM_CLIENT_API_hint) sur `LUM_NO_API`.  Voyez @ref
+vulkan_guide pour en savoir plus.
+
+
+@subsection context_hints Indices de création de contexte
+
+Plusieurs indices, positionnés avec @ref lumWindowHint, déterminent le type de
+contexte créé.  Voyez les
+[indices liés au contexte](@ref window_hints_ctx) dans le guide des fenêtres.
+
+
+@subsection context_sharing Partage d'objets entre contextes
+
+À la création d'une fenêtre et de son contexte OpenGL ou OpenGL ES avec @ref
+lumCreateWindow, vous pouvez désigner une autre fenêtre dont le contexte
+partagera ses objets — textures, tampons de sommets et d'éléments, etc. — avec
+le nouveau.
+
+@code
+LUMwindow* second_window = lumCreateWindow(640, 480, "Deuxième fenêtre", NULL, first_window);
+@endcode
+
+Le partage d'objets est mis en œuvre par le système d'exploitation et le pilote
+graphique.  Sur les plateformes qui permettent de choisir les types d'objets
+partagés, Lumina demande que tous le soient.
+
+Voyez le chapitre correspondant des documents de référence
+[OpenGL](https://www.opengl.org/registry/) ou
+[OpenGL ES](https://www.khronos.org/opengles/) pour en savoir plus.  Son nom et
+son numéro varient malheureusement selon les versions et les API, mais il s'est
+parfois appelé _Shared Objects and Multiple Contexts_.
+
+Lumina est livrée avec un exemple minimal de partage d'objets, nommé `sharing`.
+
+
+@subsection context_offscreen Contextes hors écran
+
+Lumina ne permet pas de créer un contexte sans fenêtre associée.  On peut en
+revanche créer des contextes avec des fenêtres masquées, grâce à l'indice de
+fenêtre [LUM_VISIBLE](@ref LUM_VISIBLE_hint).
+
+@code
+lumWindowHint(LUM_VISIBLE, LUM_FALSE);
+
+LUMwindow* offscreen_context = lumCreateWindow(640, 480, "", NULL, NULL);
+@endcode
+
+La fenêtre n'a jamais besoin d'être affichée et son contexte peut servir de
+simple contexte hors écran.  Selon le gestionnaire de fenêtres, la taille du
+tampon d'image d'une fenêtre masquée peut être inutilisable ou non modifiable :
+les objets de tampon d'image (framebuffer objects) sont donc recommandés pour
+dessiner avec de tels contextes.
+
+Vous devez tout de même [traiter les événements](@ref events) tant que vous
+avez au moins une fenêtre, même si aucune n'est visible.
+
+
+@subsection context_less Fenêtres sans contexte
+
+Vous pouvez désactiver la création du contexte en réglant l'indice
+[LUM_CLIENT_API](@ref LUM_CLIENT_API_hint) sur `LUM_NO_API`.  Une fenêtre sans
+contexte ne doit pas être passée à @ref lumMakeContextCurrent ni à @ref
+lumSwapBuffers.
+
+
+@section context_current Contexte courant
+
+Avant de pouvoir faire des appels OpenGL ou OpenGL ES, il vous faut un contexte
+courant du bon type.  Un contexte ne peut être courant que pour un seul thread
+à la fois, et un thread ne peut avoir qu'un seul contexte courant à la fois.
+
+Pour déplacer un contexte d'un thread à un autre, vous devez le rendre non
+courant sur l'ancien thread avant de le rendre courant sur le nouveau.
+
+Le contexte d'une fenêtre se rend courant avec @ref lumMakeContextCurrent.
+
+@code
+lumMakeContextCurrent(window);
+@endcode
+
+La fenêtre du contexte courant est retournée par @ref lumGetCurrentContext.
+
+@code
+LUMwindow* window = lumGetCurrentContext();
+@endcode
+
+Les fonctions suivantes de Lumina exigent un contexte courant.  Les appeler
+sans contexte courant produit une erreur @ref LUM_NO_CURRENT_CONTEXT.
+
+ - @ref lumSwapInterval
+ - @ref lumExtensionSupported
+ - @ref lumGetProcAddress
+
+
+@section context_swap Échange des tampons
+
+Voyez @ref buffer_swap dans le guide des fenêtres.
+
+
+@section context_glext Extensions OpenGL et OpenGL ES
+
+L'un des atouts d'OpenGL et d'OpenGL ES est leur extensibilité.  Les fabricants
+de matériel peuvent inclure dans leurs implémentations des extensions qui
+étendent l'API avant que la fonctionnalité n'entre dans une nouvelle version de
+la spécification OpenGL ou OpenGL ES ; certaines extensions n'y entrent jamais
+et le restent jusqu'à devenir obsolètes.
+
+Une extension se définit par :
+
+- Un nom d'extension (par exemple `GL_ARB_gl_spirv`)
+- De nouveaux symboles OpenGL (par exemple `GL_SPIR_V_BINARY_ARB`)
+- De nouvelles fonctions OpenGL (par exemple `glSpecializeShaderARB`)
+
+Notez le suffixe `ARB`, pour Architecture Review Board, employé par les
+extensions officielles.  L'extension ci-dessus a été créée par l'ARB, mais il
+existe beaucoup d'autres suffixes, comme `NV` pour Nvidia et `AMD` pour AMD.
+N'importe quel groupe peut aussi employer le suffixe générique `EXT`.  Les
+listes d'extensions et leurs spécifications se trouvent au
+[registre OpenGL](https://www.opengl.org/registry/) et au
+[registre OpenGL ES](https://www.khronos.org/registry/gles/).
+
+
+@subsection context_glext_auto Charger les extensions avec une bibliothèque dédiée
+
+Une bibliothèque de chargement d'extensions est le moyen le plus simple et le
+meilleur d'accéder aux extensions OpenGL et OpenGL ES comme aux versions
+modernes du cœur de ces API.  Elle s'occupe de tous les détails de déclaration
+et de chargement.  [glad](https://github.com/Dav1dde/glad) en est une parmi
+plusieurs autres.
+
+L'exemple qui suit utilise glad, mais toutes ces bibliothèques fonctionnent de
+façon similaire.
+
+Il faut d'abord produire les fichiers source avec le script Python de glad.
+Cet exemple produit un chargeur pour n'importe quelle version d'OpenGL, ce qui
+est le choix par défaut de Lumina comme de glad, mais on peut aussi produire
+des chargeurs pour OpenGL ES, ou pour des versions d'API et des ensembles
+d'extensions précis.  Les fichiers produits sont écrits dans le répertoire
+`output`.
+
+@code{.sh}
+python main.py --generator c --no-loader --out-path output
+@endcode
+
+L'option `--no-loader` est ajoutée parce que Lumina fournit déjà une fonction
+pour charger les pointeurs de fonction OpenGL et OpenGL ES, qui emploie
+automatiquement l'API de création de contexte retenue ; glad peut l'appeler
+plutôt que d'implémenter la sienne.  Il existe plusieurs autres options en
+ligne de commande ; voyez la documentation de glad pour le détail.
+
+Ajoutez à votre build les fichiers produits `output/src/glad.c`,
+`output/include/glad/glad.h` et `output/include/KHR/khrplatform.h`.  Il vous
+faut ensuite inclure l'en-tête de glad, qui remplacera l'en-tête OpenGL de
+votre environnement de développement.  En l'incluant avant l'en-tête de Lumina,
+vous empêchez l'inclusion de l'en-tête OpenGL ou OpenGL ES de cet
+environnement.
+
+@code
+#include <glad/glad.h>
+#include <Lumina/lumina.h>
+@endcode
+
+Enfin, vous devez initialiser glad une fois que vous disposez d'un contexte
+courant adapté.
+
+@code
+window = lumCreateWindow(640, 480, "Ma fenêtre", NULL, NULL);
+if (!window)
+{
+    ...
+}
+
+lumMakeContextCurrent(window);
+
+gladLoadGLLoader((GLADloadproc) lumGetProcAddress);
+@endcode
+
+Une fois glad chargé, vous avez accès à toutes les fonctions du cœur d'OpenGL
+et des extensions prises en charge à la fois par le contexte que vous avez créé
+et par le chargeur que vous avez produit : vous pouvez commencer à dessiner.
+
+Vous pouvez exiger une version minimale d'OpenGL ou d'OpenGL ES avec les
+[indices de contexte](@ref window_hints_ctx).  Si vos besoins sont plus
+complexes, vous pouvez vérifier la version réelle d'OpenGL ou d'OpenGL ES avec
+les [attributs de contexte](@ref window_attribs_ctx), ou vérifier qu'une
+version donnée est prise en charge par le contexte courant avec les booléens
+`GLAD_GL_VERSION_x_x`.
+
+@code
+if (GLAD_GL_VERSION_3_2)
+{
+    // Appeler du code spécifique à OpenGL 3.2 et au-delà
+}
+@endcode
+
+Pour vérifier qu'une extension donnée est prise en charge, utilisez les
+booléens `GLAD_GL_xxx`.
+
+@code
+if (GLAD_GL_ARB_gl_spirv)
+{
+    // Utiliser GL_ARB_gl_spirv
+}
+@endcode
+
+
+@subsection context_glext_manual Charger les extensions à la main
+
+__N'employez cette technique__ que si c'est absolument nécessaire.  Une
+[bibliothèque de chargement d'extensions](@ref context_glext_auto) vous
+épargnera une montagne de travail fastidieux, répétitif et propice aux erreurs.
+
+Pour utiliser une extension donnée, vous devez d'abord vérifier que le contexte
+la prend en charge, puis, si elle introduit de nouvelles fonctions, récupérer
+les pointeurs vers celles-ci.  Lumina fournit @ref lumExtensionSupported et
+@ref lumGetProcAddress pour le chargement manuel des extensions et des
+nouvelles fonctions de l'API.
+
+Cette section illustre le chargement manuel d'extensions OpenGL.  Celui des
+extensions OpenGL ES est identique, au nom de l'en-tête d'extensions près.
+
+
+@subsubsection context_glext_header L'en-tête glext.h
+
+L'en-tête d'extensions `glext.h` est un fichier continuellement mis à jour qui
+définit les interfaces de toutes les extensions OpenGL.  Sa dernière version se
+trouve toujours au [registre OpenGL](https://www.opengl.org/registry/).  Il
+existe aussi des en-têtes d'extensions pour les différentes versions d'OpenGL
+ES au [registre OpenGL ES](https://www.khronos.org/registry/gles/).  Il est
+vivement recommandé d'utiliser votre propre copie de cet en-tête : celle
+fournie par votre environnement de développement peut avoir plusieurs années de
+retard et ne pas contenir les extensions que vous visez.
+
+L'en-tête définit des types de pointeur de fonction pour toutes les fonctions
+de toutes les extensions qu'il couvre.  Ils portent des noms comme
+`PFNGLSPECIALIZESHADERARBPROC` (pour `glSpecializeShaderARB`) : le nom est mis
+en majuscules, et `PFN` (pointer to function) et `PROC` (procedure) sont
+ajoutés de part et d'autre.
+
+Pour inclure l'en-tête d'extensions, définissez @ref LUM_INCLUDE_GLEXT avant
+d'inclure l'en-tête de Lumina.
+
+@code
+#define LUM_INCLUDE_GLEXT
+#include <Lumina/lumina.h>
+@endcode
+
+
+@subsubsection context_glext_string Vérifier la présence d'une extension
+
+Une machine donnée peut très bien ne pas prendre en charge l'extension — à
+cause de pilotes anciens ou d'une carte graphique dépourvue des capacités
+matérielles nécessaires.  Il faut donc vérifier à l'exécution que le contexte
+la prend en charge, avec @ref lumExtensionSupported.
+
+@code
+if (lumExtensionSupported("GL_ARB_gl_spirv"))
+{
+    // L'extension est prise en charge par le contexte courant
+}
+@endcode
+
+L'argument est une chaîne ASCII terminée par un zéro contenant le nom de
+l'extension.  Si l'extension est prise en charge, @ref lumExtensionSupported
+retourne `LUM_TRUE`, sinon `LUM_FALSE`.
+
+
+@subsubsection context_glext_proc Récupérer les pointeurs de fonction
+
+Beaucoup d'extensions, mais pas toutes, imposent d'employer de nouvelles
+fonctions OpenGL.  Ces fonctions n'ont souvent pas de point d'entrée dans les
+bibliothèques clientes de votre système d'exploitation : il faut donc les
+récupérer à l'exécution.  Vous obtenez des pointeurs vers ces fonctions avec
+@ref lumGetProcAddress.
+
+@code
+PFNGLSPECIALIZESHADERARBPROC pfnSpecializeShaderARB = lumGetProcAddress("glSpecializeShaderARB");
+@endcode
+
+De façon générale, évitez de donner aux variables de pointeur de fonction
+exactement le même nom que la fonction : cela peut perturber votre éditeur de
+liens.  Employez plutôt un préfixe différent, comme ci-dessus, ou une autre
+convention de nommage.
+
+Maintenant que toutes les pièces sont présentées, voici ce que cela peut donner
+une fois assemblé.
+
+@code
+#define LUM_INCLUDE_GLEXT
+#include <Lumina/lumina.h>
+
+#define glSpecializeShaderARB pfnSpecializeShaderARB
+PFNGLSPECIALIZESHADERARBPROC pfnSpecializeShaderARB;
+
+// Indicateur disant si l'extension est prise en charge
+int has_ARB_gl_spirv = 0;
+
+void load_extensions(void)
+{
+    if (lumExtensionSupported("GL_ARB_gl_spirv"))
+    {
+        pfnSpecializeShaderARB = (PFNGLSPECIALIZESHADERARBPROC)
+            lumGetProcAddress("glSpecializeShaderARB");
+        has_ARB_gl_spirv = 1;
+    }
+}
+
+void some_function(void)
+{
+    if (has_ARB_gl_spirv)
+    {
+        // La fonction de l'extension s'appelle maintenant normalement
+        glSpecializeShaderARB(...);
+    }
+}
+@endcode
+
+*/

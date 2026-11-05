@@ -1,0 +1,15 @@
+---
+// Starlight's own page frame, with the site footer appended inside the main
+// frame. Putting it here rather than in the `Footer` slot keeps it below the
+// whole article, clear of the content column and its table of contents, while
+// still respecting the space the fixed sidebar occupies.
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import SiteFooter from './SiteFooter.astro';
+---
+
+<Default>
+  <slot name="header" slot="header" />
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+  <SiteFooter />
+</Default>

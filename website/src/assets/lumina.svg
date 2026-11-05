@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" role="img" aria-label="Lumina">
+  <defs>
+    <linearGradient id="lum-face" x1="8" y1="8" x2="26" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9f7bff"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="lum-floor" x1="14" y1="44" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b9a3fd"/>
+      <stop offset="1" stop-color="#9b7df5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- The floor plane, folded away from the upright face. -->
+  <path d="M23.1 43 L56 45.7 L47.3 56 L8 56Z"
+        fill="url(#lum-floor)" stroke="url(#lum-floor)" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- The upright face of the L. -->
+  <path d="M8 16.6 L23.1 8 L23.1 43 L8 56Z"
+        fill="url(#lum-face)" stroke="url(#lum-face)" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Panes. The right column sits a little lower, following the perspective. -->
+  <g fill="#f5f3ff">
+    <rect x="30.9" y="21.8" width="5.9" height="6" rx="1.6"/>
+    <rect x="37.9" y="22.4" width="5.9" height="6" rx="1.6"/>
+    <rect x="30.9" y="29" width="5.9" height="6" rx="1.6"/>
+    <rect x="37.9" y="29.6" width="5.9" height="6" rx="1.6"/>
+  </g>
+</svg>
