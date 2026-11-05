@@ -7,8 +7,8 @@ name: Documentation
 # which paths matter, this runs on every push to master; the build takes
 # seconds.
 #
-# One-time setup in the repository: Settings -> Pages -> Build and deployment
-# -> Source: GitHub Actions.
+# Pages is enabled by the configure-pages step below, so there is nothing to
+# set up by hand unless an organisation policy forbids it.
 
 on:
   push:
@@ -53,7 +53,13 @@ jobs:
       - name: Check every internal link
         run: npm run check:links
 
+      # `enablement` turns Pages on for the repository the first time this
+      # runs, so no setting has to be flipped by hand. If an organisation
+      # policy forbids it, this step fails and Pages has to be switched on in
+      # Settings -> Pages -> Source: GitHub Actions.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
