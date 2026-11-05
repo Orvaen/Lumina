@@ -10,8 +10,10 @@ for creating windows, contexts and surfaces, reading input, handling events, etc
 
 @ref news_34 list new features, caveats and deprecations.
 
-@ref first_window is the place to start: the shortest complete program that
-opens a window, explained line by line.
+@ref start_guide is the place to start: three files and three commands, from
+an empty directory to a window on screen.
+
+@ref first_window then takes that program apart, line by line.
 
 @ref quick_guide is the longer guide for users new to Lumina.  It takes you
 through how to write a small but complete program that draws something.

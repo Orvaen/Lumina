@@ -1,0 +1,338 @@
+/*!
+
+@page start_guide Start a project
+
+@tableofcontents
+
+From an empty directory to a window on screen, in three files and three
+commands.  There is nothing to download by hand and nothing to install
+system-wide: CMake fetches Lumina, pins it to a revision you choose, and builds
+it alongside your own code.
+
+This page is about the plumbing — getting the dependency in and the build
+working.  @ref first_window explains what the C code actually does, line by
+line.
+
+
+@section start_requirements What you need first
+
+- A __C compiler__.  Visual Studio on Windows, Xcode's command line tools on
+  macOS, GCC or Clang elsewhere.
+- __CMake 3.16 or newer__.  Check with `cmake --version`.
+- __Git__, which CMake uses to fetch Lumina.
+
+On Linux you also need the development packages for your display server;
+Lumina needs them to build, and they are not installed by default.  On Debian
+and derivatives:
+
+@code{.sh}
+sudo apt install xorg-dev
+@endcode
+
+@ref compile_deps lists what the other distributions and Wayland need.
+
+Windows and macOS need nothing beyond the compiler.
+
+
+@section start_layout The project
+
+Three files, one of which is a directory:
+
+@code{.txt}
+hello-lumina/
+├── CMakeLists.txt
+└── src/
+    └── main.c
+@endcode
+
+Create them:
+
+@code{.sh}
+mkdir -p hello-lumina/src
+cd hello-lumina
+@endcode
+
+@subsection start_cmake CMakeLists.txt
+
+@code{.cmake}
+cmake_minimum_required(VERSION 3.16)
+project(hello-lumina LANGUAGES C)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    lumina
+    GIT_REPOSITORY https://github.com/Orvaen/Lumina.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(lumina)
+
+find_package(OpenGL REQUIRED)
+
+add_executable(hello src/main.c)
+target_link_libraries(hello PRIVATE lumina OpenGL::GL)
+set_target_properties(hello PROPERTIES C_STANDARD 99)
+@endcode
+
+What each part is for:
+
+- `FetchContent_Declare` records __where__ Lumina comes from and __which
+  revision__.  Nothing is downloaded yet.
+- `FetchContent_MakeAvailable` clones it into the build directory the first
+  time you configure, then adds it to your build.  From then on it is cached;
+  it does not clone again on every build.
+- `GIT_SHALLOW TRUE` fetches one revision instead of the whole history.  Drop
+  it if you pin to a commit that is not the tip of a branch.
+- `find_package(OpenGL REQUIRED)` is for __your__ code, not for Lumina.  See
+  @ref start_opengl below.
+- The target is called `lumina`, whichever way you brought it in.
+- `C_STANDARD 99` is what the descriptor syntax in the next file needs.
+
+@note `GIT_TAG master` gets you running quickly, but it means a later build can
+pick up different code. Read @ref start_pin before you commit this file.
+
+@subsection start_main src/main.c
+
+@code{.c}
+#include <Lumina/lumina.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Lumina error: %s\n", description);
+}
+
+static void key_callback(LUMwindow* window,
+                         int key, int scancode, int action, int mods)
+{
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
+}
+
+int main(void)
+{
+    LUMwindow* window;
+
+    lumSetErrorCallback(error_callback);
+
+    if (!lumInit())
+        return EXIT_FAILURE;
+
+    window = lumCreateWindowEx(&(LUMwindowdesc)
+    {
+        .width       = 640,
+        .height      = 480,
+        .title       = "Hello Lumina",
+        .makeCurrent = LUM_ON
+    });
+
+    if (!window)
+    {
+        lumTerminate();
+        return EXIT_FAILURE;
+    }
+
+    lumSetKeyCallback(window, key_callback);
+    lumSwapInterval(1);
+
+    printf("Lumina %s\n", lumGetVersionString());
+
+    while (!lumWindowShouldClose(window))
+    {
+        int width, height;
+        lumGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
+
+        glClearColor(0.18f, 0.12f, 0.30f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        lumSwapBuffers(window);
+        lumPollEvents();
+    }
+
+    lumDestroyWindow(window);
+    lumTerminate();
+    return EXIT_SUCCESS;
+}
+@endcode
+
+@ref first_window takes this program apart one piece at a time.  For now it is
+enough that it opens a window, fills it, and closes on _Escape_.
+
+
+@section start_build Build it and run it
+
+Configure once.  The first run clones Lumina, so it takes a few seconds longer
+than the ones after it:
+
+@code{.sh}
+cmake -S . -B build
+@endcode
+
+Then build:
+
+@code{.sh}
+cmake --build build
+@endcode
+
+On Visual Studio and Xcode, which hold every configuration in one build
+directory, say which one you want:
+
+@code{.sh}
+cmake --build build --config Release
+@endcode
+
+On single-configuration generators such as Makefiles and Ninja, the choice is
+made when you configure instead:
+
+@code{.sh}
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+@endcode
+
+Run it:
+
+@code{.sh}
+./build/hello              # Makefiles, Ninja
+./build/Release/hello.exe  # Visual Studio
+@endcode
+
+A 640 by 480 window appears, filled violet, and the terminal prints something
+like:
+
+@code{.txt}
+Lumina 3.4.0 Win32 WGL Null EGL OSMesa VisualC
+@endcode
+
+_Escape_ or the close button ends it.
+
+
+@section start_pin Pinning the version
+
+`GIT_TAG master` means "whatever is on the branch when CMake happens to clone".
+Two people cloning your project a week apart can get different libraries, and
+so can your build server.  For anything you keep, pin to an exact revision:
+
+Ask the repository what the branch points at right now:
+
+@code{.sh}
+git ls-remote https://github.com/Orvaen/Lumina.git master
+@endcode
+
+and write that revision into the file:
+
+@code{.cmake}
+FetchContent_Declare(
+    lumina
+    GIT_REPOSITORY https://github.com/Orvaen/Lumina.git
+    GIT_TAG        0123456789abcdef0123456789abcdef01234567
+)
+@endcode
+
+A full 40-character commit SHA is the only form that nothing can move under
+you.  Once the project publishes release tags, a tag name reads better and
+works the same way.  With either, drop `GIT_SHALLOW TRUE`: a shallow clone
+cannot reach an arbitrary commit.
+
+Updating is then a deliberate edit of one line, which is the point.
+
+
+@section start_opengl About OpenGL
+
+Lumina creates the context; it does not hand you the drawing functions.
+
+`find_package(OpenGL REQUIRED)` and linking `OpenGL::GL` give you the functions
+your system header declares.  On Windows that header is frozen at OpenGL 1.2,
+so the program above stays within what every system provides: `glViewport`,
+`glClearColor`, `glClear`.
+
+For anything modern — shaders, buffers, anything from this century — you need
+an extension loader, which looks the functions up at run time through
+@ref lumGetProcAddress.  @ref context_glext_auto explains the options, and
+@ref quick_guide walks through a program that uses one to draw a triangle.
+
+Vulkan needs none of this.  Set `.context = LUM_OFF` in the descriptor so no
+OpenGL context is created at all, and see @ref vulkan_guide.
+
+
+@section start_alternatives Other ways to get Lumina
+
+FetchContent is the shortest path, but it is not the only one.
+
+@subsection start_submodule As a git submodule
+
+Useful when you want the source in your own tree, visible and diffable, and
+builds that never touch the network:
+
+@code{.sh}
+git submodule add https://github.com/Orvaen/Lumina.git extern/lumina
+@endcode
+
+Then replace the `FetchContent` block with one line:
+
+@code{.cmake}
+add_subdirectory(extern/lumina)
+@endcode
+
+Everything else in `CMakeLists.txt` stays as it is; the target is still
+`lumina`.
+
+@subsection start_installed From an installed copy
+
+If Lumina is already built and installed on the machine — by you, following
+@ref compile_guide, or by a package manager — ask for it instead of building
+it:
+
+@code{.cmake}
+find_package(lumina REQUIRED)
+@endcode
+
+Again the target is `lumina`, so nothing else changes.  @ref build_guide covers
+this route in full, including pkg-config and linking by hand.
+
+@subsection start_subproject What Lumina builds as a subproject
+
+Pulled in by any of these routes, Lumina builds only the library.  Its
+examples, tests and documentation are configured only when it is the top-level
+project, so they cost you nothing.  @ref compile_options lists the switches if
+you want to change what it builds.
+
+
+@section start_trouble When it does not work
+
+- __CMake refuses the project with a message about compatibility below 3.5.__
+  You are on a Lumina revision older than this one, with CMake 4. Move to a
+  newer revision, or configure with `-DCMAKE_POLICY_VERSION_MINIMUM=3.5`.
+
+- __`Could NOT find OpenGL` on Linux.__  Install the development packages
+  listed in @ref compile_deps.  `xorg-dev` covers it on Debian and
+  derivatives.
+
+- __`Cannot open include file: Lumina/lumina.h`.__  Your target is not linked
+  against `lumina`.  The include path travels with the target, so
+  `target_link_libraries(hello PRIVATE lumina)` is what provides it.
+
+- __Undefined references to `glClear`, `glViewport` and friends.__
+  `OpenGL::GL` is missing from `target_link_libraries`.  Lumina does not link
+  the OpenGL library on your behalf.
+
+- __The window opens and closes immediately.__  Something set the close flag,
+  or the loop was never entered.  Check the return value of
+  @ref lumCreateWindowEx and read what the error callback printed.
+
+- __Nothing is drawn; the window is black or transparent.__  Either no context
+  is current — set `.makeCurrent = LUM_ON` — or @ref lumSwapBuffers is not
+  called every frame.
+
+
+@section start_next Where to go next
+
+- @ref first_window takes the program above apart, line by line.
+- @ref quick_guide is the longer tutorial: the same start, carried through
+  to a rotating triangle.
+- @ref build_guide covers every way of including and linking Lumina.
+- @ref compile_guide builds the library on its own, with all its options.
+
+*/

@@ -32,6 +32,13 @@ export const icons = {
     rect(26.5, 28.5, 10.5, 10.5, 2.5, PANE),
   ].join(''),
 
+  /** A prompt and a command: the commands you run to get going. */
+  terminal: [
+    rect(5, 8, 38, 32, 7, MAIN),
+    poly('M13.5 18 L20.5 24 L13.5 30 ', PANE, 2.5),
+    rect(24, 27, 12, 3.2, 1.6, PANE),
+  ].join(''),
+
   /** One lit pane with a play mark: run your first window. */
   firstwindow: [
     rect(5, 7, 38, 34, 7, MAIN),

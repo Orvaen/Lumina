@@ -32,6 +32,12 @@ export const DEFAULT_LOCALE = 'en';
 /** Guide pages, in reading order. `file` is the Doxygen source in /docs. */
 export const GUIDES = [
   {
+    file: 'start.dox',
+    slug: 'start',
+    icon: 'terminal',
+    labels: { en: 'Start a project', fr: 'Démarrer un projet' },
+  },
+  {
     file: 'first-window.dox',
     slug: 'first-window',
     icon: 'firstwindow',
@@ -215,13 +221,13 @@ export function buildSidebar() {
       translations: { fr: 'Commencer ici' },
       items: [
         item(OVERVIEW, OVERVIEW.slug),
-        ...GUIDES.slice(0, 5).map((page) => item(page, `${GUIDE_DIR}/${page.slug}`)),
+        ...GUIDES.slice(0, 6).map((page) => item(page, `${GUIDE_DIR}/${page.slug}`)),
       ],
     },
     {
       label: 'Guides',
       translations: { fr: 'Guides' },
-      items: GUIDES.slice(5).map((page) => item(page, `${GUIDE_DIR}/${page.slug}`)),
+      items: GUIDES.slice(6).map((page) => item(page, `${GUIDE_DIR}/${page.slug}`)),
     },
     {
       label: 'API reference',

@@ -3,6 +3,7 @@
 #       (i.e. Pages) list in the generated documentation
 set(source_files
     main.dox
+    start.dox
     first-window.dox
     news.dox
     quick.dox

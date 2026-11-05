@@ -7,8 +7,8 @@ hero:
   image:
     file: ../../assets/lumina.svg
   actions:
-    - text: Open a window
-      link: /guides/first-window/
+    - text: Start a project
+      link: /guides/start/
       icon: right-arrow
     - text: API reference
       link: /reference/
@@ -79,6 +79,10 @@ int main(void)
 ## Find your way around
 
 <div class="lum-grid not-content">
+  <LumCard title="Start a project" icon="terminal" href={withBase('/guides/start/')}>
+    Three files and three commands, from an empty directory to a window on
+    screen. CMake fetches Lumina for you.
+  </LumCard>
   <LumCard title="Open a window" icon="firstwindow" href={withBase('/guides/first-window/')}>
     The shortest complete program there is, explained line by line. Start here.
   </LumCard>

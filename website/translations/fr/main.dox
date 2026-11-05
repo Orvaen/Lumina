@@ -11,8 +11,10 @@ et des surfaces, lire les entrées, traiter les événements, etc.
 
 @ref news_34 énumère les nouveautés, les réserves et les éléments dépréciés.
 
-@ref first_window est le point de départ : le programme complet le plus court,
-qui ouvre une fenêtre, expliqué ligne par ligne.
+@ref start_guide est le point de départ : trois fichiers et trois commandes,
+d'un dossier vide à une fenêtre à l'écran.
+
+@ref first_window démonte ensuite ce programme, ligne par ligne.
 
 @ref quick_guide est le guide plus long pour qui découvre Lumina.  Il vous
 accompagne dans l'écriture d'un programme court mais complet qui dessine
