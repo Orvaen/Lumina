@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -31,23 +31,23 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwPlatformInitTimer(void)
+void _lumPlatformInitTimer(void)
 {
-    QueryPerformanceFrequency((LARGE_INTEGER*) &_glfw.timer.win32.frequency);
+    QueryPerformanceFrequency((LARGE_INTEGER*) &_lum.timer.win32.frequency);
 }
 
-uint64_t _glfwPlatformGetTimerValue(void)
+uint64_t _lumPlatformGetTimerValue(void)
 {
     uint64_t value;
     QueryPerformanceCounter((LARGE_INTEGER*) &value);
     return value;
 }
 
-uint64_t _glfwPlatformGetTimerFrequency(void)
+uint64_t _lumPlatformGetTimerFrequency(void)
 {
-    return _glfw.timer.win32.frequency;
+    return _lum.timer.win32.frequency;
 }
 

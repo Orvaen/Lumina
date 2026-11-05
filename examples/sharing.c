@@ -25,8 +25,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,44 +68,44 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (action == LUM_PRESS && key == LUM_KEY_ESCAPE)
+        lumSetWindowShouldClose(window, LUM_TRUE);
 }
 
 int main(int argc, char** argv)
 {
-    GLFWwindow* windows[2];
+    LUMwindow* windows[2];
     GLuint texture, program, vertex_buffer;
     GLint mvp_location, vpos_location, color_location, texture_location;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
 
-    windows[0] = glfwCreateWindow(400, 400, "First", NULL, NULL);
+    windows[0] = lumCreateWindow(400, 400, "First", NULL, NULL);
     if (!windows[0])
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwSetKeyCallback(windows[0], key_callback);
+    lumSetKeyCallback(windows[0], key_callback);
 
-    glfwMakeContextCurrent(windows[0]);
+    lumMakeContextCurrent(windows[0]);
 
     // Only enable vsync for the first of the windows to be swapped to
     // avoid waiting out the interval for each window
-    glfwSwapInterval(1);
+    lumSwapInterval(1);
 
     // The contexts are created with the same APIs so the function
     // pointers should be re-usable between them
-    gladLoadGL(glfwGetProcAddress);
+    gladLoadGL(lumGetProcAddress);
 
     // Create the OpenGL objects inside the first context, created above
     // All objects will be shared with the second context, created below
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
 
-        srand((unsigned int) glfwGetTimerValue());
+        srand((unsigned int) lumGetTimerValue());
 
         for (y = 0;  y < 16;  y++)
         {
@@ -163,10 +163,10 @@ int main(int argc, char** argv)
     glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) 0);
 
-    windows[1] = glfwCreateWindow(400, 400, "Second", NULL, windows[0]);
+    windows[1] = lumCreateWindow(400, 400, "Second", NULL, windows[0]);
     if (!windows[1])
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
@@ -174,16 +174,16 @@ int main(int argc, char** argv)
     {
         int xpos, ypos, left, right, width;
 
-        glfwGetWindowSize(windows[0], &width, NULL);
-        glfwGetWindowFrameSize(windows[0], &left, NULL, &right, NULL);
-        glfwGetWindowPos(windows[0], &xpos, &ypos);
+        lumGetWindowSize(windows[0], &width, NULL);
+        lumGetWindowFrameSize(windows[0], &left, NULL, &right, NULL);
+        lumGetWindowPos(windows[0], &xpos, &ypos);
 
-        glfwSetWindowPos(windows[1], xpos + width + left + right, ypos);
+        lumSetWindowPos(windows[1], xpos + width + left + right, ypos);
     }
 
-    glfwSetKeyCallback(windows[1], key_callback);
+    lumSetKeyCallback(windows[1], key_callback);
 
-    glfwMakeContextCurrent(windows[1]);
+    lumMakeContextCurrent(windows[1]);
 
     // While objects are shared, the global context state is not and will
     // need to be set up for each context
@@ -198,8 +198,8 @@ int main(int argc, char** argv)
     glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) 0);
 
-    while (!glfwWindowShouldClose(windows[0]) &&
-           !glfwWindowShouldClose(windows[1]))
+    while (!lumWindowShouldClose(windows[0]) &&
+           !lumWindowShouldClose(windows[1]))
     {
         int i;
         const vec3 colors[2] =
@@ -213,8 +213,8 @@ int main(int argc, char** argv)
             int width, height;
             mat4x4 mvp;
 
-            glfwGetFramebufferSize(windows[i], &width, &height);
-            glfwMakeContextCurrent(windows[i]);
+            lumGetFramebufferSize(windows[i], &width, &height);
+            lumMakeContextCurrent(windows[i]);
 
             glViewport(0, 0, width, height);
 
@@ -223,13 +223,13 @@ int main(int argc, char** argv)
             glUniform3fv(color_location, 1, colors[i]);
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-            glfwSwapBuffers(windows[i]);
+            lumSwapBuffers(windows[i]);
         }
 
-        glfwWaitEvents();
+        lumWaitEvents();
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

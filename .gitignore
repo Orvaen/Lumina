@@ -18,8 +18,8 @@ RelWithDebInfo
 *.opensdf
 
 # Xcode clutter
-GLFW.build
-GLFW.xcodeproj
+Lumina.build
+Lumina.xcodeproj
 
 # macOS clutter
 .DS_Store
@@ -37,24 +37,24 @@ docs/Doxyfile
 docs/html
 docs/warnings.txt
 docs/doxygen_sqlite3.db
-src/glfw_config.h
-src/glfw3.pc
-src/glfw3Config.cmake
-src/glfw3ConfigVersion.cmake
+src/lum_config.h
+src/lumina.pc
+src/luminaConfig.cmake
+src/luminaConfigVersion.cmake
 
 # Compiled binaries
-src/libglfw.so
-src/libglfw.so.3
-src/libglfw.so.3.4
-src/libglfw.dylib
-src/libglfw.dylib
-src/libglfw.3.dylib
-src/libglfw.3.4.dylib
-src/libglfw3.a
-src/glfw3.lib
-src/glfw3.dll
-src/glfw3dll.lib
-src/libglfw3dll.a
+src/liblumina.so
+src/liblumina.so.3
+src/liblumina.so.3.4
+src/liblumina.dylib
+src/liblumina.dylib
+src/liblumina.3.dylib
+src/liblumina.3.4.dylib
+src/liblumina3.a
+src/lumina.lib
+src/lumina.dll
+src/luminadll.lib
+src/liblumina3dll.a
 examples/*.app
 examples/*.exe
 examples/boing
@@ -74,7 +74,7 @@ tests/cursor
 tests/empty
 tests/events
 tests/gamma
-tests/glfwinfo
+tests/lumina_info
 tests/icon
 tests/iconify
 tests/inputlag

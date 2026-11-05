@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -27,56 +27,56 @@
 
 #pragma once
 
-#if defined(_GLFW_USE_CONFIG_H)
- #include "glfw_config.h"
+#if defined(_LUM_USE_CONFIG_H)
+ #include "lum_config.h"
 #endif
 
-#if defined(GLFW_INCLUDE_GLCOREARB) || \
-    defined(GLFW_INCLUDE_ES1)       || \
-    defined(GLFW_INCLUDE_ES2)       || \
-    defined(GLFW_INCLUDE_ES3)       || \
-    defined(GLFW_INCLUDE_ES31)      || \
-    defined(GLFW_INCLUDE_ES32)      || \
-    defined(GLFW_INCLUDE_NONE)      || \
-    defined(GLFW_INCLUDE_GLEXT)     || \
-    defined(GLFW_INCLUDE_GLU)       || \
-    defined(GLFW_INCLUDE_VULKAN)    || \
-    defined(GLFW_DLL)
- #error "You must not define any header option macros when compiling GLFW"
+#if defined(LUM_INCLUDE_GLCOREARB) || \
+    defined(LUM_INCLUDE_ES1)       || \
+    defined(LUM_INCLUDE_ES2)       || \
+    defined(LUM_INCLUDE_ES3)       || \
+    defined(LUM_INCLUDE_ES31)      || \
+    defined(LUM_INCLUDE_ES32)      || \
+    defined(LUM_INCLUDE_NONE)      || \
+    defined(LUM_INCLUDE_GLEXT)     || \
+    defined(LUM_INCLUDE_GLU)       || \
+    defined(LUM_INCLUDE_VULKAN)    || \
+    defined(LUM_DLL)
+ #error "You must not define any header option macros when compiling Lumina"
 #endif
 
-#define GLFW_INCLUDE_NONE
-#include "../include/GLFW/glfw3.h"
+#define LUM_INCLUDE_NONE
+#include "../include/Lumina/lumina.h"
 
-#define _GLFW_INSERT_FIRST      0
-#define _GLFW_INSERT_LAST       1
+#define _LUM_INSERT_FIRST      0
+#define _LUM_INSERT_LAST       1
 
-#define _GLFW_POLL_PRESENCE     0
-#define _GLFW_POLL_AXES         1
-#define _GLFW_POLL_BUTTONS      2
-#define _GLFW_POLL_ALL          (_GLFW_POLL_AXES | _GLFW_POLL_BUTTONS)
+#define _LUM_POLL_PRESENCE     0
+#define _LUM_POLL_AXES         1
+#define _LUM_POLL_BUTTONS      2
+#define _LUM_POLL_ALL          (_LUM_POLL_AXES | _LUM_POLL_BUTTONS)
 
-#define _GLFW_MESSAGE_SIZE      1024
+#define _LUM_MESSAGE_SIZE      1024
 
-typedef int GLFWbool;
-typedef void (*GLFWproc)(void);
+typedef int LUMbool;
+typedef void (*LUMproc)(void);
 
-typedef struct _GLFWerror       _GLFWerror;
-typedef struct _GLFWinitconfig  _GLFWinitconfig;
-typedef struct _GLFWwndconfig   _GLFWwndconfig;
-typedef struct _GLFWctxconfig   _GLFWctxconfig;
-typedef struct _GLFWfbconfig    _GLFWfbconfig;
-typedef struct _GLFWcontext     _GLFWcontext;
-typedef struct _GLFWwindow      _GLFWwindow;
-typedef struct _GLFWplatform    _GLFWplatform;
-typedef struct _GLFWlibrary     _GLFWlibrary;
-typedef struct _GLFWmonitor     _GLFWmonitor;
-typedef struct _GLFWcursor      _GLFWcursor;
-typedef struct _GLFWmapelement  _GLFWmapelement;
-typedef struct _GLFWmapping     _GLFWmapping;
-typedef struct _GLFWjoystick    _GLFWjoystick;
-typedef struct _GLFWtls         _GLFWtls;
-typedef struct _GLFWmutex       _GLFWmutex;
+typedef struct _LUMerror       _LUMerror;
+typedef struct _LUMinitconfig  _LUMinitconfig;
+typedef struct _LUMwndconfig   _LUMwndconfig;
+typedef struct _LUMctxconfig   _LUMctxconfig;
+typedef struct _LUMfbconfig    _LUMfbconfig;
+typedef struct _LUMcontext     _LUMcontext;
+typedef struct _LUMwindow      _LUMwindow;
+typedef struct _LUMplatform    _LUMplatform;
+typedef struct _LUMlibrary     _LUMlibrary;
+typedef struct _LUMmonitor     _LUMmonitor;
+typedef struct _LUMcursor      _LUMcursor;
+typedef struct _LUMmapelement  _LUMmapelement;
+typedef struct _LUMmapping     _LUMmapping;
+typedef struct _LUMjoystick    _LUMjoystick;
+typedef struct _LUMtls         _LUMtls;
+typedef struct _LUMmutex       _LUMmutex;
 
 #define GL_VERSION 0x1f02
 #define GL_NONE 0
@@ -108,7 +108,7 @@ typedef const GLubyte* (APIENTRY * PFNGLGETSTRINGPROC)(GLenum);
 typedef void (APIENTRY * PFNGLGETINTEGERVPROC)(GLenum,GLint*);
 typedef const GLubyte* (APIENTRY * PFNGLGETSTRINGIPROC)(GLenum,GLuint);
 
-#if defined(_GLFW_WIN32)
+#if defined(_LUM_WIN32)
  #define EGLAPIENTRY __stdcall
 #else
  #define EGLAPIENTRY
@@ -215,28 +215,28 @@ typedef EGLBoolean (EGLAPIENTRY * PFN_eglMakeCurrent)(EGLDisplay,EGLSurface,EGLS
 typedef EGLBoolean (EGLAPIENTRY * PFN_eglSwapBuffers)(EGLDisplay,EGLSurface);
 typedef EGLBoolean (EGLAPIENTRY * PFN_eglSwapInterval)(EGLDisplay,EGLint);
 typedef const char* (EGLAPIENTRY * PFN_eglQueryString)(EGLDisplay,EGLint);
-typedef GLFWglproc (EGLAPIENTRY * PFN_eglGetProcAddress)(const char*);
-#define eglGetConfigAttrib _glfw.egl.GetConfigAttrib
-#define eglGetConfigs _glfw.egl.GetConfigs
-#define eglGetDisplay _glfw.egl.GetDisplay
-#define eglGetError _glfw.egl.GetError
-#define eglInitialize _glfw.egl.Initialize
-#define eglTerminate _glfw.egl.Terminate
-#define eglBindAPI _glfw.egl.BindAPI
-#define eglCreateContext _glfw.egl.CreateContext
-#define eglDestroySurface _glfw.egl.DestroySurface
-#define eglDestroyContext _glfw.egl.DestroyContext
-#define eglCreateWindowSurface _glfw.egl.CreateWindowSurface
-#define eglMakeCurrent _glfw.egl.MakeCurrent
-#define eglSwapBuffers _glfw.egl.SwapBuffers
-#define eglSwapInterval _glfw.egl.SwapInterval
-#define eglQueryString _glfw.egl.QueryString
-#define eglGetProcAddress _glfw.egl.GetProcAddress
+typedef LUMglproc (EGLAPIENTRY * PFN_eglGetProcAddress)(const char*);
+#define eglGetConfigAttrib _lum.egl.GetConfigAttrib
+#define eglGetConfigs _lum.egl.GetConfigs
+#define eglGetDisplay _lum.egl.GetDisplay
+#define eglGetError _lum.egl.GetError
+#define eglInitialize _lum.egl.Initialize
+#define eglTerminate _lum.egl.Terminate
+#define eglBindAPI _lum.egl.BindAPI
+#define eglCreateContext _lum.egl.CreateContext
+#define eglDestroySurface _lum.egl.DestroySurface
+#define eglDestroyContext _lum.egl.DestroyContext
+#define eglCreateWindowSurface _lum.egl.CreateWindowSurface
+#define eglMakeCurrent _lum.egl.MakeCurrent
+#define eglSwapBuffers _lum.egl.SwapBuffers
+#define eglSwapInterval _lum.egl.SwapInterval
+#define eglQueryString _lum.egl.QueryString
+#define eglGetProcAddress _lum.egl.GetProcAddress
 
 typedef EGLDisplay (EGLAPIENTRY * PFNEGLGETPLATFORMDISPLAYEXTPROC)(EGLenum,void*,const EGLint*);
 typedef EGLSurface (EGLAPIENTRY * PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC)(EGLDisplay,EGLConfig,void*,const EGLint*);
-#define eglGetPlatformDisplayEXT _glfw.egl.GetPlatformDisplayEXT
-#define eglCreatePlatformWindowSurfaceEXT _glfw.egl.CreatePlatformWindowSurfaceEXT
+#define eglGetPlatformDisplayEXT _lum.egl.GetPlatformDisplayEXT
+#define eglCreatePlatformWindowSurfaceEXT _lum.egl.CreatePlatformWindowSurfaceEXT
 
 #define OSMESA_RGBA 0x1908
 #define OSMESA_FORMAT 0x22
@@ -258,14 +258,14 @@ typedef void (GLAPIENTRY * PFN_OSMesaDestroyContext)(OSMesaContext);
 typedef int (GLAPIENTRY * PFN_OSMesaMakeCurrent)(OSMesaContext,void*,int,int,int);
 typedef int (GLAPIENTRY * PFN_OSMesaGetColorBuffer)(OSMesaContext,int*,int*,int*,void**);
 typedef int (GLAPIENTRY * PFN_OSMesaGetDepthBuffer)(OSMesaContext,int*,int*,int*,void**);
-typedef GLFWglproc (GLAPIENTRY * PFN_OSMesaGetProcAddress)(const char*);
-#define OSMesaCreateContextExt _glfw.osmesa.CreateContextExt
-#define OSMesaCreateContextAttribs _glfw.osmesa.CreateContextAttribs
-#define OSMesaDestroyContext _glfw.osmesa.DestroyContext
-#define OSMesaMakeCurrent _glfw.osmesa.MakeCurrent
-#define OSMesaGetColorBuffer _glfw.osmesa.GetColorBuffer
-#define OSMesaGetDepthBuffer _glfw.osmesa.GetDepthBuffer
-#define OSMesaGetProcAddress _glfw.osmesa.GetProcAddress
+typedef LUMglproc (GLAPIENTRY * PFN_OSMesaGetProcAddress)(const char*);
+#define OSMesaCreateContextExt _lum.osmesa.CreateContextExt
+#define OSMesaCreateContextAttribs _lum.osmesa.CreateContextAttribs
+#define OSMesaDestroyContext _lum.osmesa.DestroyContext
+#define OSMesaMakeCurrent _lum.osmesa.MakeCurrent
+#define OSMesaGetColorBuffer _lum.osmesa.GetColorBuffer
+#define OSMesaGetDepthBuffer _lum.osmesa.GetDepthBuffer
+#define OSMesaGetProcAddress _lum.osmesa.GetProcAddress
 
 #define VK_NULL_HANDLE 0
 
@@ -326,33 +326,33 @@ typedef void (APIENTRY * PFN_vkVoidFunction)(void);
 
 typedef PFN_vkVoidFunction (APIENTRY * PFN_vkGetInstanceProcAddr)(VkInstance,const char*);
 typedef VkResult (APIENTRY * PFN_vkEnumerateInstanceExtensionProperties)(const char*,uint32_t*,VkExtensionProperties*);
-#define vkGetInstanceProcAddr _glfw.vk.GetInstanceProcAddr
+#define vkGetInstanceProcAddr _lum.vk.GetInstanceProcAddr
 
 #include "platform.h"
 
 // Constructs a version number string from the public header macros
-#define _GLFW_CONCAT_VERSION(m, n, r) #m "." #n "." #r
-#define _GLFW_MAKE_VERSION(m, n, r) _GLFW_CONCAT_VERSION(m, n, r)
-#define _GLFW_VERSION_NUMBER _GLFW_MAKE_VERSION(GLFW_VERSION_MAJOR, \
-                                                GLFW_VERSION_MINOR, \
-                                                GLFW_VERSION_REVISION)
+#define _LUM_CONCAT_VERSION(m, n, r) #m "." #n "." #r
+#define _LUM_MAKE_VERSION(m, n, r) _LUM_CONCAT_VERSION(m, n, r)
+#define _LUM_VERSION_NUMBER _LUM_MAKE_VERSION(LUM_VERSION_MAJOR, \
+                                                LUM_VERSION_MINOR, \
+                                                LUM_VERSION_REVISION)
 
 // Checks for whether the library has been initialized
-#define _GLFW_REQUIRE_INIT()                         \
-    if (!_glfw.initialized)                          \
+#define _LUM_REQUIRE_INIT()                         \
+    if (!_lum.initialized)                          \
     {                                                \
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        _lumInputError(LUM_NOT_INITIALIZED, NULL); \
         return;                                      \
     }
-#define _GLFW_REQUIRE_INIT_OR_RETURN(x)              \
-    if (!_glfw.initialized)                          \
+#define _LUM_REQUIRE_INIT_OR_RETURN(x)              \
+    if (!_lum.initialized)                          \
     {                                                \
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        _lumInputError(LUM_NOT_INITIALIZED, NULL); \
         return x;                                    \
     }
 
 // Swaps the provided pointers
-#define _GLFW_SWAP(type, x, y) \
+#define _LUM_SWAP(type, x, y) \
     {                          \
         type t;                \
         t = x;                 \
@@ -362,29 +362,29 @@ typedef VkResult (APIENTRY * PFN_vkEnumerateInstanceExtensionProperties)(const c
 
 // Per-thread error structure
 //
-struct _GLFWerror
+struct _LUMerror
 {
-    _GLFWerror*     next;
+    _LUMerror*     next;
     int             code;
-    char            description[_GLFW_MESSAGE_SIZE];
+    char            description[_LUM_MESSAGE_SIZE];
 };
 
 // Initialization configuration
 //
 // Parameters relating to the initialization of the library
 //
-struct _GLFWinitconfig
+struct _LUMinitconfig
 {
-    GLFWbool      hatButtons;
+    LUMbool      hatButtons;
     int           angleType;
     int           platformID;
     PFN_vkGetInstanceProcAddr vulkanLoader;
     struct {
-        GLFWbool  menubar;
-        GLFWbool  chdir;
+        LUMbool  menubar;
+        LUMbool  chdir;
     } ns;
     struct {
-        GLFWbool  xcbVulkanSurface;
+        LUMbool  xcbVulkanSurface;
     } x11;
 };
 
@@ -394,25 +394,25 @@ struct _GLFWinitconfig
 // to the framebuffer.  This is used to pass window creation parameters from
 // shared code to the platform API.
 //
-struct _GLFWwndconfig
+struct _LUMwndconfig
 {
     int           width;
     int           height;
     const char*   title;
-    GLFWbool      resizable;
-    GLFWbool      visible;
-    GLFWbool      decorated;
-    GLFWbool      titlebar;
-    GLFWbool      focused;
-    GLFWbool      autoIconify;
-    GLFWbool      floating;
-    GLFWbool      maximized;
-    GLFWbool      centerCursor;
-    GLFWbool      focusOnShow;
-    GLFWbool      mousePassthrough;
-    GLFWbool      scaleToMonitor;
+    LUMbool      resizable;
+    LUMbool      visible;
+    LUMbool      decorated;
+    LUMbool      titlebar;
+    LUMbool      focused;
+    LUMbool      autoIconify;
+    LUMbool      floating;
+    LUMbool      maximized;
+    LUMbool      centerCursor;
+    LUMbool      focusOnShow;
+    LUMbool      mousePassthrough;
+    LUMbool      scaleToMonitor;
     struct {
-        GLFWbool  retina;
+        LUMbool  retina;
         char      frameName[256];
     } ns;
     struct {
@@ -420,7 +420,7 @@ struct _GLFWwndconfig
         char      instanceName[256];
     } x11;
     struct {
-        GLFWbool  keymenu;
+        LUMbool  keymenu;
     } win32;
 };
 
@@ -430,21 +430,21 @@ struct _GLFWwndconfig
 // to the framebuffer.  This is used to pass context creation parameters from
 // shared code to the platform API.
 //
-struct _GLFWctxconfig
+struct _LUMctxconfig
 {
     int           client;
     int           source;
     int           major;
     int           minor;
-    GLFWbool      forward;
-    GLFWbool      debug;
-    GLFWbool      noerror;
+    LUMbool      forward;
+    LUMbool      debug;
+    LUMbool      noerror;
     int           profile;
     int           robustness;
     int           release;
-    _GLFWwindow*  share;
+    _LUMwindow*  share;
     struct {
-        GLFWbool  offline;
+        LUMbool  offline;
     } nsgl;
 };
 
@@ -456,7 +456,7 @@ struct _GLFWctxconfig
 // It is used to pass framebuffer parameters from shared code to the platform
 // API and also to enumerate and select available framebuffer configs.
 //
-struct _GLFWfbconfig
+struct _LUMfbconfig
 {
     int         redBits;
     int         greenBits;
@@ -469,22 +469,22 @@ struct _GLFWfbconfig
     int         accumBlueBits;
     int         accumAlphaBits;
     int         auxBuffers;
-    GLFWbool    stereo;
+    LUMbool    stereo;
     int         samples;
-    GLFWbool    sRGB;
-    GLFWbool    doublebuffer;
-    GLFWbool    transparent;
+    LUMbool    sRGB;
+    LUMbool    doublebuffer;
+    LUMbool    transparent;
     uintptr_t   handle;
 };
 
 // Context structure
 //
-struct _GLFWcontext
+struct _LUMcontext
 {
     int                 client;
     int                 source;
     int                 major, minor, revision;
-    GLFWbool            forward, debug, noerror;
+    LUMbool            forward, debug, noerror;
     int                 profile;
     int                 robustness;
     int                 release;
@@ -493,12 +493,12 @@ struct _GLFWcontext
     PFNGLGETINTEGERVPROC GetIntegerv;
     PFNGLGETSTRINGPROC   GetString;
 
-    void (*makeCurrent)(_GLFWwindow*);
-    void (*swapBuffers)(_GLFWwindow*);
+    void (*makeCurrent)(_LUMwindow*);
+    void (*swapBuffers)(_LUMwindow*);
     void (*swapInterval)(int);
     int (*extensionSupported)(const char*);
-    GLFWglproc (*getProcAddress)(const char*);
-    void (*destroy)(_GLFWwindow*);
+    LUMglproc (*getProcAddress)(const char*);
+    void (*destroy)(_LUMwindow*);
 
     struct {
         EGLConfig       config;
@@ -515,73 +515,73 @@ struct _GLFWcontext
     } osmesa;
 
     // This is defined in platform.h
-    GLFW_PLATFORM_CONTEXT_STATE
+    LUM_PLATFORM_CONTEXT_STATE
 };
 
 // Window and context structure
 //
-struct _GLFWwindow
+struct _LUMwindow
 {
-    struct _GLFWwindow* next;
+    struct _LUMwindow* next;
 
     // Window settings and state
-    GLFWbool            resizable;
-    GLFWbool            decorated;
-    GLFWbool            autoIconify;
-    GLFWbool            floating;
-    GLFWbool            focusOnShow;
-    GLFWbool            mousePassthrough;
-    GLFWbool            shouldClose;
+    LUMbool            resizable;
+    LUMbool            decorated;
+    LUMbool            autoIconify;
+    LUMbool            floating;
+    LUMbool            focusOnShow;
+    LUMbool            mousePassthrough;
+    LUMbool            shouldClose;
     void*               userPointer;
-    GLFWbool            doublebuffer;
-    GLFWvidmode         videoMode;
-    _GLFWmonitor*       monitor;
-    _GLFWcursor*        cursor;
+    LUMbool            doublebuffer;
+    LUMvidmode         videoMode;
+    _LUMmonitor*       monitor;
+    _LUMcursor*        cursor;
 
     int                 minwidth, minheight;
     int                 maxwidth, maxheight;
     int                 numer, denom;
 
-    GLFWbool            stickyKeys;
-    GLFWbool            stickyMouseButtons;
-    GLFWbool            lockKeyMods;
+    LUMbool            stickyKeys;
+    LUMbool            stickyMouseButtons;
+    LUMbool            lockKeyMods;
     int                 cursorMode;
-    char                mouseButtons[GLFW_MOUSE_BUTTON_LAST + 1];
-    char                keys[GLFW_KEY_LAST + 1];
+    char                mouseButtons[LUM_MOUSE_BUTTON_LAST + 1];
+    char                keys[LUM_KEY_LAST + 1];
     // Virtual cursor position when cursor is disabled
     double              virtualCursorPosX, virtualCursorPosY;
-    GLFWbool            rawMouseMotion;
+    LUMbool            rawMouseMotion;
 
-    _GLFWcontext        context;
+    _LUMcontext        context;
 
     struct {
-        GLFWwindowposfun        pos;
-        GLFWtitlebarhittestfun  tbhittest;
-        GLFWwindowsizefun       size;
-        GLFWwindowclosefun      close;
-        GLFWwindowrefreshfun    refresh;
-        GLFWwindowfocusfun      focus;
-        GLFWwindowiconifyfun    iconify;
-        GLFWwindowmaximizefun   maximize;
-        GLFWframebuffersizefun  fbsize;
-        GLFWwindowcontentscalefun scale;
-        GLFWmousebuttonfun        mouseButton;
-        GLFWcursorposfun          cursorPos;
-        GLFWcursorenterfun        cursorEnter;
-        GLFWscrollfun             scroll;
-        GLFWkeyfun                key;
-        GLFWcharfun               character;
-        GLFWcharmodsfun           charmods;
-        GLFWdropfun               drop;
+        LUMwindowposfun        pos;
+        LUMtitlebarhittestfun  tbhittest;
+        LUMwindowsizefun       size;
+        LUMwindowclosefun      close;
+        LUMwindowrefreshfun    refresh;
+        LUMwindowfocusfun      focus;
+        LUMwindowiconifyfun    iconify;
+        LUMwindowmaximizefun   maximize;
+        LUMframebuffersizefun  fbsize;
+        LUMwindowcontentscalefun scale;
+        LUMmousebuttonfun        mouseButton;
+        LUMcursorposfun          cursorPos;
+        LUMcursorenterfun        cursorEnter;
+        LUMscrollfun             scroll;
+        LUMkeyfun                key;
+        LUMcharfun               character;
+        LUMcharmodsfun           charmods;
+        LUMdropfun               drop;
     } callbacks;
 
     // This is defined in platform.h
-    GLFW_PLATFORM_WINDOW_STATE
+    LUM_PLATFORM_WINDOW_STATE
 };
 
 // Monitor structure
 //
-struct _GLFWmonitor
+struct _LUMmonitor
 {
     char            name[128];
     void*           userPointer;
@@ -590,31 +590,31 @@ struct _GLFWmonitor
     int             widthMM, heightMM;
 
     // The window whose video mode is current on this monitor
-    _GLFWwindow*    window;
+    _LUMwindow*    window;
 
-    GLFWvidmode*    modes;
+    LUMvidmode*    modes;
     int             modeCount;
-    GLFWvidmode     currentMode;
+    LUMvidmode     currentMode;
 
-    GLFWgammaramp   originalRamp;
-    GLFWgammaramp   currentRamp;
+    LUMgammaramp   originalRamp;
+    LUMgammaramp   currentRamp;
 
     // This is defined in platform.h
-    GLFW_PLATFORM_MONITOR_STATE
+    LUM_PLATFORM_MONITOR_STATE
 };
 
 // Cursor structure
 //
-struct _GLFWcursor
+struct _LUMcursor
 {
-    _GLFWcursor*    next;
+    _LUMcursor*    next;
     // This is defined in platform.h
-    GLFW_PLATFORM_CURSOR_STATE
+    LUM_PLATFORM_CURSOR_STATE
 };
 
 // Gamepad mapping element structure
 //
-struct _GLFWmapelement
+struct _LUMmapelement
 {
     uint8_t         type;
     uint8_t         index;
@@ -624,19 +624,19 @@ struct _GLFWmapelement
 
 // Gamepad mapping structure
 //
-struct _GLFWmapping
+struct _LUMmapping
 {
     char            name[128];
     char            guid[33];
-    _GLFWmapelement buttons[15];
-    _GLFWmapelement axes[6];
+    _LUMmapelement buttons[15];
+    _LUMmapelement axes[6];
 };
 
 // Joystick structure
 //
-struct _GLFWjoystick
+struct _LUMjoystick
 {
-    GLFWbool        present;
+    LUMbool        present;
     float*          axes;
     int             axisCount;
     unsigned char*  buttons;
@@ -646,176 +646,176 @@ struct _GLFWjoystick
     char            name[128];
     void*           userPointer;
     char            guid[33];
-    _GLFWmapping*   mapping;
+    _LUMmapping*   mapping;
 
     // This is defined in platform.h
-    GLFW_PLATFORM_JOYSTICK_STATE
+    LUM_PLATFORM_JOYSTICK_STATE
 };
 
 // Thread local storage structure
 //
-struct _GLFWtls
+struct _LUMtls
 {
     // This is defined in platform.h
-    GLFW_PLATFORM_TLS_STATE
+    LUM_PLATFORM_TLS_STATE
 };
 
 // Mutex structure
 //
-struct _GLFWmutex
+struct _LUMmutex
 {
     // This is defined in platform.h
-    GLFW_PLATFORM_MUTEX_STATE
+    LUM_PLATFORM_MUTEX_STATE
 };
 
 // Platform API structure
 //
-struct _GLFWplatform
+struct _LUMplatform
 {
     int platformID;
     // init
-    GLFWbool (*init)(void);
+    LUMbool (*init)(void);
     void (*terminate)(void);
     // input
-    void (*getCursorPos)(_GLFWwindow*,double*,double*);
-    void (*setCursorPos)(_GLFWwindow*,double,double);
-    void (*setCursorMode)(_GLFWwindow*,int);
-    void (*setRawMouseMotion)(_GLFWwindow*,GLFWbool);
-    GLFWbool (*rawMouseMotionSupported)(void);
-    int (*createCursor)(_GLFWcursor*,const GLFWimage*,int,int);
-    int (*createStandardCursor)(_GLFWcursor*,int);
-    void (*destroyCursor)(_GLFWcursor*);
-    void (*setCursor)(_GLFWwindow*,_GLFWcursor*);
+    void (*getCursorPos)(_LUMwindow*,double*,double*);
+    void (*setCursorPos)(_LUMwindow*,double,double);
+    void (*setCursorMode)(_LUMwindow*,int);
+    void (*setRawMouseMotion)(_LUMwindow*,LUMbool);
+    LUMbool (*rawMouseMotionSupported)(void);
+    int (*createCursor)(_LUMcursor*,const LUMimage*,int,int);
+    int (*createStandardCursor)(_LUMcursor*,int);
+    void (*destroyCursor)(_LUMcursor*);
+    void (*setCursor)(_LUMwindow*,_LUMcursor*);
     const char* (*getScancodeName)(int);
     int (*getKeyScancode)(int);
     void (*setClipboardString)(const char*);
     const char* (*getClipboardString)(void);
-    GLFWbool (*initJoysticks)(void);
+    LUMbool (*initJoysticks)(void);
     void (*terminateJoysticks)(void);
-    int (*pollJoystick)(_GLFWjoystick*,int);
+    int (*pollJoystick)(_LUMjoystick*,int);
     const char* (*getMappingName)(void);
     void (*updateGamepadGUID)(char*);
     // monitor
-    void (*freeMonitor)(_GLFWmonitor*);
-    void (*getMonitorPos)(_GLFWmonitor*,int*,int*);
-    void (*getMonitorContentScale)(_GLFWmonitor*,float*,float*);
-    void (*getMonitorWorkarea)(_GLFWmonitor*,int*,int*,int*,int*);
-    GLFWvidmode* (*getVideoModes)(_GLFWmonitor*,int*);
-    void (*getVideoMode)(_GLFWmonitor*,GLFWvidmode*);
-    GLFWbool (*getGammaRamp)(_GLFWmonitor*,GLFWgammaramp*);
-    void (*setGammaRamp)(_GLFWmonitor*,const GLFWgammaramp*);
+    void (*freeMonitor)(_LUMmonitor*);
+    void (*getMonitorPos)(_LUMmonitor*,int*,int*);
+    void (*getMonitorContentScale)(_LUMmonitor*,float*,float*);
+    void (*getMonitorWorkarea)(_LUMmonitor*,int*,int*,int*,int*);
+    LUMvidmode* (*getVideoModes)(_LUMmonitor*,int*);
+    void (*getVideoMode)(_LUMmonitor*,LUMvidmode*);
+    LUMbool (*getGammaRamp)(_LUMmonitor*,LUMgammaramp*);
+    void (*setGammaRamp)(_LUMmonitor*,const LUMgammaramp*);
     // window
-    int (*createWindow)(_GLFWwindow*,const _GLFWwndconfig*,const _GLFWctxconfig*,const _GLFWfbconfig*);
-    void (*destroyWindow)(_GLFWwindow*);
-    void (*setWindowTitle)(_GLFWwindow*,const char*);
-    void (*setWindowIcon)(_GLFWwindow*,int,const GLFWimage*);
-    void (*getWindowPos)(_GLFWwindow*,int*,int*);
-    void (*setWindowPos)(_GLFWwindow*,int,int);
-    void (*getWindowSize)(_GLFWwindow*,int*,int*);
-    void (*setWindowSize)(_GLFWwindow*,int,int);
-    void (*setWindowSizeLimits)(_GLFWwindow*,int,int,int,int);
-    void (*setWindowAspectRatio)(_GLFWwindow*,int,int);
-    void (*getFramebufferSize)(_GLFWwindow*,int*,int*);
-    void (*getWindowFrameSize)(_GLFWwindow*,int*,int*,int*,int*);
-    void (*getWindowContentScale)(_GLFWwindow*,float*,float*);
-    void (*iconifyWindow)(_GLFWwindow*);
-    void (*restoreWindow)(_GLFWwindow*);
-    void (*maximizeWindow)(_GLFWwindow*);
-    void (*showWindow)(_GLFWwindow*);
-    void (*hideWindow)(_GLFWwindow*);
-    void (*requestWindowAttention)(_GLFWwindow*);
-    void (*focusWindow)(_GLFWwindow*);
-    void (*setWindowMonitor)(_GLFWwindow*,_GLFWmonitor*,int,int,int,int,int);
-    int (*windowFocused)(_GLFWwindow*);
-    int (*windowIconified)(_GLFWwindow*);
-    int (*windowVisible)(_GLFWwindow*);
-    int (*windowMaximized)(_GLFWwindow*);
-    int (*windowHovered)(_GLFWwindow*);
-    int (*framebufferTransparent)(_GLFWwindow*);
-    float (*getWindowOpacity)(_GLFWwindow*);
-    void (*setWindowResizable)(_GLFWwindow*,GLFWbool);
-    void (*setWindowDecorated)(_GLFWwindow*,GLFWbool);
-    void (*setWindowFloating)(_GLFWwindow*,GLFWbool);
-    void (*setWindowOpacity)(_GLFWwindow*,float);
-    void (*setWindowMousePassthrough)(_GLFWwindow*,GLFWbool);
+    int (*createWindow)(_LUMwindow*,const _LUMwndconfig*,const _LUMctxconfig*,const _LUMfbconfig*);
+    void (*destroyWindow)(_LUMwindow*);
+    void (*setWindowTitle)(_LUMwindow*,const char*);
+    void (*setWindowIcon)(_LUMwindow*,int,const LUMimage*);
+    void (*getWindowPos)(_LUMwindow*,int*,int*);
+    void (*setWindowPos)(_LUMwindow*,int,int);
+    void (*getWindowSize)(_LUMwindow*,int*,int*);
+    void (*setWindowSize)(_LUMwindow*,int,int);
+    void (*setWindowSizeLimits)(_LUMwindow*,int,int,int,int);
+    void (*setWindowAspectRatio)(_LUMwindow*,int,int);
+    void (*getFramebufferSize)(_LUMwindow*,int*,int*);
+    void (*getWindowFrameSize)(_LUMwindow*,int*,int*,int*,int*);
+    void (*getWindowContentScale)(_LUMwindow*,float*,float*);
+    void (*iconifyWindow)(_LUMwindow*);
+    void (*restoreWindow)(_LUMwindow*);
+    void (*maximizeWindow)(_LUMwindow*);
+    void (*showWindow)(_LUMwindow*);
+    void (*hideWindow)(_LUMwindow*);
+    void (*requestWindowAttention)(_LUMwindow*);
+    void (*focusWindow)(_LUMwindow*);
+    void (*setWindowMonitor)(_LUMwindow*,_LUMmonitor*,int,int,int,int,int);
+    int (*windowFocused)(_LUMwindow*);
+    int (*windowIconified)(_LUMwindow*);
+    int (*windowVisible)(_LUMwindow*);
+    int (*windowMaximized)(_LUMwindow*);
+    int (*windowHovered)(_LUMwindow*);
+    int (*framebufferTransparent)(_LUMwindow*);
+    float (*getWindowOpacity)(_LUMwindow*);
+    void (*setWindowResizable)(_LUMwindow*,LUMbool);
+    void (*setWindowDecorated)(_LUMwindow*,LUMbool);
+    void (*setWindowFloating)(_LUMwindow*,LUMbool);
+    void (*setWindowOpacity)(_LUMwindow*,float);
+    void (*setWindowMousePassthrough)(_LUMwindow*,LUMbool);
     void (*pollEvents)(void);
     void (*waitEvents)(void);
     void (*waitEventsTimeout)(double);
     void (*postEmptyEvent)(void);
 
     // Hazel
-    void (*setWindowTitleBar)(_GLFWwindow*,GLFWbool);
+    void (*setWindowTitleBar)(_LUMwindow*,LUMbool);
 
     // EGL
     EGLenum (*getEGLPlatform)(EGLint**);
     EGLNativeDisplayType (*getEGLNativeDisplay)(void);
-    EGLNativeWindowType (*getEGLNativeWindow)(_GLFWwindow*);
+    EGLNativeWindowType (*getEGLNativeWindow)(_LUMwindow*);
     // vulkan
     void (*getRequiredInstanceExtensions)(char**);
     int (*getPhysicalDevicePresentationSupport)(VkInstance,VkPhysicalDevice,uint32_t);
-    VkResult (*createWindowSurface)(VkInstance,_GLFWwindow*,const VkAllocationCallbacks*,VkSurfaceKHR*);
+    VkResult (*createWindowSurface)(VkInstance,_LUMwindow*,const VkAllocationCallbacks*,VkSurfaceKHR*);
 };
 
 // Library global data
 //
-struct _GLFWlibrary
+struct _LUMlibrary
 {
-    GLFWbool            initialized;
-    GLFWallocator       allocator;
+    LUMbool            initialized;
+    LUMallocator       allocator;
 
-    _GLFWplatform       platform;
+    _LUMplatform       platform;
 
     struct {
-        _GLFWinitconfig init;
-        _GLFWfbconfig   framebuffer;
-        _GLFWwndconfig  window;
-        _GLFWctxconfig  context;
+        _LUMinitconfig init;
+        _LUMfbconfig   framebuffer;
+        _LUMwndconfig  window;
+        _LUMctxconfig  context;
         int             refreshRate;
     } hints;
 
-    _GLFWerror*         errorListHead;
-    _GLFWcursor*        cursorListHead;
-    _GLFWwindow*        windowListHead;
+    _LUMerror*         errorListHead;
+    _LUMcursor*        cursorListHead;
+    _LUMwindow*        windowListHead;
 
-    _GLFWmonitor**      monitors;
+    _LUMmonitor**      monitors;
     int                 monitorCount;
 
-    GLFWbool            joysticksInitialized;
-    _GLFWjoystick       joysticks[GLFW_JOYSTICK_LAST + 1];
-    _GLFWmapping*       mappings;
+    LUMbool            joysticksInitialized;
+    _LUMjoystick       joysticks[LUM_JOYSTICK_LAST + 1];
+    _LUMmapping*       mappings;
     int                 mappingCount;
 
-    _GLFWtls            errorSlot;
-    _GLFWtls            contextSlot;
-    _GLFWmutex          errorLock;
+    _LUMtls            errorSlot;
+    _LUMtls            contextSlot;
+    _LUMmutex          errorLock;
 
     struct {
         uint64_t        offset;
         // This is defined in platform.h
-        GLFW_PLATFORM_LIBRARY_TIMER_STATE
+        LUM_PLATFORM_LIBRARY_TIMER_STATE
     } timer;
 
     struct {
         EGLenum         platform;
         EGLDisplay      display;
         EGLint          major, minor;
-        GLFWbool        prefix;
+        LUMbool        prefix;
 
-        GLFWbool        KHR_create_context;
-        GLFWbool        KHR_create_context_no_error;
-        GLFWbool        KHR_gl_colorspace;
-        GLFWbool        KHR_get_all_proc_addresses;
-        GLFWbool        KHR_context_flush_control;
-        GLFWbool        EXT_client_extensions;
-        GLFWbool        EXT_platform_base;
-        GLFWbool        EXT_platform_x11;
-        GLFWbool        EXT_platform_wayland;
-        GLFWbool        EXT_present_opaque;
-        GLFWbool        ANGLE_platform_angle;
-        GLFWbool        ANGLE_platform_angle_opengl;
-        GLFWbool        ANGLE_platform_angle_d3d;
-        GLFWbool        ANGLE_platform_angle_vulkan;
-        GLFWbool        ANGLE_platform_angle_metal;
+        LUMbool        KHR_create_context;
+        LUMbool        KHR_create_context_no_error;
+        LUMbool        KHR_gl_colorspace;
+        LUMbool        KHR_get_all_proc_addresses;
+        LUMbool        KHR_context_flush_control;
+        LUMbool        EXT_client_extensions;
+        LUMbool        EXT_platform_base;
+        LUMbool        EXT_platform_x11;
+        LUMbool        EXT_platform_wayland;
+        LUMbool        EXT_present_opaque;
+        LUMbool        ANGLE_platform_angle;
+        LUMbool        ANGLE_platform_angle_opengl;
+        LUMbool        ANGLE_platform_angle_d3d;
+        LUMbool        ANGLE_platform_angle_vulkan;
+        LUMbool        ANGLE_platform_angle_metal;
 
         void*           handle;
 
@@ -854,220 +854,220 @@ struct _GLFWlibrary
     } osmesa;
 
     struct {
-        GLFWbool        available;
+        LUMbool        available;
         void*           handle;
         char*           extensions[2];
         PFN_vkGetInstanceProcAddr GetInstanceProcAddr;
-        GLFWbool        KHR_surface;
-        GLFWbool        KHR_win32_surface;
-        GLFWbool        MVK_macos_surface;
-        GLFWbool        EXT_metal_surface;
-        GLFWbool        KHR_xlib_surface;
-        GLFWbool        KHR_xcb_surface;
-        GLFWbool        KHR_wayland_surface;
+        LUMbool        KHR_surface;
+        LUMbool        KHR_win32_surface;
+        LUMbool        MVK_macos_surface;
+        LUMbool        EXT_metal_surface;
+        LUMbool        KHR_xlib_surface;
+        LUMbool        KHR_xcb_surface;
+        LUMbool        KHR_wayland_surface;
     } vk;
 
     struct {
-        GLFWmonitorfun  monitor;
-        GLFWjoystickfun joystick;
+        LUMmonitorfun  monitor;
+        LUMjoystickfun joystick;
     } callbacks;
 
     // These are defined in platform.h
-    GLFW_PLATFORM_LIBRARY_WINDOW_STATE
-    GLFW_PLATFORM_LIBRARY_CONTEXT_STATE
-    GLFW_PLATFORM_LIBRARY_JOYSTICK_STATE
+    LUM_PLATFORM_LIBRARY_WINDOW_STATE
+    LUM_PLATFORM_LIBRARY_CONTEXT_STATE
+    LUM_PLATFORM_LIBRARY_JOYSTICK_STATE
 };
 
-// Global state shared between compilation units of GLFW
+// Global state shared between compilation units of Lumina
 //
-extern _GLFWlibrary _glfw;
+extern _LUMlibrary _lum;
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwPlatformInitTimer(void);
-uint64_t _glfwPlatformGetTimerValue(void);
-uint64_t _glfwPlatformGetTimerFrequency(void);
+void _lumPlatformInitTimer(void);
+uint64_t _lumPlatformGetTimerValue(void);
+uint64_t _lumPlatformGetTimerFrequency(void);
 
-int _glfwPlatformCreateWindow(_GLFWwindow* window,
-                              const _GLFWwndconfig* wndconfig,
-                              const _GLFWctxconfig* ctxconfig,
-                              const _GLFWfbconfig* fbconfig);
-void _glfwPlatformDestroyWindow(_GLFWwindow* window);
-void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title);
-void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
-                                int count, const GLFWimage* images);
-void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos);
-void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos);
-void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height);
-void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height);
-void _glfwPlatformSetWindowSizeLimits(_GLFWwindow* window,
+int _lumPlatformCreateWindow(_LUMwindow* window,
+                              const _LUMwndconfig* wndconfig,
+                              const _LUMctxconfig* ctxconfig,
+                              const _LUMfbconfig* fbconfig);
+void _lumPlatformDestroyWindow(_LUMwindow* window);
+void _lumPlatformSetWindowTitle(_LUMwindow* window, const char* title);
+void _lumPlatformSetWindowIcon(_LUMwindow* window,
+                                int count, const LUMimage* images);
+void _lumPlatformGetWindowPos(_LUMwindow* window, int* xpos, int* ypos);
+void _lumPlatformSetWindowPos(_LUMwindow* window, int xpos, int ypos);
+void _lumPlatformGetWindowSize(_LUMwindow* window, int* width, int* height);
+void _lumPlatformSetWindowSize(_LUMwindow* window, int width, int height);
+void _lumPlatformSetWindowSizeLimits(_LUMwindow* window,
                                       int minwidth, int minheight,
                                       int maxwidth, int maxheight);
-void _glfwPlatformSetWindowAspectRatio(_GLFWwindow* window, int numer, int denom);
-void _glfwPlatformGetFramebufferSize(_GLFWwindow* window, int* width, int* height);
-void _glfwPlatformGetWindowFrameSize(_GLFWwindow* window,
+void _lumPlatformSetWindowAspectRatio(_LUMwindow* window, int numer, int denom);
+void _lumPlatformGetFramebufferSize(_LUMwindow* window, int* width, int* height);
+void _lumPlatformGetWindowFrameSize(_LUMwindow* window,
                                      int* left, int* top,
                                      int* right, int* bottom);
-void _glfwPlatformGetWindowContentScale(_GLFWwindow* window,
+void _lumPlatformGetWindowContentScale(_LUMwindow* window,
                                         float* xscale, float* yscale);
-void _glfwPlatformIconifyWindow(_GLFWwindow* window);
-void _glfwPlatformRestoreWindow(_GLFWwindow* window);
-void _glfwPlatformMaximizeWindow(_GLFWwindow* window);
-void _glfwPlatformShowWindow(_GLFWwindow* window);
-void _glfwPlatformHideWindow(_GLFWwindow* window);
-void _glfwPlatformRequestWindowAttention(_GLFWwindow* window);
-void _glfwPlatformFocusWindow(_GLFWwindow* window);
-void _glfwPlatformSetWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor,
+void _lumPlatformIconifyWindow(_LUMwindow* window);
+void _lumPlatformRestoreWindow(_LUMwindow* window);
+void _lumPlatformMaximizeWindow(_LUMwindow* window);
+void _lumPlatformShowWindow(_LUMwindow* window);
+void _lumPlatformHideWindow(_LUMwindow* window);
+void _lumPlatformRequestWindowAttention(_LUMwindow* window);
+void _lumPlatformFocusWindow(_LUMwindow* window);
+void _lumPlatformSetWindowMonitor(_LUMwindow* window, _LUMmonitor* monitor,
                                    int xpos, int ypos, int width, int height,
                                    int refreshRate);
-int _glfwPlatformWindowFocused(_GLFWwindow* window);
-int _glfwPlatformWindowIconified(_GLFWwindow* window);
-int _glfwPlatformWindowVisible(_GLFWwindow* window);
-int _glfwPlatformWindowMaximized(_GLFWwindow* window);
-int _glfwPlatformWindowHovered(_GLFWwindow* window);
-int _glfwPlatformFramebufferTransparent(_GLFWwindow* window);
-float _glfwPlatformGetWindowOpacity(_GLFWwindow* window);
-void _glfwPlatformSetWindowResizable(_GLFWwindow* window, GLFWbool enabled);
-void _glfwPlatformSetWindowDecorated(_GLFWwindow* window, GLFWbool enabled);
-void _glfwPlatformSetWindowTitlebar(_GLFWwindow* window, GLFWbool enabled);
-void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled);
-void _glfwPlatformSetWindowOpacity(_GLFWwindow* window, float opacity);
+int _lumPlatformWindowFocused(_LUMwindow* window);
+int _lumPlatformWindowIconified(_LUMwindow* window);
+int _lumPlatformWindowVisible(_LUMwindow* window);
+int _lumPlatformWindowMaximized(_LUMwindow* window);
+int _lumPlatformWindowHovered(_LUMwindow* window);
+int _lumPlatformFramebufferTransparent(_LUMwindow* window);
+float _lumPlatformGetWindowOpacity(_LUMwindow* window);
+void _lumPlatformSetWindowResizable(_LUMwindow* window, LUMbool enabled);
+void _lumPlatformSetWindowDecorated(_LUMwindow* window, LUMbool enabled);
+void _lumPlatformSetWindowTitlebar(_LUMwindow* window, LUMbool enabled);
+void _lumPlatformSetWindowFloating(_LUMwindow* window, LUMbool enabled);
+void _lumPlatformSetWindowOpacity(_LUMwindow* window, float opacity);
 
-void _glfwPlatformPollEvents(void);
-void _glfwPlatformWaitEvents(void);
-void _glfwPlatformWaitEventsTimeout(double timeout);
-void _glfwPlatformPostEmptyEvent(void);
+void _lumPlatformPollEvents(void);
+void _lumPlatformWaitEvents(void);
+void _lumPlatformWaitEventsTimeout(double timeout);
+void _lumPlatformPostEmptyEvent(void);
 
-void _glfwPlatformGetRequiredInstanceExtensions(char** extensions);
-int _glfwPlatformGetPhysicalDevicePresentationSupport(VkInstance instance,
+void _lumPlatformGetRequiredInstanceExtensions(char** extensions);
+int _lumPlatformGetPhysicalDevicePresentationSupport(VkInstance instance,
                                                       VkPhysicalDevice device,
                                                       uint32_t queuefamily);
-VkResult _glfwPlatformCreateWindowSurface(VkInstance instance,
-                                          _GLFWwindow* window,
+VkResult _lumPlatformCreateWindowSurface(VkInstance instance,
+                                          _LUMwindow* window,
                                           const VkAllocationCallbacks* allocator,
                                           VkSurfaceKHR* surface);
 
-GLFWbool _glfwPlatformCreateTls(_GLFWtls* tls);
-void _glfwPlatformDestroyTls(_GLFWtls* tls);
-void* _glfwPlatformGetTls(_GLFWtls* tls);
-void _glfwPlatformSetTls(_GLFWtls* tls, void* value);
+LUMbool _lumPlatformCreateTls(_LUMtls* tls);
+void _lumPlatformDestroyTls(_LUMtls* tls);
+void* _lumPlatformGetTls(_LUMtls* tls);
+void _lumPlatformSetTls(_LUMtls* tls, void* value);
 
-GLFWbool _glfwPlatformCreateMutex(_GLFWmutex* mutex);
-void _glfwPlatformDestroyMutex(_GLFWmutex* mutex);
-void _glfwPlatformLockMutex(_GLFWmutex* mutex);
-void _glfwPlatformUnlockMutex(_GLFWmutex* mutex);
+LUMbool _lumPlatformCreateMutex(_LUMmutex* mutex);
+void _lumPlatformDestroyMutex(_LUMmutex* mutex);
+void _lumPlatformLockMutex(_LUMmutex* mutex);
+void _lumPlatformUnlockMutex(_LUMmutex* mutex);
 
-void* _glfwPlatformLoadModule(const char* path);
-void _glfwPlatformFreeModule(void* module);
-GLFWproc _glfwPlatformGetModuleSymbol(void* module, const char* name);
+void* _lumPlatformLoadModule(const char* path);
+void _lumPlatformFreeModule(void* module);
+LUMproc _lumPlatformGetModuleSymbol(void* module, const char* name);
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                         GLFW event API                       //////
+//////                         Lumina event API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwInputWindowFocus(_GLFWwindow* window, GLFWbool focused);
-void _glfwInputWindowPos(_GLFWwindow* window, int xpos, int ypos);
-void _glfwInputWindowSize(_GLFWwindow* window, int width, int height);
-void _glfwInputTitleBarHitTest(_GLFWwindow* window, int posX, int posY, int* hit);
-void _glfwInputFramebufferSize(_GLFWwindow* window, int width, int height);
-void _glfwInputWindowContentScale(_GLFWwindow* window,
+void _lumInputWindowFocus(_LUMwindow* window, LUMbool focused);
+void _lumInputWindowPos(_LUMwindow* window, int xpos, int ypos);
+void _lumInputWindowSize(_LUMwindow* window, int width, int height);
+void _lumInputTitleBarHitTest(_LUMwindow* window, int posX, int posY, int* hit);
+void _lumInputFramebufferSize(_LUMwindow* window, int width, int height);
+void _lumInputWindowContentScale(_LUMwindow* window,
                                   float xscale, float yscale);
-void _glfwInputWindowIconify(_GLFWwindow* window, GLFWbool iconified);
-void _glfwInputWindowMaximize(_GLFWwindow* window, GLFWbool maximized);
-void _glfwInputWindowDamage(_GLFWwindow* window);
-void _glfwInputWindowCloseRequest(_GLFWwindow* window);
-void _glfwInputWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor);
+void _lumInputWindowIconify(_LUMwindow* window, LUMbool iconified);
+void _lumInputWindowMaximize(_LUMwindow* window, LUMbool maximized);
+void _lumInputWindowDamage(_LUMwindow* window);
+void _lumInputWindowCloseRequest(_LUMwindow* window);
+void _lumInputWindowMonitor(_LUMwindow* window, _LUMmonitor* monitor);
 
-void _glfwInputKey(_GLFWwindow* window,
+void _lumInputKey(_LUMwindow* window,
                    int key, int scancode, int action, int mods);
-void _glfwInputChar(_GLFWwindow* window,
-                    uint32_t codepoint, int mods, GLFWbool plain);
-void _glfwInputScroll(_GLFWwindow* window, double xoffset, double yoffset);
-void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods);
-void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos);
-void _glfwInputCursorEnter(_GLFWwindow* window, GLFWbool entered);
-void _glfwInputDrop(_GLFWwindow* window, int count, const char** names);
-void _glfwInputJoystick(_GLFWjoystick* js, int event);
-void _glfwInputJoystickAxis(_GLFWjoystick* js, int axis, float value);
-void _glfwInputJoystickButton(_GLFWjoystick* js, int button, char value);
-void _glfwInputJoystickHat(_GLFWjoystick* js, int hat, char value);
+void _lumInputChar(_LUMwindow* window,
+                    uint32_t codepoint, int mods, LUMbool plain);
+void _lumInputScroll(_LUMwindow* window, double xoffset, double yoffset);
+void _lumInputMouseClick(_LUMwindow* window, int button, int action, int mods);
+void _lumInputCursorPos(_LUMwindow* window, double xpos, double ypos);
+void _lumInputCursorEnter(_LUMwindow* window, LUMbool entered);
+void _lumInputDrop(_LUMwindow* window, int count, const char** names);
+void _lumInputJoystick(_LUMjoystick* js, int event);
+void _lumInputJoystickAxis(_LUMjoystick* js, int axis, float value);
+void _lumInputJoystickButton(_LUMjoystick* js, int button, char value);
+void _lumInputJoystickHat(_LUMjoystick* js, int hat, char value);
 
-void _glfwInputMonitor(_GLFWmonitor* monitor, int action, int placement);
-void _glfwInputMonitorWindow(_GLFWmonitor* monitor, _GLFWwindow* window);
+void _lumInputMonitor(_LUMmonitor* monitor, int action, int placement);
+void _lumInputMonitorWindow(_LUMmonitor* monitor, _LUMwindow* window);
 
 #if defined(__GNUC__)
-void _glfwInputError(int code, const char* format, ...)
+void _lumInputError(int code, const char* format, ...)
     __attribute__((format(printf, 2, 3)));
 #else
-void _glfwInputError(int code, const char* format, ...);
+void _lumInputError(int code, const char* format, ...);
 #endif
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwSelectPlatform(int platformID, _GLFWplatform* platform);
+LUMbool _lumSelectPlatform(int platformID, _LUMplatform* platform);
 
-GLFWbool _glfwStringInExtensionString(const char* string, const char* extensions);
-const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
-                                         const _GLFWfbconfig* alternatives,
+LUMbool _lumStringInExtensionString(const char* string, const char* extensions);
+const _LUMfbconfig* _lumChooseFBConfig(const _LUMfbconfig* desired,
+                                         const _LUMfbconfig* alternatives,
                                          unsigned int count);
-GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
-                                    const _GLFWctxconfig* ctxconfig);
-GLFWbool _glfwIsValidContextConfig(const _GLFWctxconfig* ctxconfig);
+LUMbool _lumRefreshContextAttribs(_LUMwindow* window,
+                                    const _LUMctxconfig* ctxconfig);
+LUMbool _lumIsValidContextConfig(const _LUMctxconfig* ctxconfig);
 
-const GLFWvidmode* _glfwChooseVideoMode(_GLFWmonitor* monitor,
-                                        const GLFWvidmode* desired);
-int _glfwCompareVideoModes(const GLFWvidmode* first, const GLFWvidmode* second);
-_GLFWmonitor* _glfwAllocMonitor(const char* name, int widthMM, int heightMM);
-void _glfwFreeMonitor(_GLFWmonitor* monitor);
-void _glfwAllocGammaArrays(GLFWgammaramp* ramp, unsigned int size);
-void _glfwFreeGammaArrays(GLFWgammaramp* ramp);
-void _glfwSplitBPP(int bpp, int* red, int* green, int* blue);
+const LUMvidmode* _lumChooseVideoMode(_LUMmonitor* monitor,
+                                        const LUMvidmode* desired);
+int _lumCompareVideoModes(const LUMvidmode* first, const LUMvidmode* second);
+_LUMmonitor* _lumAllocMonitor(const char* name, int widthMM, int heightMM);
+void _lumFreeMonitor(_LUMmonitor* monitor);
+void _lumAllocGammaArrays(LUMgammaramp* ramp, unsigned int size);
+void _lumFreeGammaArrays(LUMgammaramp* ramp);
+void _lumSplitBPP(int bpp, int* red, int* green, int* blue);
 
-void _glfwInitGamepadMappings(void);
-_GLFWjoystick* _glfwAllocJoystick(const char* name,
+void _lumInitGamepadMappings(void);
+_LUMjoystick* _lumAllocJoystick(const char* name,
                                   const char* guid,
                                   int axisCount,
                                   int buttonCount,
                                   int hatCount);
-void _glfwFreeJoystick(_GLFWjoystick* js);
-void _glfwCenterCursorInContentArea(_GLFWwindow* window);
+void _lumFreeJoystick(_LUMjoystick* js);
+void _lumCenterCursorInContentArea(_LUMwindow* window);
 
-GLFWbool _glfwInitEGL(void);
-void _glfwTerminateEGL(void);
-GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
-                               const _GLFWctxconfig* ctxconfig,
-                               const _GLFWfbconfig* fbconfig);
-#if defined(_GLFW_X11)
-GLFWbool _glfwChooseVisualEGL(const _GLFWwndconfig* wndconfig,
-                              const _GLFWctxconfig* ctxconfig,
-                              const _GLFWfbconfig* fbconfig,
+LUMbool _lumInitEGL(void);
+void _lumTerminateEGL(void);
+LUMbool _lumCreateContextEGL(_LUMwindow* window,
+                               const _LUMctxconfig* ctxconfig,
+                               const _LUMfbconfig* fbconfig);
+#if defined(_LUM_X11)
+LUMbool _lumChooseVisualEGL(const _LUMwndconfig* wndconfig,
+                              const _LUMctxconfig* ctxconfig,
+                              const _LUMfbconfig* fbconfig,
                               Visual** visual, int* depth);
-#endif /*_GLFW_X11*/
+#endif /*_LUM_X11*/
 
-GLFWbool _glfwInitOSMesa(void);
-void _glfwTerminateOSMesa(void);
-GLFWbool _glfwCreateContextOSMesa(_GLFWwindow* window,
-                                  const _GLFWctxconfig* ctxconfig,
-                                  const _GLFWfbconfig* fbconfig);
+LUMbool _lumInitOSMesa(void);
+void _lumTerminateOSMesa(void);
+LUMbool _lumCreateContextOSMesa(_LUMwindow* window,
+                                  const _LUMctxconfig* ctxconfig,
+                                  const _LUMfbconfig* fbconfig);
 
-GLFWbool _glfwInitVulkan(int mode);
-void _glfwTerminateVulkan(void);
-const char* _glfwGetVulkanResultString(VkResult result);
+LUMbool _lumInitVulkan(int mode);
+void _lumTerminateVulkan(void);
+const char* _lumGetVulkanResultString(VkResult result);
 
-size_t _glfwEncodeUTF8(char* s, uint32_t codepoint);
+size_t _lumEncodeUTF8(char* s, uint32_t codepoint);
 
-char* _glfw_strdup(const char* source);
-float _glfw_fminf(float a, float b);
-float _glfw_fmaxf(float a, float b);
+char* _lum_strdup(const char* source);
+float _lum_fminf(float a, float b);
+float _lum_fmaxf(float a, float b);
 
-void* _glfw_calloc(size_t count, size_t size);
-void* _glfw_realloc(void* pointer, size_t size);
-void _glfw_free(void* pointer);
+void* _lum_calloc(size_t count, size_t size);
+void* _lum_realloc(void* pointer, size_t size);
+void _lum_free(void* pointer);
 

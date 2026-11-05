@@ -5,8 +5,8 @@
 @tableofcontents
 
 This guide introduces the OpenGL and OpenGL ES context related functions of
-GLFW.  For details on a specific function in this category, see the @ref
-context.  There are also guides for the other areas of the GLFW API.
+Lumina.  For details on a specific function in this category, see the @ref
+context.  There are also guides for the other areas of the Lumina API.
 
  - @ref intro_guide
  - @ref window_guide
@@ -18,25 +18,25 @@ context.  There are also guides for the other areas of the GLFW API.
 @section context_object Context objects
 
 A window object encapsulates both a top-level window and an OpenGL or OpenGL ES
-context.  It is created with @ref glfwCreateWindow and destroyed with @ref
-glfwDestroyWindow or @ref glfwTerminate.  See @ref window_creation for more
+context.  It is created with @ref lumCreateWindow and destroyed with @ref
+lumDestroyWindow or @ref lumTerminate.  See @ref window_creation for more
 information.
 
 As the window and context are inseparably linked, the window object also serves
 as the context handle.
 
 To test the creation of various kinds of contexts and see their properties, run
-the `glfwinfo` test program.
+the `lumina_info` test program.
 
 @note Vulkan does not have a context and the Vulkan instance is created via the
 Vulkan API itself.  If you will be using Vulkan to render to a window, disable
-context creation by setting the [GLFW_CLIENT_API](@ref GLFW_CLIENT_API_hint)
-hint to `GLFW_NO_API`.  For more information, see the @ref vulkan_guide.
+context creation by setting the [LUM_CLIENT_API](@ref LUM_CLIENT_API_hint)
+hint to `LUM_NO_API`.  For more information, see the @ref vulkan_guide.
 
 
 @subsection context_hints Context creation hints
 
-There are a number of hints, specified using @ref glfwWindowHint, related to
+There are a number of hints, specified using @ref lumWindowHint, related to
 what kind of context is created.  See
 [context related hints](@ref window_hints_ctx) in the window guide.
 
@@ -44,15 +44,15 @@ what kind of context is created.  See
 @subsection context_sharing Context object sharing
 
 When creating a window and its OpenGL or OpenGL ES context with @ref
-glfwCreateWindow, you can specify another window whose context the new one
+lumCreateWindow, you can specify another window whose context the new one
 should share its objects (textures, vertex and element buffers, etc.) with.
 
 @code
-GLFWwindow* second_window = glfwCreateWindow(640, 480, "Second Window", NULL, first_window);
+LUMwindow* second_window = lumCreateWindow(640, 480, "Second Window", NULL, first_window);
 @endcode
 
 Object sharing is implemented by the operating system and graphics driver.  On
-platforms where it is possible to choose which types of objects are shared, GLFW
+platforms where it is possible to choose which types of objects are shared, Lumina
 requests that all types are shared.
 
 See the relevant chapter of the [OpenGL](https://www.opengl.org/registry/) or
@@ -61,19 +61,19 @@ information.  The name and number of this chapter unfortunately varies between
 versions and APIs, but has at times been named _Shared Objects and Multiple
 Contexts_.
 
-GLFW comes with a barebones object sharing example program called `sharing`.
+Lumina comes with a barebones object sharing example program called `sharing`.
 
 
 @subsection context_offscreen Offscreen contexts
 
-GLFW doesn't support creating contexts without an associated window.  However,
+Lumina doesn't support creating contexts without an associated window.  However,
 contexts with hidden windows can be created with the
-[GLFW_VISIBLE](@ref GLFW_VISIBLE_hint) window hint.
+[LUM_VISIBLE](@ref LUM_VISIBLE_hint) window hint.
 
 @code
-glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+lumWindowHint(LUM_VISIBLE, LUM_FALSE);
 
-GLFWwindow* offscreen_context = glfwCreateWindow(640, 480, "", NULL, NULL);
+LUMwindow* offscreen_context = lumCreateWindow(640, 480, "", NULL, NULL);
 @endcode
 
 The window never needs to be shown and its context can be used as a plain
@@ -88,9 +88,9 @@ window, even if none of them are visible.
 @subsection context_less Windows without contexts
 
 You can disable context creation by setting the
-[GLFW_CLIENT_API](@ref GLFW_CLIENT_API_hint) hint to `GLFW_NO_API`.  Windows
-without contexts must not be passed to @ref glfwMakeContextCurrent or @ref
-glfwSwapBuffers.
+[LUM_CLIENT_API](@ref LUM_CLIENT_API_hint) hint to `LUM_NO_API`.  Windows
+without contexts must not be passed to @ref lumMakeContextCurrent or @ref
+lumSwapBuffers.
 
 
 @section context_current Current context
@@ -102,25 +102,25 @@ at a time, and a thread can only have a single context current at a time.
 When moving a context between threads, you must make it non-current on the old
 thread before making it current on the new one.
 
-The context of a window is made current with @ref glfwMakeContextCurrent.
+The context of a window is made current with @ref lumMakeContextCurrent.
 
 @code
-glfwMakeContextCurrent(window);
+lumMakeContextCurrent(window);
 @endcode
 
-The window of the current context is returned by @ref glfwGetCurrentContext.
+The window of the current context is returned by @ref lumGetCurrentContext.
 
 @code
-GLFWwindow* window = glfwGetCurrentContext();
+LUMwindow* window = lumGetCurrentContext();
 @endcode
 
-The following GLFW functions require a context to be current.  Calling any these
-functions without a current context will generate a @ref GLFW_NO_CURRENT_CONTEXT
+The following Lumina functions require a context to be current.  Calling any these
+functions without a current context will generate a @ref LUM_NO_CURRENT_CONTEXT
 error.
 
- - @ref glfwSwapInterval
- - @ref glfwExtensionSupported
- - @ref glfwGetProcAddress
+ - @ref lumSwapInterval
+ - @ref lumExtensionSupported
+ - @ref lumGetProcAddress
 
 
 @section context_swap Buffer swapping
@@ -164,7 +164,7 @@ similarly.
 
 First you need to generate the source files using the glad Python script.  This
 example generates a loader for any version of OpenGL, which is the default for
-both GLFW and glad, but loaders for OpenGL ES, as well as loaders for specific
+both Lumina and glad, but loaders for OpenGL ES, as well as loaders for specific
 API versions and extension sets can be generated.  The generated files are
 written to the `output` directory.
 
@@ -172,7 +172,7 @@ written to the `output` directory.
 python main.py --generator c --no-loader --out-path output
 @endcode
 
-The `--no-loader` option is added because GLFW already provides a function for
+The `--no-loader` option is added because Lumina already provides a function for
 loading OpenGL and OpenGL ES function pointers, one that automatically uses the
 selected context creation API, and glad can call this instead of having to
 implement its own.  There are several other command-line options as well.  See
@@ -181,26 +181,26 @@ the glad documentation for details.
 Add the generated `output/src/glad.c`, `output/include/glad/glad.h` and
 `output/include/KHR/khrplatform.h` files to your build.  Then you need to
 include the glad header file, which will replace the OpenGL header of your
-development environment.  By including the glad header before the GLFW header,
+development environment.  By including the glad header before the Lumina header,
 it suppresses the development environment's OpenGL or OpenGL ES header.
 
 @code
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <Lumina/lumina.h>
 @endcode
 
 Finally you need to initialize glad once you have a suitable current context.
 
 @code
-window = glfwCreateWindow(640, 480, "My Window", NULL, NULL);
+window = lumCreateWindow(640, 480, "My Window", NULL, NULL);
 if (!window)
 {
     ...
 }
 
-glfwMakeContextCurrent(window);
+lumMakeContextCurrent(window);
 
-gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+gladLoadGLLoader((GLADloadproc) lumGetProcAddress);
 @endcode
 
 Once glad has been loaded, you have access to all OpenGL core and extension
@@ -240,8 +240,8 @@ tedious, repetitive, error prone work.
 
 To use a certain extension, you must first check whether the context supports
 that extension and then, if it introduces new functions, retrieve the pointers
-to those functions.  GLFW provides @ref glfwExtensionSupported and @ref
-glfwGetProcAddress for manual loading of extensions and new API functions.
+to those functions.  Lumina provides @ref lumExtensionSupported and @ref
+lumGetProcAddress for manual loading of extensions and new API functions.
 
 This section will demonstrate manual loading of OpenGL extensions.  The loading
 of OpenGL ES extensions is identical except for the name of the extension header.
@@ -263,12 +263,12 @@ supports.  These have names like `PFNGLSPECIALIZESHADERARBPROC` (for
 `glSpecializeShaderARB`), i.e. the name is made uppercase and `PFN` (pointer
 to function) and `PROC` (procedure) are added to the ends.
 
-To include the extension header, define @ref GLFW_INCLUDE_GLEXT before including
-the GLFW header.
+To include the extension header, define @ref LUM_INCLUDE_GLEXT before including
+the Lumina header.
 
 @code
-#define GLFW_INCLUDE_GLEXT
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_GLEXT
+#include <Lumina/lumina.h>
 @endcode
 
 
@@ -277,18 +277,18 @@ the GLFW header.
 A given machine may not actually support the extension (it may have older
 drivers or a graphics card that lacks the necessary hardware features), so it
 is necessary to check at run-time whether the context supports the extension.
-This is done with @ref glfwExtensionSupported.
+This is done with @ref lumExtensionSupported.
 
 @code
-if (glfwExtensionSupported("GL_ARB_gl_spirv"))
+if (lumExtensionSupported("GL_ARB_gl_spirv"))
 {
     // The extension is supported by the current context
 }
 @endcode
 
 The argument is a null terminated ASCII string with the extension name.  If the
-extension is supported, @ref glfwExtensionSupported returns `GLFW_TRUE`,
-otherwise it returns `GLFW_FALSE`.
+extension is supported, @ref lumExtensionSupported returns `LUM_TRUE`,
+otherwise it returns `LUM_FALSE`.
 
 
 @subsubsection context_glext_proc Fetching function pointers
@@ -296,10 +296,10 @@ otherwise it returns `GLFW_FALSE`.
 Many extensions, though not all, require the use of new OpenGL functions.
 These functions often do not have entry points in the client API libraries of
 your operating system, making it necessary to fetch them at run time.  You can
-retrieve pointers to these functions with @ref glfwGetProcAddress.
+retrieve pointers to these functions with @ref lumGetProcAddress.
 
 @code
-PFNGLSPECIALIZESHADERARBPROC pfnSpecializeShaderARB = glfwGetProcAddress("glSpecializeShaderARB");
+PFNGLSPECIALIZESHADERARBPROC pfnSpecializeShaderARB = lumGetProcAddress("glSpecializeShaderARB");
 @endcode
 
 In general, you should avoid giving the function pointer variables the (exact)
@@ -310,8 +310,8 @@ Now that all the pieces have been introduced, here is what they might look like
 when used together.
 
 @code
-#define GLFW_INCLUDE_GLEXT
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_GLEXT
+#include <Lumina/lumina.h>
 
 #define glSpecializeShaderARB pfnSpecializeShaderARB
 PFNGLSPECIALIZESHADERARBPROC pfnSpecializeShaderARB;
@@ -321,10 +321,10 @@ int has_ARB_gl_spirv = 0;
 
 void load_extensions(void)
 {
-    if (glfwExtensionSupported("GL_ARB_gl_spirv"))
+    if (lumExtensionSupported("GL_ARB_gl_spirv"))
     {
         pfnSpecializeShaderARB = (PFNGLSPECIALIZESHADERARBPROC)
-            glfwGetProcAddress("glSpecializeShaderARB");
+            lumGetProcAddress("glSpecializeShaderARB");
         has_ARB_gl_spirv = 1;
     }
 }

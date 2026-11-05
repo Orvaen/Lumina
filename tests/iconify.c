@@ -30,8 +30,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,63 +54,63 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
     printf("%0.2f Key %s\n",
-           glfwGetTime(),
-           action == GLFW_PRESS ? "pressed" : "released");
+           lumGetTime(),
+           action == LUM_PRESS ? "pressed" : "released");
 
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_I:
-            glfwIconifyWindow(window);
+        case LUM_KEY_I:
+            lumIconifyWindow(window);
             break;
-        case GLFW_KEY_M:
-            glfwMaximizeWindow(window);
+        case LUM_KEY_M:
+            lumMaximizeWindow(window);
             break;
-        case GLFW_KEY_R:
-            glfwRestoreWindow(window);
+        case LUM_KEY_R:
+            lumRestoreWindow(window);
             break;
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
-        case GLFW_KEY_A:
-            glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, !glfwGetWindowAttrib(window, GLFW_AUTO_ICONIFY));
+        case LUM_KEY_A:
+            lumSetWindowAttrib(window, LUM_AUTO_ICONIFY, !lumGetWindowAttrib(window, LUM_AUTO_ICONIFY));
             break;
-        case GLFW_KEY_B:
-            glfwSetWindowAttrib(window, GLFW_RESIZABLE, !glfwGetWindowAttrib(window, GLFW_RESIZABLE));
+        case LUM_KEY_B:
+            lumSetWindowAttrib(window, LUM_RESIZABLE, !lumGetWindowAttrib(window, LUM_RESIZABLE));
             break;
-        case GLFW_KEY_D:
-            glfwSetWindowAttrib(window, GLFW_DECORATED, !glfwGetWindowAttrib(window, GLFW_DECORATED));
+        case LUM_KEY_D:
+            lumSetWindowAttrib(window, LUM_DECORATED, !lumGetWindowAttrib(window, LUM_DECORATED));
             break;
-        case GLFW_KEY_F:
-            glfwSetWindowAttrib(window, GLFW_FLOATING, !glfwGetWindowAttrib(window, GLFW_FLOATING));
+        case LUM_KEY_F:
+            lumSetWindowAttrib(window, LUM_FLOATING, !lumGetWindowAttrib(window, LUM_FLOATING));
             break;
-        case GLFW_KEY_F11:
-        case GLFW_KEY_ENTER:
+        case LUM_KEY_F11:
+        case LUM_KEY_ENTER:
         {
-            if (mods != GLFW_MOD_ALT)
+            if (mods != LUM_MOD_ALT)
                 return;
 
-            if (glfwGetWindowMonitor(window))
+            if (lumGetWindowMonitor(window))
             {
-                glfwSetWindowMonitor(window, NULL,
+                lumSetWindowMonitor(window, NULL,
                                      windowed_xpos, windowed_ypos,
                                      windowed_width, windowed_height,
                                      0);
             }
             else
             {
-                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+                LUMmonitor* monitor = lumGetPrimaryMonitor();
                 if (monitor)
                 {
-                    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                    glfwGetWindowPos(window, &windowed_xpos, &windowed_ypos);
-                    glfwGetWindowSize(window, &windowed_width, &windowed_height);
-                    glfwSetWindowMonitor(window, monitor,
+                    const LUMvidmode* mode = lumGetVideoMode(monitor);
+                    lumGetWindowPos(window, &windowed_xpos, &windowed_ypos);
+                    lumGetWindowSize(window, &windowed_width, &windowed_height);
+                    lumSetWindowMonitor(window, monitor,
                                          0, 0, mode->width, mode->height,
                                          mode->refreshRate);
                 }
@@ -121,60 +121,60 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
-static void window_size_callback(GLFWwindow* window, int width, int height)
+static void window_size_callback(LUMwindow* window, int width, int height)
 {
-    printf("%0.2f Window resized to %ix%i\n", glfwGetTime(), width, height);
+    printf("%0.2f Window resized to %ix%i\n", lumGetTime(), width, height);
 }
 
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+static void framebuffer_size_callback(LUMwindow* window, int width, int height)
 {
-    printf("%0.2f Framebuffer resized to %ix%i\n", glfwGetTime(), width, height);
+    printf("%0.2f Framebuffer resized to %ix%i\n", lumGetTime(), width, height);
 }
 
-static void window_focus_callback(GLFWwindow* window, int focused)
+static void window_focus_callback(LUMwindow* window, int focused)
 {
     printf("%0.2f Window %s\n",
-           glfwGetTime(),
+           lumGetTime(),
            focused ? "focused" : "defocused");
 }
 
-static void window_iconify_callback(GLFWwindow* window, int iconified)
+static void window_iconify_callback(LUMwindow* window, int iconified)
 {
     printf("%0.2f Window %s\n",
-           glfwGetTime(),
+           lumGetTime(),
            iconified ? "iconified" : "uniconified");
 }
 
-static void window_maximize_callback(GLFWwindow* window, int maximized)
+static void window_maximize_callback(LUMwindow* window, int maximized)
 {
     printf("%0.2f Window %s\n",
-           glfwGetTime(),
+           lumGetTime(),
            maximized ? "maximized" : "unmaximized");
 }
 
-static void window_refresh_callback(GLFWwindow* window)
+static void window_refresh_callback(LUMwindow* window)
 {
-    printf("%0.2f Window refresh\n", glfwGetTime());
+    printf("%0.2f Window refresh\n", lumGetTime());
 
-    glfwMakeContextCurrent(window);
+    lumMakeContextCurrent(window);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glfwSwapBuffers(window);
+    lumSwapBuffers(window);
 }
 
-static GLFWwindow* create_window(GLFWmonitor* monitor)
+static LUMwindow* create_window(LUMmonitor* monitor)
 {
     int width, height;
-    GLFWwindow* window;
+    LUMwindow* window;
 
     if (monitor)
     {
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        const LUMvidmode* mode = lumGetVideoMode(monitor);
 
-        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        lumWindowHint(LUM_REFRESH_RATE, mode->refreshRate);
+        lumWindowHint(LUM_RED_BITS, mode->redBits);
+        lumWindowHint(LUM_GREEN_BITS, mode->greenBits);
+        lumWindowHint(LUM_BLUE_BITS, mode->blueBits);
 
         width = mode->width;
         height = mode->height;
@@ -185,15 +185,15 @@ static GLFWwindow* create_window(GLFWmonitor* monitor)
         height = windowed_height;
     }
 
-    window = glfwCreateWindow(width, height, "Iconify", monitor, NULL);
+    window = lumCreateWindow(width, height, "Iconify", monitor, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
 
     return window;
 }
@@ -201,15 +201,15 @@ static GLFWwindow* create_window(GLFWmonitor* monitor)
 int main(int argc, char** argv)
 {
     int ch, i, window_count;
-    int fullscreen = GLFW_FALSE, all_monitors = GLFW_FALSE;
-    GLFWwindow** windows;
+    int fullscreen = LUM_FALSE, all_monitors = LUM_FALSE;
+    LUMwindow** windows;
 
     while ((ch = getopt(argc, argv, "afhn")) != -1)
     {
         switch (ch)
         {
             case 'a':
-                all_monitors = GLFW_TRUE;
+                all_monitors = LUM_TRUE;
                 break;
 
             case 'h':
@@ -217,7 +217,7 @@ int main(int argc, char** argv)
                 exit(EXIT_SUCCESS);
 
             case 'f':
-                fullscreen = GLFW_TRUE;
+                fullscreen = LUM_TRUE;
                 break;
 
             default:
@@ -226,18 +226,18 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
     if (fullscreen && all_monitors)
     {
         int monitor_count;
-        GLFWmonitor** monitors = glfwGetMonitors(&monitor_count);
+        LUMmonitor** monitors = lumGetMonitors(&monitor_count);
 
         window_count = monitor_count;
-        windows = calloc(window_count, sizeof(GLFWwindow*));
+        windows = calloc(window_count, sizeof(LUMwindow*));
 
         for (i = 0;  i < monitor_count;  i++)
         {
@@ -248,40 +248,40 @@ int main(int argc, char** argv)
     }
     else
     {
-        GLFWmonitor* monitor = NULL;
+        LUMmonitor* monitor = NULL;
 
         if (fullscreen)
-            monitor = glfwGetPrimaryMonitor();
+            monitor = lumGetPrimaryMonitor();
 
         window_count = 1;
-        windows = calloc(window_count, sizeof(GLFWwindow*));
+        windows = calloc(window_count, sizeof(LUMwindow*));
         windows[0] = create_window(monitor);
     }
 
     for (i = 0;  i < window_count;  i++)
     {
-        glfwSetKeyCallback(windows[i], key_callback);
-        glfwSetFramebufferSizeCallback(windows[i], framebuffer_size_callback);
-        glfwSetWindowSizeCallback(windows[i], window_size_callback);
-        glfwSetWindowFocusCallback(windows[i], window_focus_callback);
-        glfwSetWindowIconifyCallback(windows[i], window_iconify_callback);
-        glfwSetWindowMaximizeCallback(windows[i], window_maximize_callback);
-        glfwSetWindowRefreshCallback(windows[i], window_refresh_callback);
+        lumSetKeyCallback(windows[i], key_callback);
+        lumSetFramebufferSizeCallback(windows[i], framebuffer_size_callback);
+        lumSetWindowSizeCallback(windows[i], window_size_callback);
+        lumSetWindowFocusCallback(windows[i], window_focus_callback);
+        lumSetWindowIconifyCallback(windows[i], window_iconify_callback);
+        lumSetWindowMaximizeCallback(windows[i], window_maximize_callback);
+        lumSetWindowRefreshCallback(windows[i], window_refresh_callback);
 
         window_refresh_callback(windows[i]);
 
         printf("Window is %s and %s\n",
-            glfwGetWindowAttrib(windows[i], GLFW_ICONIFIED) ? "iconified" : "restored",
-            glfwGetWindowAttrib(windows[i], GLFW_FOCUSED) ? "focused" : "defocused");
+            lumGetWindowAttrib(windows[i], LUM_ICONIFIED) ? "iconified" : "restored",
+            lumGetWindowAttrib(windows[i], LUM_FOCUSED) ? "focused" : "defocused");
     }
 
     for (;;)
     {
-        glfwWaitEvents();
+        lumWaitEvents();
 
         for (i = 0;  i < window_count;  i++)
         {
-            if (glfwWindowShouldClose(windows[i]))
+            if (lumWindowShouldClose(windows[i]))
                 break;
         }
 
@@ -292,7 +292,7 @@ int main(int argc, char** argv)
         fflush(stdout);
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

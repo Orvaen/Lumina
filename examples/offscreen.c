@@ -25,12 +25,12 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #if USE_NATIVE_OSMESA
- #define GLFW_EXPOSE_NATIVE_OSMESA
- #include <GLFW/glfw3native.h>
+ #define LUM_EXPOSE_NATIVE_OSMESA
+ #include <Lumina/lumina_native.h>
 #endif
 
 #include "linmath.h"
@@ -79,7 +79,7 @@ static void error_callback(int error, const char* description)
 
 int main(void)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
     GLint mvp_location, vpos_location, vcol_location;
     float ratio;
@@ -87,26 +87,26 @@ int main(void)
     mat4x4 mvp;
     char* buffer;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
+    lumInitHint(LUM_COCOA_MENUBAR, LUM_FALSE);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_VISIBLE, LUM_FALSE);
 
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    window = lumCreateWindow(640, 480, "Simple example", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
 
     // NOTE: OpenGL error checks have been omitted for brevity
 
@@ -138,7 +138,7 @@ int main(void)
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) (sizeof(float) * 2));
 
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     ratio = width / (float) height;
 
     glViewport(0, 0, width, height);
@@ -152,7 +152,7 @@ int main(void)
     glFinish();
 
 #if USE_NATIVE_OSMESA
-    glfwGetOSMesaColorBuffer(window, &width, &height, NULL, (void**) &buffer);
+    lumGetOSMesaColorBuffer(window, &width, &height, NULL, (void**) &buffer);
 #else
     buffer = calloc(4, width * height);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -170,9 +170,9 @@ int main(void)
     free(buffer);
 #endif
 
-    glfwDestroyWindow(window);
+    lumDestroyWindow(window);
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

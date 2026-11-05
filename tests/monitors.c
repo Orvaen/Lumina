@@ -30,8 +30,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -56,7 +56,7 @@ static int euclid(int a, int b)
     return b ? euclid(b, a % b) : a;
 }
 
-static const char* format_mode(const GLFWvidmode* mode)
+static const char* format_mode(const LUMvidmode* mode)
 {
     static char buffer[512];
     const int gcd = euclid(mode->width, mode->height);
@@ -79,36 +79,36 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+static void framebuffer_size_callback(LUMwindow* window, int width, int height)
 {
     printf("Framebuffer resized to %ix%i\n", width, height);
 
     glViewport(0, 0, width, height);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (key == LUM_KEY_ESCAPE)
+        lumSetWindowShouldClose(window, LUM_TRUE);
 }
 
-static void list_modes(GLFWmonitor* monitor)
+static void list_modes(LUMmonitor* monitor)
 {
     int count, x, y, width_mm, height_mm, i;
     int workarea_x, workarea_y, workarea_width, workarea_height;
     float xscale, yscale;
 
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
+    const LUMvidmode* mode = lumGetVideoMode(monitor);
+    const LUMvidmode* modes = lumGetVideoModes(monitor, &count);
 
-    glfwGetMonitorPos(monitor, &x, &y);
-    glfwGetMonitorPhysicalSize(monitor, &width_mm, &height_mm);
-    glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-    glfwGetMonitorWorkarea(monitor, &workarea_x, &workarea_y, &workarea_width, &workarea_height);
+    lumGetMonitorPos(monitor, &x, &y);
+    lumGetMonitorPhysicalSize(monitor, &width_mm, &height_mm);
+    lumGetMonitorContentScale(monitor, &xscale, &yscale);
+    lumGetMonitorWorkarea(monitor, &workarea_x, &workarea_y, &workarea_width, &workarea_height);
 
     printf("Name: %s (%s)\n",
-           glfwGetMonitorName(monitor),
-           glfwGetPrimaryMonitor() == monitor ? "primary" : "secondary");
+           lumGetMonitorName(monitor),
+           lumGetPrimaryMonitor() == monitor ? "primary" : "secondary");
     printf("Current mode: %s\n", format_mode(mode));
     printf("Virtual position: %i, %i\n", x, y);
     printf("Content scale: %f x %f\n", xscale, yscale);
@@ -124,37 +124,37 @@ static void list_modes(GLFWmonitor* monitor)
     {
         printf("%3u: %s", (unsigned int) i, format_mode(modes + i));
 
-        if (memcmp(mode, modes + i, sizeof(GLFWvidmode)) == 0)
+        if (memcmp(mode, modes + i, sizeof(LUMvidmode)) == 0)
             printf(" (current mode)");
 
         putchar('\n');
     }
 }
 
-static void test_modes(GLFWmonitor* monitor)
+static void test_modes(LUMmonitor* monitor)
 {
     int i, count;
-    GLFWwindow* window;
-    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
+    LUMwindow* window;
+    const LUMvidmode* modes = lumGetVideoModes(monitor, &count);
 
     for (i = 0;  i < count;  i++)
     {
-        const GLFWvidmode* mode = modes + i;
-        GLFWvidmode current;
+        const LUMvidmode* mode = modes + i;
+        LUMvidmode current;
 
-        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+        lumWindowHint(LUM_RED_BITS, mode->redBits);
+        lumWindowHint(LUM_GREEN_BITS, mode->greenBits);
+        lumWindowHint(LUM_BLUE_BITS, mode->blueBits);
+        lumWindowHint(LUM_REFRESH_RATE, mode->refreshRate);
 
         printf("Testing mode %u on monitor %s: %s\n",
                (unsigned int) i,
-               glfwGetMonitorName(monitor),
+               lumGetMonitorName(monitor),
                format_mode(mode));
 
-        window = glfwCreateWindow(mode->width, mode->height,
+        window = lumCreateWindow(mode->width, mode->height,
                                   "Video Mode Test",
-                                  glfwGetPrimaryMonitor(),
+                                  lumGetPrimaryMonitor(),
                                   NULL);
         if (!window)
         {
@@ -164,26 +164,26 @@ static void test_modes(GLFWmonitor* monitor)
             continue;
         }
 
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-        glfwSetKeyCallback(window, key_callback);
+        lumSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        lumSetKeyCallback(window, key_callback);
 
-        glfwMakeContextCurrent(window);
-        gladLoadGL(glfwGetProcAddress);
-        glfwSwapInterval(1);
+        lumMakeContextCurrent(window);
+        gladLoadGL(lumGetProcAddress);
+        lumSwapInterval(1);
 
-        glfwSetTime(0.0);
+        lumSetTime(0.0);
 
-        while (glfwGetTime() < 5.0)
+        while (lumGetTime() < 5.0)
         {
             glClear(GL_COLOR_BUFFER_BIT);
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+            lumSwapBuffers(window);
+            lumPollEvents();
 
-            if (glfwWindowShouldClose(window))
+            if (lumWindowShouldClose(window))
             {
                 printf("User terminated program\n");
 
-                glfwTerminate();
+                lumTerminate();
                 exit(EXIT_SUCCESS);
             }
         }
@@ -192,7 +192,7 @@ static void test_modes(GLFWmonitor* monitor)
         glGetIntegerv(GL_GREEN_BITS, &current.greenBits);
         glGetIntegerv(GL_BLUE_BITS, &current.blueBits);
 
-        glfwGetWindowSize(window, &current.width, &current.height);
+        lumGetWindowSize(window, &current.width, &current.height);
 
         if (current.redBits != mode->redBits ||
             current.greenBits != mode->greenBits ||
@@ -212,17 +212,17 @@ static void test_modes(GLFWmonitor* monitor)
 
         printf("Closing window\n");
 
-        glfwDestroyWindow(window);
+        lumDestroyWindow(window);
         window = NULL;
 
-        glfwPollEvents();
+        lumPollEvents();
     }
 }
 
 int main(int argc, char** argv)
 {
     int ch, i, count, mode = LIST_MODE;
-    GLFWmonitor** monitors;
+    LUMmonitor** monitors;
 
     while ((ch = getopt(argc, argv, "th")) != -1)
     {
@@ -240,14 +240,14 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
+    lumInitHint(LUM_COCOA_MENUBAR, LUM_FALSE);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    monitors = glfwGetMonitors(&count);
+    monitors = lumGetMonitors(&count);
 
     for (i = 0;  i < count;  i++)
     {
@@ -257,7 +257,7 @@ int main(int argc, char** argv)
             test_modes(monitors[i]);
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

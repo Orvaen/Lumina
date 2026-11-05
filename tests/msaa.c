@@ -31,8 +31,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #if defined(_MSC_VER)
  // Make MS math.h define M_PI
@@ -75,18 +75,18 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_SPACE:
-            glfwSetTime(0.0);
+        case LUM_KEY_SPACE:
+            lumSetTime(0.0);
             break;
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
     }
 }
@@ -99,7 +99,7 @@ static void usage(void)
 int main(int argc, char** argv)
 {
     int ch, samples = 4;
-    GLFWwindow* window;
+    LUMwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
     GLint mvp_location, vpos_location;
 
@@ -119,9 +119,9 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
     if (samples)
@@ -129,22 +129,22 @@ int main(int argc, char** argv)
     else
         printf("Requesting that MSAA not be available\n");
 
-    glfwWindowHint(GLFW_SAMPLES, samples);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_SAMPLES, samples);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
 
-    window = glfwCreateWindow(800, 400, "Aliasing Detector", NULL, NULL);
+    window = lumCreateWindow(800, 400, "Aliasing Detector", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwSetKeyCallback(window, key_callback);
+    lumSetKeyCallback(window, key_callback);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
     glGetIntegerv(GL_SAMPLES, &samples);
     if (samples)
@@ -176,14 +176,14 @@ int main(int argc, char** argv)
     glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) 0);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         float ratio;
         int width, height;
         mat4x4 m, p, mvp;
-        const double angle = glfwGetTime() * M_PI / 180.0;
+        const double angle = lumGetTime() * M_PI / 180.0;
 
-        glfwGetFramebufferSize(window, &width, &height);
+        lumGetFramebufferSize(window, &width, &height);
         ratio = width / (float) height;
 
         glViewport(0, 0, width, height);
@@ -209,13 +209,13 @@ int main(int argc, char** argv)
         glEnable(GL_MULTISAMPLE);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
     }
 
-    glfwDestroyWindow(window);
+    lumDestroyWindow(window);
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

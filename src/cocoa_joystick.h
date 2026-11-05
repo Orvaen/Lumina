@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Cocoa - www.glfw.org
+// Lumina Cocoa - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -28,24 +28,24 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/hid/IOHIDKeys.h>
 
-#define GLFW_COCOA_JOYSTICK_STATE         _GLFWjoystickNS ns;
-#define GLFW_COCOA_LIBRARY_JOYSTICK_STATE
+#define LUM_COCOA_JOYSTICK_STATE         _LUMjoystickNS ns;
+#define LUM_COCOA_LIBRARY_JOYSTICK_STATE
 
-#define GLFW_BUILD_COCOA_MAPPINGS
+#define LUM_BUILD_COCOA_MAPPINGS
 
 // Cocoa-specific per-joystick data
 //
-typedef struct _GLFWjoystickNS
+typedef struct _LUMjoystickNS
 {
     IOHIDDeviceRef      device;
     CFMutableArrayRef   axes;
     CFMutableArrayRef   buttons;
     CFMutableArrayRef   hats;
-} _GLFWjoystickNS;
+} _LUMjoystickNS;
 
-GLFWbool _glfwInitJoysticksCocoa(void);
-void _glfwTerminateJoysticksCocoa(void);
-int _glfwPollJoystickCocoa(_GLFWjoystick* js, int mode);
-const char* _glfwGetMappingNameCocoa(void);
-void _glfwUpdateGamepadGUIDCocoa(char* guid);
+LUMbool _lumInitJoysticksCocoa(void);
+void _lumTerminateJoysticksCocoa(void);
+int _lumPollJoystickCocoa(_LUMjoystick* js, int mode);
+const char* _lumGetMappingNameCocoa(void);
+void _lumUpdateGamepadGUIDCocoa(char* guid);
 

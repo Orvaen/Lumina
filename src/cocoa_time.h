@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// Lumina macOS - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2021 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -24,12 +24,12 @@
 //
 //========================================================================
 
-#define GLFW_COCOA_LIBRARY_TIMER_STATE  _GLFWtimerNS   ns;
+#define LUM_COCOA_LIBRARY_TIMER_STATE  _LUMtimerNS   ns;
 
 // Cocoa-specific global timer data
 //
-typedef struct _GLFWtimerNS
+typedef struct _LUMtimerNS
 {
     uint64_t        frequency;
-} _GLFWtimerNS;
+} _LUMtimerNS;
 

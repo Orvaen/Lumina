@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Cocoa - www.glfw.org
+// Lumina Cocoa - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 // Copyright (c) 2012 Torsten Walluhn <tw@mad-cad.net>
@@ -42,7 +42,7 @@
 
 // Joystick element information
 //
-typedef struct _GLFWjoyelementNS
+typedef struct _LUMjoyelementNS
 {
     IOHIDElementRef native;
     uint32_t        usage;
@@ -50,12 +50,12 @@ typedef struct _GLFWjoyelementNS
     long            minimum;
     long            maximum;
 
-} _GLFWjoyelementNS;
+} _LUMjoyelementNS;
 
 
 // Returns the value of the specified element of the specified joystick
 //
-static long getElementValue(_GLFWjoystick* js, _GLFWjoyelementNS* element)
+static long getElementValue(_LUMjoystick* js, _LUMjoyelementNS* element)
 {
     IOHIDValueRef valueRef;
     long value = 0;
@@ -79,8 +79,8 @@ static CFComparisonResult compareElements(const void* fp,
                                           const void* sp,
                                           void* user)
 {
-    const _GLFWjoyelementNS* fe = fp;
-    const _GLFWjoyelementNS* se = sp;
+    const _LUMjoyelementNS* fe = fp;
+    const _LUMjoyelementNS* se = sp;
     if (fe->usage < se->usage)
         return kCFCompareLessThan;
     if (fe->usage > se->usage)
@@ -94,25 +94,25 @@ static CFComparisonResult compareElements(const void* fp,
 
 // Removes the specified joystick
 //
-static void closeJoystick(_GLFWjoystick* js)
+static void closeJoystick(_LUMjoystick* js)
 {
     if (!js->present)
         return;
 
     for (int i = 0;  i < CFArrayGetCount(js->ns.axes);  i++)
-        _glfw_free((void*) CFArrayGetValueAtIndex(js->ns.axes, i));
+        _lum_free((void*) CFArrayGetValueAtIndex(js->ns.axes, i));
     CFRelease(js->ns.axes);
 
     for (int i = 0;  i < CFArrayGetCount(js->ns.buttons);  i++)
-        _glfw_free((void*) CFArrayGetValueAtIndex(js->ns.buttons, i));
+        _lum_free((void*) CFArrayGetValueAtIndex(js->ns.buttons, i));
     CFRelease(js->ns.buttons);
 
     for (int i = 0;  i < CFArrayGetCount(js->ns.hats);  i++)
-        _glfw_free((void*) CFArrayGetValueAtIndex(js->ns.hats, i));
+        _lum_free((void*) CFArrayGetValueAtIndex(js->ns.hats, i));
     CFRelease(js->ns.hats);
 
-    _glfwFreeJoystick(js);
-    _glfwInputJoystick(js, GLFW_DISCONNECTED);
+    _lumFreeJoystick(js);
+    _lumInputJoystick(js, LUM_DISCONNECTED);
 }
 
 // Callback for user-initiated joystick addition
@@ -127,12 +127,12 @@ static void matchCallback(void* context,
     char guid[33];
     CFTypeRef property;
     uint32_t vendor = 0, product = 0, version = 0;
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
     CFMutableArrayRef axes, buttons, hats;
 
-    for (jid = 0;  jid <= GLFW_JOYSTICK_LAST;  jid++)
+    for (jid = 0;  jid <= LUM_JOYSTICK_LAST;  jid++)
     {
-        if (_glfw.joysticks[jid].ns.device == device)
+        if (_lum.joysticks[jid].ns.device == device)
             return;
     }
 
@@ -248,7 +248,7 @@ static void matchCallback(void* context,
 
         if (target)
         {
-            _GLFWjoyelementNS* element = _glfw_calloc(1, sizeof(_GLFWjoyelementNS));
+            _LUMjoyelementNS* element = _lum_calloc(1, sizeof(_LUMjoyelementNS));
             element->native  = native;
             element->usage   = usage;
             element->index   = (int) CFArrayGetCount(target);
@@ -267,7 +267,7 @@ static void matchCallback(void* context,
     CFArraySortValues(hats, CFRangeMake(0, CFArrayGetCount(hats)),
                       compareElements, NULL);
 
-    js = _glfwAllocJoystick(name, guid,
+    js = _lumAllocJoystick(name, guid,
                             (int) CFArrayGetCount(axes),
                             (int) CFArrayGetCount(buttons),
                             (int) CFArrayGetCount(hats));
@@ -277,7 +277,7 @@ static void matchCallback(void* context,
     js->ns.buttons = buttons;
     js->ns.hats    = hats;
 
-    _glfwInputJoystick(js, GLFW_CONNECTED);
+    _lumInputJoystick(js, LUM_CONNECTED);
 }
 
 // Callback for user-initiated joystick removal
@@ -287,11 +287,11 @@ static void removeCallback(void* context,
                            void* sender,
                            IOHIDDeviceRef device)
 {
-    for (int jid = 0;  jid <= GLFW_JOYSTICK_LAST;  jid++)
+    for (int jid = 0;  jid <= LUM_JOYSTICK_LAST;  jid++)
     {
-        if (_glfw.joysticks[jid].ns.device == device)
+        if (_lum.joysticks[jid].ns.device == device)
         {
-            closeJoystick(_glfw.joysticks + jid);
+            closeJoystick(_lum.joysticks + jid);
             break;
         }
     }
@@ -299,10 +299,10 @@ static void removeCallback(void* context,
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwInitJoysticksCocoa(void)
+LUMbool _lumInitJoysticksCocoa(void)
 {
     CFMutableArrayRef matching;
     const long usages[] =
@@ -312,7 +312,7 @@ GLFWbool _glfwInitJoysticksCocoa(void)
         kHIDUsage_GD_MultiAxisController
     };
 
-    _glfw.ns.hidManager = IOHIDManagerCreate(kCFAllocatorDefault,
+    _lum.ns.hidManager = IOHIDManagerCreate(kCFAllocatorDefault,
                                              kIOHIDOptionsTypeNone);
 
     matching = CFArrayCreateMutable(kCFAllocatorDefault,
@@ -320,8 +320,8 @@ GLFWbool _glfwInitJoysticksCocoa(void)
                                     &kCFTypeArrayCallBacks);
     if (!matching)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Cocoa: Failed to create array");
-        return GLFW_FALSE;
+        _lumInputError(LUM_PLATFORM_ERROR, "Cocoa: Failed to create array");
+        return LUM_FALSE;
     }
 
     for (size_t i = 0;  i < sizeof(usages) / sizeof(long);  i++)
@@ -361,44 +361,44 @@ GLFWbool _glfwInitJoysticksCocoa(void)
         CFRelease(dict);
     }
 
-    IOHIDManagerSetDeviceMatchingMultiple(_glfw.ns.hidManager, matching);
+    IOHIDManagerSetDeviceMatchingMultiple(_lum.ns.hidManager, matching);
     CFRelease(matching);
 
-    IOHIDManagerRegisterDeviceMatchingCallback(_glfw.ns.hidManager,
+    IOHIDManagerRegisterDeviceMatchingCallback(_lum.ns.hidManager,
                                                &matchCallback, NULL);
-    IOHIDManagerRegisterDeviceRemovalCallback(_glfw.ns.hidManager,
+    IOHIDManagerRegisterDeviceRemovalCallback(_lum.ns.hidManager,
                                               &removeCallback, NULL);
-    IOHIDManagerScheduleWithRunLoop(_glfw.ns.hidManager,
+    IOHIDManagerScheduleWithRunLoop(_lum.ns.hidManager,
                                     CFRunLoopGetMain(),
                                     kCFRunLoopDefaultMode);
-    IOHIDManagerOpen(_glfw.ns.hidManager, kIOHIDOptionsTypeNone);
+    IOHIDManagerOpen(_lum.ns.hidManager, kIOHIDOptionsTypeNone);
 
     // Execute the run loop once in order to register any initially-attached
     // joysticks
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwTerminateJoysticksCocoa(void)
+void _lumTerminateJoysticksCocoa(void)
 {
-    for (int jid = 0;  jid <= GLFW_JOYSTICK_LAST;  jid++)
-        closeJoystick(_glfw.joysticks + jid);
+    for (int jid = 0;  jid <= LUM_JOYSTICK_LAST;  jid++)
+        closeJoystick(_lum.joysticks + jid);
 
-    if (_glfw.ns.hidManager)
+    if (_lum.ns.hidManager)
     {
-        CFRelease(_glfw.ns.hidManager);
-        _glfw.ns.hidManager = NULL;
+        CFRelease(_lum.ns.hidManager);
+        _lum.ns.hidManager = NULL;
     }
 }
 
 
-int _glfwPollJoystickCocoa(_GLFWjoystick* js, int mode)
+int _lumPollJoystickCocoa(_LUMjoystick* js, int mode)
 {
-    if (mode & _GLFW_POLL_AXES)
+    if (mode & _LUM_POLL_AXES)
     {
         for (CFIndex i = 0;  i < CFArrayGetCount(js->ns.axes);  i++)
         {
-            _GLFWjoyelementNS* axis = (_GLFWjoyelementNS*)
+            _LUMjoyelementNS* axis = (_LUMjoyelementNS*)
                 CFArrayGetValueAtIndex(js->ns.axes, i);
 
             const long raw = getElementValue(js, axis);
@@ -410,60 +410,60 @@ int _glfwPollJoystickCocoa(_GLFWjoystick* js, int mode)
 
             const long size = axis->maximum - axis->minimum;
             if (size == 0)
-                _glfwInputJoystickAxis(js, (int) i, 0.f);
+                _lumInputJoystickAxis(js, (int) i, 0.f);
             else
             {
                 const float value = (2.f * (raw - axis->minimum) / size) - 1.f;
-                _glfwInputJoystickAxis(js, (int) i, value);
+                _lumInputJoystickAxis(js, (int) i, value);
             }
         }
     }
 
-    if (mode & _GLFW_POLL_BUTTONS)
+    if (mode & _LUM_POLL_BUTTONS)
     {
         for (CFIndex i = 0;  i < CFArrayGetCount(js->ns.buttons);  i++)
         {
-            _GLFWjoyelementNS* button = (_GLFWjoyelementNS*)
+            _LUMjoyelementNS* button = (_LUMjoyelementNS*)
                 CFArrayGetValueAtIndex(js->ns.buttons, i);
             const char value = getElementValue(js, button) - button->minimum;
-            const int state = (value > 0) ? GLFW_PRESS : GLFW_RELEASE;
-            _glfwInputJoystickButton(js, (int) i, state);
+            const int state = (value > 0) ? LUM_PRESS : LUM_RELEASE;
+            _lumInputJoystickButton(js, (int) i, state);
         }
 
         for (CFIndex i = 0;  i < CFArrayGetCount(js->ns.hats);  i++)
         {
             const int states[9] =
             {
-                GLFW_HAT_UP,
-                GLFW_HAT_RIGHT_UP,
-                GLFW_HAT_RIGHT,
-                GLFW_HAT_RIGHT_DOWN,
-                GLFW_HAT_DOWN,
-                GLFW_HAT_LEFT_DOWN,
-                GLFW_HAT_LEFT,
-                GLFW_HAT_LEFT_UP,
-                GLFW_HAT_CENTERED
+                LUM_HAT_UP,
+                LUM_HAT_RIGHT_UP,
+                LUM_HAT_RIGHT,
+                LUM_HAT_RIGHT_DOWN,
+                LUM_HAT_DOWN,
+                LUM_HAT_LEFT_DOWN,
+                LUM_HAT_LEFT,
+                LUM_HAT_LEFT_UP,
+                LUM_HAT_CENTERED
             };
 
-            _GLFWjoyelementNS* hat = (_GLFWjoyelementNS*)
+            _LUMjoyelementNS* hat = (_LUMjoyelementNS*)
                 CFArrayGetValueAtIndex(js->ns.hats, i);
             long state = getElementValue(js, hat) - hat->minimum;
             if (state < 0 || state > 8)
                 state = 8;
 
-            _glfwInputJoystickHat(js, (int) i, states[state]);
+            _lumInputJoystickHat(js, (int) i, states[state]);
         }
     }
 
     return js->present;
 }
 
-const char* _glfwGetMappingNameCocoa(void)
+const char* _lumGetMappingNameCocoa(void)
 {
     return "Mac OS X";
 }
 
-void _glfwUpdateGamepadGUIDCocoa(char* guid)
+void _lumUpdateGamepadGUIDCocoa(char* guid)
 {
     if ((strncmp(guid + 4, "000000000000", 12) == 0) &&
         (strncmp(guid + 20, "000000000000", 12) == 0))

@@ -41,8 +41,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 // Define tokens for GL_EXT_separate_specular_color if not already defined
 #ifndef GL_EXT_separate_specular_color
@@ -392,7 +392,7 @@ static void particle_engine(double t, float dt)
                             // the L1 data cache on most CPUs)
 #define PARTICLE_VERTS  4   // Number of vertices per particle
 
-static void draw_particles(GLFWwindow* window, double t, float dt)
+static void draw_particles(LUMwindow* window, double t, float dt)
 {
     int i, particle_count;
     Vertex vertex_array[BATCH_PARTICLES * PARTICLE_VERTS];
@@ -454,7 +454,7 @@ static void draw_particles(GLFWwindow* window, double t, float dt)
 
     // Wait for particle physics thread to be done
     mtx_lock(&thread_sync.particles_lock);
-    while (!glfwWindowShouldClose(window) &&
+    while (!lumWindowShouldClose(window) &&
             thread_sync.p_frame <= thread_sync.d_frame)
     {
         struct timespec ts;
@@ -785,7 +785,7 @@ static void setup_lights(void)
 // Main rendering function
 //========================================================================
 
-static void draw_scene(GLFWwindow* window, double t)
+static void draw_scene(LUMwindow* window, double t)
 {
     double xpos, ypos, zpos, angle_x, angle_y, angle_z;
     static double t_old = 0.0;
@@ -862,7 +862,7 @@ static void draw_scene(GLFWwindow* window, double t)
 // Window resize callback function
 //========================================================================
 
-static void resize_callback(GLFWwindow* window, int width, int height)
+static void resize_callback(LUMwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
     aspect_ratio = height ? width / (float) height : 1.f;
@@ -873,16 +873,16 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 // Key callback functions
 //========================================================================
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action == GLFW_PRESS)
+    if (action == LUM_PRESS)
     {
         switch (key)
         {
-            case GLFW_KEY_ESCAPE:
-                glfwSetWindowShouldClose(window, GLFW_TRUE);
+            case LUM_KEY_ESCAPE:
+                lumSetWindowShouldClose(window, LUM_TRUE);
                 break;
-            case GLFW_KEY_W:
+            case LUM_KEY_W:
                 wireframe = !wireframe;
                 glPolygonMode(GL_FRONT_AND_BACK,
                               wireframe ? GL_LINE : GL_FILL);
@@ -900,14 +900,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 static int physics_thread_main(void* arg)
 {
-    GLFWwindow* window = arg;
+    LUMwindow* window = arg;
 
     for (;;)
     {
         mtx_lock(&thread_sync.particles_lock);
 
         // Wait for particle drawing to be done
-        while (!glfwWindowShouldClose(window) &&
+        while (!lumWindowShouldClose(window) &&
                thread_sync.p_frame > thread_sync.d_frame)
         {
             struct timespec ts;
@@ -918,7 +918,7 @@ static int physics_thread_main(void* arg)
             cnd_timedwait(&thread_sync.d_done, &thread_sync.particles_lock, &ts);
         }
 
-        if (glfwWindowShouldClose(window))
+        if (lumWindowShouldClose(window))
             break;
 
         // Update particles
@@ -944,12 +944,12 @@ int main(int argc, char** argv)
 {
     int ch, width, height;
     thrd_t physics_thread = 0;
-    GLFWwindow* window;
-    GLFWmonitor* monitor = NULL;
+    LUMwindow* window;
+    LUMmonitor* monitor = NULL;
 
-    if (!glfwInit())
+    if (!lumInit())
     {
-        fprintf(stderr, "Failed to initialize GLFW\n");
+        fprintf(stderr, "Failed to initialize Lumina\n");
         exit(EXIT_FAILURE);
     }
 
@@ -958,7 +958,7 @@ int main(int argc, char** argv)
         switch (ch)
         {
             case 'f':
-                monitor = glfwGetPrimaryMonitor();
+                monitor = lumGetPrimaryMonitor();
                 break;
             case 'h':
                 usage();
@@ -968,12 +968,12 @@ int main(int argc, char** argv)
 
     if (monitor)
     {
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        const LUMvidmode* mode = lumGetVideoMode(monitor);
 
-        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+        lumWindowHint(LUM_RED_BITS, mode->redBits);
+        lumWindowHint(LUM_GREEN_BITS, mode->greenBits);
+        lumWindowHint(LUM_BLUE_BITS, mode->blueBits);
+        lumWindowHint(LUM_REFRESH_RATE, mode->refreshRate);
 
         width  = mode->width;
         height = mode->height;
@@ -984,26 +984,26 @@ int main(int argc, char** argv)
         height = 480;
     }
 
-    window = glfwCreateWindow(width, height, "Particle Engine", monitor, NULL);
+    window = lumCreateWindow(width, height, "Particle Engine", monitor, NULL);
     if (!window)
     {
-        fprintf(stderr, "Failed to create GLFW window\n");
-        glfwTerminate();
+        fprintf(stderr, "Failed to create Lumina window\n");
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
     if (monitor)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_DISABLED);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
-    glfwSetFramebufferSizeCallback(window, resize_callback);
-    glfwSetKeyCallback(window, key_callback);
+    lumSetFramebufferSizeCallback(window, resize_callback);
+    lumSetKeyCallback(window, key_callback);
 
     // Set initial aspect ratio
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     resize_callback(window, width, height);
 
     // Upload particle texture
@@ -1028,7 +1028,7 @@ int main(int argc, char** argv)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, F_TEX_WIDTH, F_TEX_HEIGHT,
                  0, GL_LUMINANCE, GL_UNSIGNED_BYTE, floor_texture);
 
-    if (glfwExtensionSupported("GL_EXT_separate_specular_color"))
+    if (lumExtensionSupported("GL_EXT_separate_specular_color"))
     {
         glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL_EXT,
                       GL_SEPARATE_SPECULAR_COLOR_EXT);
@@ -1050,24 +1050,24 @@ int main(int argc, char** argv)
 
     if (thrd_create(&physics_thread, physics_thread_main, window) != thrd_success)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwSetTime(0.0);
+    lumSetTime(0.0);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
-        draw_scene(window, glfwGetTime());
+        draw_scene(window, lumGetTime());
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
     }
 
     thrd_join(physics_thread, NULL);
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    lumDestroyWindow(window);
+    lumTerminate();
 
     exit(EXIT_SUCCESS);
 }

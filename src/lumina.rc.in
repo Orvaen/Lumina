@@ -1,0 +1,30 @@
+
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION @LUM_VERSION_MAJOR@,@LUM_VERSION_MINOR@,@LUM_VERSION_PATCH@,0
+PRODUCTVERSION @LUM_VERSION_MAJOR@,@LUM_VERSION_MINOR@,@LUM_VERSION_PATCH@,0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE 0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904B0"
+        {
+            VALUE "CompanyName", "Lumina"
+            VALUE "FileDescription", "Lumina @LUM_VERSION@ DLL"
+            VALUE "FileVersion", "@LUM_VERSION@"
+            VALUE "OriginalFilename", "lumina.dll"
+            VALUE "ProductName", "Lumina"
+            VALUE "ProductVersion", "@LUM_VERSION@"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x409, 1200
+    }
+}
+

@@ -1,4 +1,4 @@
-project "GLFW"
+project "Lumina"
 	kind "StaticLib"
 	language "C"
 	staticruntime "off"
@@ -9,9 +9,9 @@ project "GLFW"
 
 	files
 	{
-		"include/GLFW/glfw3.h",
-		"include/GLFW/glfw3native.h",
-		"src/glfw_config.h",
+		"include/Lumina/lumina.h",
+		"include/Lumina/lumina_native.h",
+		"src/lum_config.h",
 		"src/context.c",
 		"src/init.c",
 		"src/input.c",
@@ -50,7 +50,7 @@ project "GLFW"
 
 		defines
 		{
-			"_GLFW_X11"
+			"_LUM_X11"
 		}
 
 	filter "system:macosx"
@@ -72,7 +72,7 @@ project "GLFW"
 
 		defines
 		{
-			"_GLFW_COCOA"
+			"_LUM_COCOA"
 		}
 
 	filter "system:windows"
@@ -94,7 +94,7 @@ project "GLFW"
 
 		defines 
 		{ 
-			"_GLFW_WIN32",
+			"_LUM_WIN32",
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 

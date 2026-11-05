@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 POSIX - www.glfw.org
+// Lumina POSIX - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -27,23 +27,23 @@
 
 #include <pthread.h>
 
-#define GLFW_POSIX_TLS_STATE    _GLFWtlsPOSIX   posix;
-#define GLFW_POSIX_MUTEX_STATE  _GLFWmutexPOSIX posix;
+#define LUM_POSIX_TLS_STATE    _LUMtlsPOSIX   posix;
+#define LUM_POSIX_MUTEX_STATE  _LUMmutexPOSIX posix;
 
 
 // POSIX-specific thread local storage data
 //
-typedef struct _GLFWtlsPOSIX
+typedef struct _LUMtlsPOSIX
 {
-    GLFWbool        allocated;
+    LUMbool        allocated;
     pthread_key_t   key;
-} _GLFWtlsPOSIX;
+} _LUMtlsPOSIX;
 
 // POSIX-specific mutex data
 //
-typedef struct _GLFWmutexPOSIX
+typedef struct _LUMmutexPOSIX
 {
-    GLFWbool        allocated;
+    LUMbool        allocated;
     pthread_mutex_t handle;
-} _GLFWmutexPOSIX;
+} _LUMmutexPOSIX;
 

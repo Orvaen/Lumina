@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Wayland - www.glfw.org
+// Lumina Wayland - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -62,70 +62,70 @@ typedef void* (* PFN_wl_proxy_get_user_data)(struct wl_proxy*);
 typedef void (* PFN_wl_proxy_set_user_data)(struct wl_proxy*,void*);
 typedef uint32_t (* PFN_wl_proxy_get_version)(struct wl_proxy*);
 typedef struct wl_proxy* (* PFN_wl_proxy_marshal_flags)(struct wl_proxy*,uint32_t,const struct wl_interface*,uint32_t,uint32_t,...);
-#define wl_display_flush _glfw.wl.client.display_flush
-#define wl_display_cancel_read _glfw.wl.client.display_cancel_read
-#define wl_display_dispatch_pending _glfw.wl.client.display_dispatch_pending
-#define wl_display_read_events _glfw.wl.client.display_read_events
-#define wl_display_disconnect _glfw.wl.client.display_disconnect
-#define wl_display_roundtrip _glfw.wl.client.display_roundtrip
-#define wl_display_get_fd _glfw.wl.client.display_get_fd
-#define wl_display_prepare_read _glfw.wl.client.display_prepare_read
-#define wl_proxy_marshal _glfw.wl.client.proxy_marshal
-#define wl_proxy_add_listener _glfw.wl.client.proxy_add_listener
-#define wl_proxy_destroy _glfw.wl.client.proxy_destroy
-#define wl_proxy_marshal_constructor _glfw.wl.client.proxy_marshal_constructor
-#define wl_proxy_marshal_constructor_versioned _glfw.wl.client.proxy_marshal_constructor_versioned
-#define wl_proxy_get_user_data _glfw.wl.client.proxy_get_user_data
-#define wl_proxy_set_user_data _glfw.wl.client.proxy_set_user_data
-#define wl_proxy_get_version _glfw.wl.client.proxy_get_version
-#define wl_proxy_marshal_flags _glfw.wl.client.proxy_marshal_flags
+#define wl_display_flush _lum.wl.client.display_flush
+#define wl_display_cancel_read _lum.wl.client.display_cancel_read
+#define wl_display_dispatch_pending _lum.wl.client.display_dispatch_pending
+#define wl_display_read_events _lum.wl.client.display_read_events
+#define wl_display_disconnect _lum.wl.client.display_disconnect
+#define wl_display_roundtrip _lum.wl.client.display_roundtrip
+#define wl_display_get_fd _lum.wl.client.display_get_fd
+#define wl_display_prepare_read _lum.wl.client.display_prepare_read
+#define wl_proxy_marshal _lum.wl.client.proxy_marshal
+#define wl_proxy_add_listener _lum.wl.client.proxy_add_listener
+#define wl_proxy_destroy _lum.wl.client.proxy_destroy
+#define wl_proxy_marshal_constructor _lum.wl.client.proxy_marshal_constructor
+#define wl_proxy_marshal_constructor_versioned _lum.wl.client.proxy_marshal_constructor_versioned
+#define wl_proxy_get_user_data _lum.wl.client.proxy_get_user_data
+#define wl_proxy_set_user_data _lum.wl.client.proxy_set_user_data
+#define wl_proxy_get_version _lum.wl.client.proxy_get_version
+#define wl_proxy_marshal_flags _lum.wl.client.proxy_marshal_flags
 
 struct wl_shm;
 
-#define wl_display_interface _glfw_wl_display_interface
-#define wl_subcompositor_interface _glfw_wl_subcompositor_interface
-#define wl_compositor_interface _glfw_wl_compositor_interface
-#define wl_shm_interface _glfw_wl_shm_interface
-#define wl_data_device_manager_interface _glfw_wl_data_device_manager_interface
-#define wl_shell_interface _glfw_wl_shell_interface
-#define wl_buffer_interface _glfw_wl_buffer_interface
-#define wl_callback_interface _glfw_wl_callback_interface
-#define wl_data_device_interface _glfw_wl_data_device_interface
-#define wl_data_offer_interface _glfw_wl_data_offer_interface
-#define wl_data_source_interface _glfw_wl_data_source_interface
-#define wl_keyboard_interface _glfw_wl_keyboard_interface
-#define wl_output_interface _glfw_wl_output_interface
-#define wl_pointer_interface _glfw_wl_pointer_interface
-#define wl_region_interface _glfw_wl_region_interface
-#define wl_registry_interface _glfw_wl_registry_interface
-#define wl_seat_interface _glfw_wl_seat_interface
-#define wl_shell_surface_interface _glfw_wl_shell_surface_interface
-#define wl_shm_pool_interface _glfw_wl_shm_pool_interface
-#define wl_subsurface_interface _glfw_wl_subsurface_interface
-#define wl_surface_interface _glfw_wl_surface_interface
-#define wl_touch_interface _glfw_wl_touch_interface
-#define zwp_idle_inhibitor_v1_interface _glfw_zwp_idle_inhibitor_v1_interface
-#define zwp_idle_inhibit_manager_v1_interface _glfw_zwp_idle_inhibit_manager_v1_interface
-#define zwp_confined_pointer_v1_interface _glfw_zwp_confined_pointer_v1_interface
-#define zwp_locked_pointer_v1_interface _glfw_zwp_locked_pointer_v1_interface
-#define zwp_pointer_constraints_v1_interface _glfw_zwp_pointer_constraints_v1_interface
-#define zwp_relative_pointer_v1_interface _glfw_zwp_relative_pointer_v1_interface
-#define zwp_relative_pointer_manager_v1_interface _glfw_zwp_relative_pointer_manager_v1_interface
-#define wp_viewport_interface _glfw_wp_viewport_interface
-#define wp_viewporter_interface _glfw_wp_viewporter_interface
-#define xdg_toplevel_interface _glfw_xdg_toplevel_interface
-#define zxdg_toplevel_decoration_v1_interface _glfw_zxdg_toplevel_decoration_v1_interface
-#define zxdg_decoration_manager_v1_interface _glfw_zxdg_decoration_manager_v1_interface
-#define xdg_popup_interface _glfw_xdg_popup_interface
-#define xdg_positioner_interface _glfw_xdg_positioner_interface
-#define xdg_surface_interface _glfw_xdg_surface_interface
-#define xdg_toplevel_interface _glfw_xdg_toplevel_interface
-#define xdg_wm_base_interface _glfw_xdg_wm_base_interface
+#define wl_display_interface _lum_wl_display_interface
+#define wl_subcompositor_interface _lum_wl_subcompositor_interface
+#define wl_compositor_interface _lum_wl_compositor_interface
+#define wl_shm_interface _lum_wl_shm_interface
+#define wl_data_device_manager_interface _lum_wl_data_device_manager_interface
+#define wl_shell_interface _lum_wl_shell_interface
+#define wl_buffer_interface _lum_wl_buffer_interface
+#define wl_callback_interface _lum_wl_callback_interface
+#define wl_data_device_interface _lum_wl_data_device_interface
+#define wl_data_offer_interface _lum_wl_data_offer_interface
+#define wl_data_source_interface _lum_wl_data_source_interface
+#define wl_keyboard_interface _lum_wl_keyboard_interface
+#define wl_output_interface _lum_wl_output_interface
+#define wl_pointer_interface _lum_wl_pointer_interface
+#define wl_region_interface _lum_wl_region_interface
+#define wl_registry_interface _lum_wl_registry_interface
+#define wl_seat_interface _lum_wl_seat_interface
+#define wl_shell_surface_interface _lum_wl_shell_surface_interface
+#define wl_shm_pool_interface _lum_wl_shm_pool_interface
+#define wl_subsurface_interface _lum_wl_subsurface_interface
+#define wl_surface_interface _lum_wl_surface_interface
+#define wl_touch_interface _lum_wl_touch_interface
+#define zwp_idle_inhibitor_v1_interface _lum_zwp_idle_inhibitor_v1_interface
+#define zwp_idle_inhibit_manager_v1_interface _lum_zwp_idle_inhibit_manager_v1_interface
+#define zwp_confined_pointer_v1_interface _lum_zwp_confined_pointer_v1_interface
+#define zwp_locked_pointer_v1_interface _lum_zwp_locked_pointer_v1_interface
+#define zwp_pointer_constraints_v1_interface _lum_zwp_pointer_constraints_v1_interface
+#define zwp_relative_pointer_v1_interface _lum_zwp_relative_pointer_v1_interface
+#define zwp_relative_pointer_manager_v1_interface _lum_zwp_relative_pointer_manager_v1_interface
+#define wp_viewport_interface _lum_wp_viewport_interface
+#define wp_viewporter_interface _lum_wp_viewporter_interface
+#define xdg_toplevel_interface _lum_xdg_toplevel_interface
+#define zxdg_toplevel_decoration_v1_interface _lum_zxdg_toplevel_decoration_v1_interface
+#define zxdg_decoration_manager_v1_interface _lum_zxdg_decoration_manager_v1_interface
+#define xdg_popup_interface _lum_xdg_popup_interface
+#define xdg_positioner_interface _lum_xdg_positioner_interface
+#define xdg_surface_interface _lum_xdg_surface_interface
+#define xdg_toplevel_interface _lum_xdg_toplevel_interface
+#define xdg_wm_base_interface _lum_xdg_wm_base_interface
 
-#define GLFW_WAYLAND_WINDOW_STATE         _GLFWwindowWayland  wl;
-#define GLFW_WAYLAND_LIBRARY_WINDOW_STATE _GLFWlibraryWayland wl;
-#define GLFW_WAYLAND_MONITOR_STATE        _GLFWmonitorWayland wl;
-#define GLFW_WAYLAND_CURSOR_STATE         _GLFWcursorWayland  wl;
+#define LUM_WAYLAND_WINDOW_STATE         _LUMwindowWayland  wl;
+#define LUM_WAYLAND_LIBRARY_WINDOW_STATE _LUMlibraryWayland wl;
+#define LUM_WAYLAND_MONITOR_STATE        _LUMmonitorWayland wl;
+#define LUM_WAYLAND_CURSOR_STATE         _LUMcursorWayland  wl;
 
 struct wl_cursor_image {
     uint32_t width;
@@ -143,17 +143,17 @@ typedef struct wl_cursor_theme* (* PFN_wl_cursor_theme_load)(const char*, int, s
 typedef void (* PFN_wl_cursor_theme_destroy)(struct wl_cursor_theme*);
 typedef struct wl_cursor* (* PFN_wl_cursor_theme_get_cursor)(struct wl_cursor_theme*, const char*);
 typedef struct wl_buffer* (* PFN_wl_cursor_image_get_buffer)(struct wl_cursor_image*);
-#define wl_cursor_theme_load _glfw.wl.cursor.theme_load
-#define wl_cursor_theme_destroy _glfw.wl.cursor.theme_destroy
-#define wl_cursor_theme_get_cursor _glfw.wl.cursor.theme_get_cursor
-#define wl_cursor_image_get_buffer _glfw.wl.cursor.image_get_buffer
+#define wl_cursor_theme_load _lum.wl.cursor.theme_load
+#define wl_cursor_theme_destroy _lum.wl.cursor.theme_destroy
+#define wl_cursor_theme_get_cursor _lum.wl.cursor.theme_get_cursor
+#define wl_cursor_image_get_buffer _lum.wl.cursor.image_get_buffer
 
 typedef struct wl_egl_window* (* PFN_wl_egl_window_create)(struct wl_surface*, int, int);
 typedef void (* PFN_wl_egl_window_destroy)(struct wl_egl_window*);
 typedef void (* PFN_wl_egl_window_resize)(struct wl_egl_window*, int, int, int, int);
-#define wl_egl_window_create _glfw.wl.egl.window_create
-#define wl_egl_window_destroy _glfw.wl.egl.window_destroy
-#define wl_egl_window_resize _glfw.wl.egl.window_resize
+#define wl_egl_window_create _lum.wl.egl.window_create
+#define wl_egl_window_destroy _lum.wl.egl.window_destroy
+#define wl_egl_window_resize _lum.wl.egl.window_resize
 
 typedef struct xkb_context* (* PFN_xkb_context_new)(enum xkb_context_flags);
 typedef void (* PFN_xkb_context_unref)(struct xkb_context*);
@@ -168,19 +168,19 @@ typedef int (* PFN_xkb_state_key_get_syms)(struct xkb_state*, xkb_keycode_t, con
 typedef enum xkb_state_component (* PFN_xkb_state_update_mask)(struct xkb_state*, xkb_mod_mask_t, xkb_mod_mask_t, xkb_mod_mask_t, xkb_layout_index_t, xkb_layout_index_t, xkb_layout_index_t);
 typedef xkb_mod_mask_t (* PFN_xkb_state_serialize_mods)(struct xkb_state*, enum xkb_state_component);
 typedef xkb_layout_index_t (* PFN_xkb_state_key_get_layout)(struct xkb_state*,xkb_keycode_t);
-#define xkb_context_new _glfw.wl.xkb.context_new
-#define xkb_context_unref _glfw.wl.xkb.context_unref
-#define xkb_keymap_new_from_string _glfw.wl.xkb.keymap_new_from_string
-#define xkb_keymap_unref _glfw.wl.xkb.keymap_unref
-#define xkb_keymap_mod_get_index _glfw.wl.xkb.keymap_mod_get_index
-#define xkb_keymap_key_repeats _glfw.wl.xkb.keymap_key_repeats
-#define xkb_keymap_key_get_syms_by_level _glfw.wl.xkb.keymap_key_get_syms_by_level
-#define xkb_state_new _glfw.wl.xkb.state_new
-#define xkb_state_unref _glfw.wl.xkb.state_unref
-#define xkb_state_key_get_syms _glfw.wl.xkb.state_key_get_syms
-#define xkb_state_update_mask _glfw.wl.xkb.state_update_mask
-#define xkb_state_serialize_mods _glfw.wl.xkb.state_serialize_mods
-#define xkb_state_key_get_layout _glfw.wl.xkb.state_key_get_layout
+#define xkb_context_new _lum.wl.xkb.context_new
+#define xkb_context_unref _lum.wl.xkb.context_unref
+#define xkb_keymap_new_from_string _lum.wl.xkb.keymap_new_from_string
+#define xkb_keymap_unref _lum.wl.xkb.keymap_unref
+#define xkb_keymap_mod_get_index _lum.wl.xkb.keymap_mod_get_index
+#define xkb_keymap_key_repeats _lum.wl.xkb.keymap_key_repeats
+#define xkb_keymap_key_get_syms_by_level _lum.wl.xkb.keymap_key_get_syms_by_level
+#define xkb_state_new _lum.wl.xkb.state_new
+#define xkb_state_unref _lum.wl.xkb.state_unref
+#define xkb_state_key_get_syms _lum.wl.xkb.state_key_get_syms
+#define xkb_state_update_mask _lum.wl.xkb.state_update_mask
+#define xkb_state_serialize_mods _lum.wl.xkb.state_serialize_mods
+#define xkb_state_key_get_layout _lum.wl.xkb.state_key_get_layout
 
 typedef struct xkb_compose_table* (* PFN_xkb_compose_table_new_from_locale)(struct xkb_context*, const char*, enum xkb_compose_compile_flags);
 typedef void (* PFN_xkb_compose_table_unref)(struct xkb_compose_table*);
@@ -189,44 +189,44 @@ typedef void (* PFN_xkb_compose_state_unref)(struct xkb_compose_state*);
 typedef enum xkb_compose_feed_result (* PFN_xkb_compose_state_feed)(struct xkb_compose_state*, xkb_keysym_t);
 typedef enum xkb_compose_status (* PFN_xkb_compose_state_get_status)(struct xkb_compose_state*);
 typedef xkb_keysym_t (* PFN_xkb_compose_state_get_one_sym)(struct xkb_compose_state*);
-#define xkb_compose_table_new_from_locale _glfw.wl.xkb.compose_table_new_from_locale
-#define xkb_compose_table_unref _glfw.wl.xkb.compose_table_unref
-#define xkb_compose_state_new _glfw.wl.xkb.compose_state_new
-#define xkb_compose_state_unref _glfw.wl.xkb.compose_state_unref
-#define xkb_compose_state_feed _glfw.wl.xkb.compose_state_feed
-#define xkb_compose_state_get_status _glfw.wl.xkb.compose_state_get_status
-#define xkb_compose_state_get_one_sym _glfw.wl.xkb.compose_state_get_one_sym
+#define xkb_compose_table_new_from_locale _lum.wl.xkb.compose_table_new_from_locale
+#define xkb_compose_table_unref _lum.wl.xkb.compose_table_unref
+#define xkb_compose_state_new _lum.wl.xkb.compose_state_new
+#define xkb_compose_state_unref _lum.wl.xkb.compose_state_unref
+#define xkb_compose_state_feed _lum.wl.xkb.compose_state_feed
+#define xkb_compose_state_get_status _lum.wl.xkb.compose_state_get_status
+#define xkb_compose_state_get_one_sym _lum.wl.xkb.compose_state_get_one_sym
 
-#define _GLFW_DECORATION_WIDTH 4
-#define _GLFW_DECORATION_TOP 24
-#define _GLFW_DECORATION_VERTICAL (_GLFW_DECORATION_TOP + _GLFW_DECORATION_WIDTH)
-#define _GLFW_DECORATION_HORIZONTAL (2 * _GLFW_DECORATION_WIDTH)
+#define _LUM_DECORATION_WIDTH 4
+#define _LUM_DECORATION_TOP 24
+#define _LUM_DECORATION_VERTICAL (_LUM_DECORATION_TOP + _LUM_DECORATION_WIDTH)
+#define _LUM_DECORATION_HORIZONTAL (2 * _LUM_DECORATION_WIDTH)
 
-typedef enum _GLFWdecorationSideWayland
+typedef enum _LUMdecorationSideWayland
 {
     mainWindow,
     topDecoration,
     leftDecoration,
     rightDecoration,
     bottomDecoration,
-} _GLFWdecorationSideWayland;
+} _LUMdecorationSideWayland;
 
-typedef struct _GLFWdecorationWayland
+typedef struct _LUMdecorationWayland
 {
     struct wl_surface*          surface;
     struct wl_subsurface*       subsurface;
     struct wp_viewport*         viewport;
-} _GLFWdecorationWayland;
+} _LUMdecorationWayland;
 
 // Wayland-specific per-window data
 //
-typedef struct _GLFWwindowWayland
+typedef struct _LUMwindowWayland
 {
     int                         width, height;
-    GLFWbool                    visible;
-    GLFWbool                    maximized;
-    GLFWbool                    hovered;
-    GLFWbool                    transparent;
+    LUMbool                    visible;
+    LUMbool                    maximized;
+    LUMbool                    hovered;
+    LUMbool                    transparent;
     struct wl_surface*          surface;
     struct wl_egl_window*       native;
     struct wl_callback*         callback;
@@ -237,7 +237,7 @@ typedef struct _GLFWwindowWayland
         struct zxdg_toplevel_decoration_v1* decoration;
     } xdg;
 
-    _GLFWcursor*                currentCursor;
+    _LUMcursor*                currentCursor;
     double                      cursorPosX, cursorPosY;
 
     char*                       title;
@@ -245,7 +245,7 @@ typedef struct _GLFWwindowWayland
     // We need to track the monitors the window spans on to calculate the
     // optimal scaling factor.
     int                         scale;
-    _GLFWmonitor**              monitors;
+    _LUMmonitor**              monitors;
     int                         monitorsCount;
     int                         monitorsSize;
 
@@ -256,19 +256,19 @@ typedef struct _GLFWwindowWayland
 
     struct zwp_idle_inhibitor_v1*          idleInhibitor;
 
-    GLFWbool                    wasFullscreen;
+    LUMbool                    wasFullscreen;
 
     struct {
-        GLFWbool                           serverSide;
+        LUMbool                           serverSide;
         struct wl_buffer*                  buffer;
-        _GLFWdecorationWayland             top, left, right, bottom;
+        _LUMdecorationWayland             top, left, right, bottom;
         int                                focus;
     } decorations;
-} _GLFWwindowWayland;
+} _LUMwindowWayland;
 
 // Wayland-specific global data
 //
-typedef struct _GLFWlibraryWayland
+typedef struct _LUMlibraryWayland
 {
     struct wl_display*          display;
     struct wl_registry*         registry;
@@ -310,8 +310,8 @@ typedef struct _GLFWlibraryWayland
     size_t                      clipboardSendSize;
     int                         timerfd;
     short int                   keycodes[256];
-    short int                   scancodes[GLFW_KEY_LAST + 1];
-    char                        keynames[GLFW_KEY_LAST + 1][5];
+    short int                   scancodes[LUM_KEY_LAST + 1];
+    char                        keynames[LUM_KEY_LAST + 1][5];
 
     struct {
         void*                   handle;
@@ -352,8 +352,8 @@ typedef struct _GLFWlibraryWayland
         PFN_xkb_compose_state_get_one_sym compose_state_get_one_sym;
     } xkb;
 
-    _GLFWwindow*                pointerFocus;
-    _GLFWwindow*                keyboardFocus;
+    _LUMwindow*                pointerFocus;
+    _LUMwindow*                keyboardFocus;
 
     struct {
         void*                                       handle;
@@ -392,11 +392,11 @@ typedef struct _GLFWlibraryWayland
         PFN_wl_egl_window_destroy window_destroy;
         PFN_wl_egl_window_resize window_resize;
     } egl;
-} _GLFWlibraryWayland;
+} _LUMlibraryWayland;
 
 // Wayland-specific per-monitor data
 //
-typedef struct _GLFWmonitorWayland
+typedef struct _LUMmonitorWayland
 {
     struct wl_output*           output;
     uint32_t                    name;
@@ -405,11 +405,11 @@ typedef struct _GLFWmonitorWayland
     int                         x;
     int                         y;
     int                         scale;
-} _GLFWmonitorWayland;
+} _LUMmonitorWayland;
 
 // Wayland-specific per-cursor data
 //
-typedef struct _GLFWcursorWayland
+typedef struct _LUMcursorWayland
 {
     struct wl_cursor*           cursor;
     struct wl_cursor*           cursorHiDPI;
@@ -417,83 +417,83 @@ typedef struct _GLFWcursorWayland
     int                         width, height;
     int                         xhot, yhot;
     int                         currentImage;
-} _GLFWcursorWayland;
+} _LUMcursorWayland;
 
-GLFWbool _glfwConnectWayland(int platformID, _GLFWplatform* platform);
-int _glfwInitWayland(void);
-void _glfwTerminateWayland(void);
+LUMbool _lumConnectWayland(int platformID, _LUMplatform* platform);
+int _lumInitWayland(void);
+void _lumTerminateWayland(void);
 
-int _glfwCreateWindowWayland(_GLFWwindow* window, const _GLFWwndconfig* wndconfig, const _GLFWctxconfig* ctxconfig, const _GLFWfbconfig* fbconfig);
-void _glfwDestroyWindowWayland(_GLFWwindow* window);
-void _glfwSetWindowTitleWayland(_GLFWwindow* window, const char* title);
-void _glfwSetWindowIconWayland(_GLFWwindow* window, int count, const GLFWimage* images);
-void _glfwGetWindowPosWayland(_GLFWwindow* window, int* xpos, int* ypos);
-void _glfwSetWindowPosWayland(_GLFWwindow* window, int xpos, int ypos);
-void _glfwGetWindowSizeWayland(_GLFWwindow* window, int* width, int* height);
-void _glfwSetWindowSizeWayland(_GLFWwindow* window, int width, int height);
-void _glfwSetWindowSizeLimitsWayland(_GLFWwindow* window, int minwidth, int minheight, int maxwidth, int maxheight);
-void _glfwSetWindowAspectRatioWayland(_GLFWwindow* window, int numer, int denom);
-void _glfwGetFramebufferSizeWayland(_GLFWwindow* window, int* width, int* height);
-void _glfwGetWindowFrameSizeWayland(_GLFWwindow* window, int* left, int* top, int* right, int* bottom);
-void _glfwGetWindowContentScaleWayland(_GLFWwindow* window, float* xscale, float* yscale);
-void _glfwIconifyWindowWayland(_GLFWwindow* window);
-void _glfwRestoreWindowWayland(_GLFWwindow* window);
-void _glfwMaximizeWindowWayland(_GLFWwindow* window);
-void _glfwShowWindowWayland(_GLFWwindow* window);
-void _glfwHideWindowWayland(_GLFWwindow* window);
-void _glfwRequestWindowAttentionWayland(_GLFWwindow* window);
-void _glfwFocusWindowWayland(_GLFWwindow* window);
-void _glfwSetWindowMonitorWayland(_GLFWwindow* window, _GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshRate);
-int _glfwWindowFocusedWayland(_GLFWwindow* window);
-int _glfwWindowIconifiedWayland(_GLFWwindow* window);
-int _glfwWindowVisibleWayland(_GLFWwindow* window);
-int _glfwWindowMaximizedWayland(_GLFWwindow* window);
-int _glfwWindowHoveredWayland(_GLFWwindow* window);
-int _glfwFramebufferTransparentWayland(_GLFWwindow* window);
-void _glfwSetWindowResizableWayland(_GLFWwindow* window, GLFWbool enabled);
-void _glfwSetWindowDecoratedWayland(_GLFWwindow* window, GLFWbool enabled);
-void _glfwSetWindowFloatingWayland(_GLFWwindow* window, GLFWbool enabled);
-float _glfwGetWindowOpacityWayland(_GLFWwindow* window);
-void _glfwSetWindowOpacityWayland(_GLFWwindow* window, float opacity);
-void _glfwSetWindowMousePassthroughWayland(_GLFWwindow* window, GLFWbool enabled);
+int _lumCreateWindowWayland(_LUMwindow* window, const _LUMwndconfig* wndconfig, const _LUMctxconfig* ctxconfig, const _LUMfbconfig* fbconfig);
+void _lumDestroyWindowWayland(_LUMwindow* window);
+void _lumSetWindowTitleWayland(_LUMwindow* window, const char* title);
+void _lumSetWindowIconWayland(_LUMwindow* window, int count, const LUMimage* images);
+void _lumGetWindowPosWayland(_LUMwindow* window, int* xpos, int* ypos);
+void _lumSetWindowPosWayland(_LUMwindow* window, int xpos, int ypos);
+void _lumGetWindowSizeWayland(_LUMwindow* window, int* width, int* height);
+void _lumSetWindowSizeWayland(_LUMwindow* window, int width, int height);
+void _lumSetWindowSizeLimitsWayland(_LUMwindow* window, int minwidth, int minheight, int maxwidth, int maxheight);
+void _lumSetWindowAspectRatioWayland(_LUMwindow* window, int numer, int denom);
+void _lumGetFramebufferSizeWayland(_LUMwindow* window, int* width, int* height);
+void _lumGetWindowFrameSizeWayland(_LUMwindow* window, int* left, int* top, int* right, int* bottom);
+void _lumGetWindowContentScaleWayland(_LUMwindow* window, float* xscale, float* yscale);
+void _lumIconifyWindowWayland(_LUMwindow* window);
+void _lumRestoreWindowWayland(_LUMwindow* window);
+void _lumMaximizeWindowWayland(_LUMwindow* window);
+void _lumShowWindowWayland(_LUMwindow* window);
+void _lumHideWindowWayland(_LUMwindow* window);
+void _lumRequestWindowAttentionWayland(_LUMwindow* window);
+void _lumFocusWindowWayland(_LUMwindow* window);
+void _lumSetWindowMonitorWayland(_LUMwindow* window, _LUMmonitor* monitor, int xpos, int ypos, int width, int height, int refreshRate);
+int _lumWindowFocusedWayland(_LUMwindow* window);
+int _lumWindowIconifiedWayland(_LUMwindow* window);
+int _lumWindowVisibleWayland(_LUMwindow* window);
+int _lumWindowMaximizedWayland(_LUMwindow* window);
+int _lumWindowHoveredWayland(_LUMwindow* window);
+int _lumFramebufferTransparentWayland(_LUMwindow* window);
+void _lumSetWindowResizableWayland(_LUMwindow* window, LUMbool enabled);
+void _lumSetWindowDecoratedWayland(_LUMwindow* window, LUMbool enabled);
+void _lumSetWindowFloatingWayland(_LUMwindow* window, LUMbool enabled);
+float _lumGetWindowOpacityWayland(_LUMwindow* window);
+void _lumSetWindowOpacityWayland(_LUMwindow* window, float opacity);
+void _lumSetWindowMousePassthroughWayland(_LUMwindow* window, LUMbool enabled);
 
-void _glfwSetRawMouseMotionWayland(_GLFWwindow *window, GLFWbool enabled);
-GLFWbool _glfwRawMouseMotionSupportedWayland(void);
+void _lumSetRawMouseMotionWayland(_LUMwindow *window, LUMbool enabled);
+LUMbool _lumRawMouseMotionSupportedWayland(void);
 
-void _glfwPollEventsWayland(void);
-void _glfwWaitEventsWayland(void);
-void _glfwWaitEventsTimeoutWayland(double timeout);
-void _glfwPostEmptyEventWayland(void);
+void _lumPollEventsWayland(void);
+void _lumWaitEventsWayland(void);
+void _lumWaitEventsTimeoutWayland(double timeout);
+void _lumPostEmptyEventWayland(void);
 
-void _glfwGetCursorPosWayland(_GLFWwindow* window, double* xpos, double* ypos);
-void _glfwSetCursorPosWayland(_GLFWwindow* window, double xpos, double ypos);
-void _glfwSetCursorModeWayland(_GLFWwindow* window, int mode);
-const char* _glfwGetScancodeNameWayland(int scancode);
-int _glfwGetKeyScancodeWayland(int key);
-int _glfwCreateCursorWayland(_GLFWcursor* cursor, const GLFWimage* image, int xhot, int yhot);
-int _glfwCreateStandardCursorWayland(_GLFWcursor* cursor, int shape);
-void _glfwDestroyCursorWayland(_GLFWcursor* cursor);
-void _glfwSetCursorWayland(_GLFWwindow* window, _GLFWcursor* cursor);
-void _glfwSetClipboardStringWayland(const char* string);
-const char* _glfwGetClipboardStringWayland(void);
+void _lumGetCursorPosWayland(_LUMwindow* window, double* xpos, double* ypos);
+void _lumSetCursorPosWayland(_LUMwindow* window, double xpos, double ypos);
+void _lumSetCursorModeWayland(_LUMwindow* window, int mode);
+const char* _lumGetScancodeNameWayland(int scancode);
+int _lumGetKeyScancodeWayland(int key);
+int _lumCreateCursorWayland(_LUMcursor* cursor, const LUMimage* image, int xhot, int yhot);
+int _lumCreateStandardCursorWayland(_LUMcursor* cursor, int shape);
+void _lumDestroyCursorWayland(_LUMcursor* cursor);
+void _lumSetCursorWayland(_LUMwindow* window, _LUMcursor* cursor);
+void _lumSetClipboardStringWayland(const char* string);
+const char* _lumGetClipboardStringWayland(void);
 
-EGLenum _glfwGetEGLPlatformWayland(EGLint** attribs);
-EGLNativeDisplayType _glfwGetEGLNativeDisplayWayland(void);
-EGLNativeWindowType _glfwGetEGLNativeWindowWayland(_GLFWwindow* window);
+EGLenum _lumGetEGLPlatformWayland(EGLint** attribs);
+EGLNativeDisplayType _lumGetEGLNativeDisplayWayland(void);
+EGLNativeWindowType _lumGetEGLNativeWindowWayland(_LUMwindow* window);
 
-void _glfwGetRequiredInstanceExtensionsWayland(char** extensions);
-int _glfwGetPhysicalDevicePresentationSupportWayland(VkInstance instance, VkPhysicalDevice device, uint32_t queuefamily);
-VkResult _glfwCreateWindowSurfaceWayland(VkInstance instance, _GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
+void _lumGetRequiredInstanceExtensionsWayland(char** extensions);
+int _lumGetPhysicalDevicePresentationSupportWayland(VkInstance instance, VkPhysicalDevice device, uint32_t queuefamily);
+VkResult _lumCreateWindowSurfaceWayland(VkInstance instance, _LUMwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
 
-void _glfwFreeMonitorWayland(_GLFWmonitor* monitor);
-void _glfwGetMonitorPosWayland(_GLFWmonitor* monitor, int* xpos, int* ypos);
-void _glfwGetMonitorContentScaleWayland(_GLFWmonitor* monitor, float* xscale, float* yscale);
-void _glfwGetMonitorWorkareaWayland(_GLFWmonitor* monitor, int* xpos, int* ypos, int* width, int* height);
-GLFWvidmode* _glfwGetVideoModesWayland(_GLFWmonitor* monitor, int* count);
-void _glfwGetVideoModeWayland(_GLFWmonitor* monitor, GLFWvidmode* mode);
-GLFWbool _glfwGetGammaRampWayland(_GLFWmonitor* monitor, GLFWgammaramp* ramp);
-void _glfwSetGammaRampWayland(_GLFWmonitor* monitor, const GLFWgammaramp* ramp);
+void _lumFreeMonitorWayland(_LUMmonitor* monitor);
+void _lumGetMonitorPosWayland(_LUMmonitor* monitor, int* xpos, int* ypos);
+void _lumGetMonitorContentScaleWayland(_LUMmonitor* monitor, float* xscale, float* yscale);
+void _lumGetMonitorWorkareaWayland(_LUMmonitor* monitor, int* xpos, int* ypos, int* width, int* height);
+LUMvidmode* _lumGetVideoModesWayland(_LUMmonitor* monitor, int* count);
+void _lumGetVideoModeWayland(_LUMmonitor* monitor, LUMvidmode* mode);
+LUMbool _lumGetGammaRampWayland(_LUMmonitor* monitor, LUMgammaramp* ramp);
+void _lumSetGammaRampWayland(_LUMmonitor* monitor, const LUMgammaramp* ramp);
 
-void _glfwAddOutputWayland(uint32_t name, uint32_t version);
-GLFWbool _glfwInputTextWayland(_GLFWwindow* window, uint32_t scancode);
+void _lumAddOutputWayland(uint32_t name, uint32_t version);
+LUMbool _lumInputTextWayland(_LUMwindow* window, uint32_t scancode);
 

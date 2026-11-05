@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Wayland - www.glfw.org
+// Lumina Wayland - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -48,7 +48,7 @@ static void outputHandleGeometry(void* data,
                                  const char* model,
                                  int32_t transform)
 {
-    struct _GLFWmonitor *monitor = data;
+    struct _LUMmonitor *monitor = data;
 
     monitor->wl.x = x;
     monitor->wl.y = y;
@@ -65,8 +65,8 @@ static void outputHandleMode(void* data,
                              int32_t height,
                              int32_t refresh)
 {
-    struct _GLFWmonitor *monitor = data;
-    GLFWvidmode mode;
+    struct _LUMmonitor *monitor = data;
+    LUMvidmode mode;
 
     mode.width = width;
     mode.height = height;
@@ -77,7 +77,7 @@ static void outputHandleMode(void* data,
 
     monitor->modeCount++;
     monitor->modes =
-        _glfw_realloc(monitor->modes, monitor->modeCount * sizeof(GLFWvidmode));
+        _lum_realloc(monitor->modes, monitor->modeCount * sizeof(LUMvidmode));
     monitor->modes[monitor->modeCount - 1] = mode;
 
     if (flags & WL_OUTPUT_MODE_CURRENT)
@@ -86,24 +86,24 @@ static void outputHandleMode(void* data,
 
 static void outputHandleDone(void* data, struct wl_output* output)
 {
-    struct _GLFWmonitor *monitor = data;
+    struct _LUMmonitor *monitor = data;
 
     if (monitor->widthMM <= 0 || monitor->heightMM <= 0)
     {
         // If Wayland does not provide a physical size, assume the default 96 DPI
-        const GLFWvidmode* mode = &monitor->modes[monitor->wl.currentMode];
+        const LUMvidmode* mode = &monitor->modes[monitor->wl.currentMode];
         monitor->widthMM  = (int) (mode->width * 25.4f / 96.f);
         monitor->heightMM = (int) (mode->height * 25.4f / 96.f);
     }
 
-    _glfwInputMonitor(monitor, GLFW_CONNECTED, _GLFW_INSERT_LAST);
+    _lumInputMonitor(monitor, LUM_CONNECTED, _LUM_INSERT_LAST);
 }
 
 static void outputHandleScale(void* data,
                               struct wl_output* output,
                               int32_t factor)
 {
-    struct _GLFWmonitor *monitor = data;
+    struct _LUMmonitor *monitor = data;
 
     monitor->wl.scale = factor;
 }
@@ -117,31 +117,31 @@ static const struct wl_output_listener outputListener = {
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwAddOutputWayland(uint32_t name, uint32_t version)
+void _lumAddOutputWayland(uint32_t name, uint32_t version)
 {
-    _GLFWmonitor *monitor;
+    _LUMmonitor *monitor;
     struct wl_output *output;
 
     if (version < 2)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Wayland: Unsupported output interface version");
         return;
     }
 
     // The actual name of this output will be set in the geometry handler.
-    monitor = _glfwAllocMonitor("", 0, 0);
+    monitor = _lumAllocMonitor("", 0, 0);
 
-    output = wl_registry_bind(_glfw.wl.registry,
+    output = wl_registry_bind(_lum.wl.registry,
                               name,
                               &wl_output_interface,
                               2);
     if (!output)
     {
-        _glfwFreeMonitor(monitor);
+        _lumFreeMonitor(monitor);
         return;
     }
 
@@ -154,16 +154,16 @@ void _glfwAddOutputWayland(uint32_t name, uint32_t version)
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwFreeMonitorWayland(_GLFWmonitor* monitor)
+void _lumFreeMonitorWayland(_LUMmonitor* monitor)
 {
     if (monitor->wl.output)
         wl_output_destroy(monitor->wl.output);
 }
 
-void _glfwGetMonitorPosWayland(_GLFWmonitor* monitor, int* xpos, int* ypos)
+void _lumGetMonitorPosWayland(_LUMmonitor* monitor, int* xpos, int* ypos)
 {
     if (xpos)
         *xpos = monitor->wl.x;
@@ -171,7 +171,7 @@ void _glfwGetMonitorPosWayland(_GLFWmonitor* monitor, int* xpos, int* ypos)
         *ypos = monitor->wl.y;
 }
 
-void _glfwGetMonitorContentScaleWayland(_GLFWmonitor* monitor,
+void _lumGetMonitorContentScaleWayland(_LUMmonitor* monitor,
                                         float* xscale, float* yscale)
 {
     if (xscale)
@@ -180,7 +180,7 @@ void _glfwGetMonitorContentScaleWayland(_GLFWmonitor* monitor,
         *yscale = (float) monitor->wl.scale;
 }
 
-void _glfwGetMonitorWorkareaWayland(_GLFWmonitor* monitor,
+void _lumGetMonitorWorkareaWayland(_LUMmonitor* monitor,
                                     int* xpos, int* ypos,
                                     int* width, int* height)
 {
@@ -194,39 +194,39 @@ void _glfwGetMonitorWorkareaWayland(_GLFWmonitor* monitor,
         *height = monitor->modes[monitor->wl.currentMode].height;
 }
 
-GLFWvidmode* _glfwGetVideoModesWayland(_GLFWmonitor* monitor, int* found)
+LUMvidmode* _lumGetVideoModesWayland(_LUMmonitor* monitor, int* found)
 {
     *found = monitor->modeCount;
     return monitor->modes;
 }
 
-void _glfwGetVideoModeWayland(_GLFWmonitor* monitor, GLFWvidmode* mode)
+void _lumGetVideoModeWayland(_LUMmonitor* monitor, LUMvidmode* mode)
 {
     *mode = monitor->modes[monitor->wl.currentMode];
 }
 
-GLFWbool _glfwGetGammaRampWayland(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
+LUMbool _lumGetGammaRampWayland(_LUMmonitor* monitor, LUMgammaramp* ramp)
 {
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
+    _lumInputError(LUM_FEATURE_UNAVAILABLE,
                     "Wayland: Gamma ramp access is not available");
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
-void _glfwSetGammaRampWayland(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
+void _lumSetGammaRampWayland(_LUMmonitor* monitor, const LUMgammaramp* ramp)
 {
-    _glfwInputError(GLFW_FEATURE_UNAVAILABLE,
+    _lumInputError(LUM_FEATURE_UNAVAILABLE,
                     "Wayland: Gamma ramp access is not available");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW native API                       //////
+//////                        Lumina native API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI struct wl_output* glfwGetWaylandMonitor(GLFWmonitor* handle)
+LUMAPI struct wl_output* lumGetWaylandMonitor(LUMmonitor* handle)
 {
-    _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUMmonitor* monitor = (_LUMmonitor*) handle;
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
     return monitor->wl.output;
 }
 

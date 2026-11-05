@@ -1,5 +1,5 @@
 //========================================================================
-// This is an example program for the GLFW library
+// This is an example program for the Lumina library
 //
 // The program uses a "split window" view, rendering four views of the
 // same scene in one window (e.g. useful for 3D modelling software). This
@@ -12,8 +12,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #if defined(_MSC_VER)
  // Make MS math.h define M_PI
@@ -382,7 +382,7 @@ static void drawAllViews(void)
 // Framebuffer size callback function
 //========================================================================
 
-static void framebufferSizeFun(GLFWwindow* window, int w, int h)
+static void framebufferSizeFun(LUMwindow* window, int w, int h)
 {
     width  = w;
     height = h > 0 ? h : 1;
@@ -394,10 +394,10 @@ static void framebufferSizeFun(GLFWwindow* window, int w, int h)
 // Window refresh callback function
 //========================================================================
 
-static void windowRefreshFun(GLFWwindow* window)
+static void windowRefreshFun(LUMwindow* window)
 {
     drawAllViews();
-    glfwSwapBuffers(window);
+    lumSwapBuffers(window);
     do_redraw = 0;
 }
 
@@ -406,13 +406,13 @@ static void windowRefreshFun(GLFWwindow* window)
 // Mouse position callback function
 //========================================================================
 
-static void cursorPosFun(GLFWwindow* window, double x, double y)
+static void cursorPosFun(LUMwindow* window, double x, double y)
 {
     int wnd_width, wnd_height, fb_width, fb_height;
     double scale;
 
-    glfwGetWindowSize(window, &wnd_width, &wnd_height);
-    glfwGetFramebufferSize(window, &fb_width, &fb_height);
+    lumGetWindowSize(window, &wnd_width, &wnd_height);
+    lumGetFramebufferSize(window, &fb_width, &fb_height);
 
     scale = (double) fb_width / (double) wnd_width;
 
@@ -452,9 +452,9 @@ static void cursorPosFun(GLFWwindow* window, double x, double y)
 // Mouse button callback function
 //========================================================================
 
-static void mouseButtonFun(GLFWwindow* window, int button, int action, int mods)
+static void mouseButtonFun(LUMwindow* window, int button, int action, int mods)
 {
-    if ((button == GLFW_MOUSE_BUTTON_LEFT) && action == GLFW_PRESS)
+    if ((button == LUM_MOUSE_BUTTON_LEFT) && action == LUM_PRESS)
     {
         // Detect which of the four views was clicked
         active_view = 1;
@@ -463,7 +463,7 @@ static void mouseButtonFun(GLFWwindow* window, int button, int action, int mods)
         if (ypos >= height / 2)
             active_view += 2;
     }
-    else if (button == GLFW_MOUSE_BUTTON_LEFT)
+    else if (button == LUM_MOUSE_BUTTON_LEFT)
     {
         // Deselect any previously selected view
         active_view = 0;
@@ -472,10 +472,10 @@ static void mouseButtonFun(GLFWwindow* window, int button, int action, int mods)
     do_redraw = 1;
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
 }
 
 
@@ -485,43 +485,43 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(void)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
 
-    // Initialise GLFW
-    if (!glfwInit())
+    // Initialise Lumina
+    if (!lumInit())
     {
-        fprintf(stderr, "Failed to initialize GLFW\n");
+        fprintf(stderr, "Failed to initialize Lumina\n");
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    lumWindowHint(LUM_SAMPLES, 4);
 
     // Open OpenGL window
-    window = glfwCreateWindow(500, 500, "Split view demo", NULL, NULL);
+    window = lumCreateWindow(500, 500, "Split view demo", NULL, NULL);
     if (!window)
     {
-        fprintf(stderr, "Failed to open GLFW window\n");
+        fprintf(stderr, "Failed to open Lumina window\n");
 
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
     // Set callback functions
-    glfwSetFramebufferSizeCallback(window, framebufferSizeFun);
-    glfwSetWindowRefreshCallback(window, windowRefreshFun);
-    glfwSetCursorPosCallback(window, cursorPosFun);
-    glfwSetMouseButtonCallback(window, mouseButtonFun);
-    glfwSetKeyCallback(window, key_callback);
+    lumSetFramebufferSizeCallback(window, framebufferSizeFun);
+    lumSetWindowRefreshCallback(window, windowRefreshFun);
+    lumSetCursorPosCallback(window, cursorPosFun);
+    lumSetMouseButtonCallback(window, mouseButtonFun);
+    lumSetKeyCallback(window, key_callback);
 
     // Enable vsync
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
     if (GLAD_GL_ARB_multisample || GLAD_GL_VERSION_1_3)
         glEnable(GL_MULTISAMPLE_ARB);
 
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     framebufferSizeFun(window, width, height);
 
     // Main loop
@@ -532,15 +532,15 @@ int main(void)
             windowRefreshFun(window);
 
         // Wait for new events
-        glfwWaitEvents();
+        lumWaitEvents();
 
         // Check if the window should be closed
-        if (glfwWindowShouldClose(window))
+        if (lumWindowShouldClose(window))
             break;
     }
 
-    // Close OpenGL window and terminate GLFW
-    glfwTerminate();
+    // Close OpenGL window and terminate Lumina
+    lumTerminate();
 
     exit(EXIT_SUCCESS);
 }

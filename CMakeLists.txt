@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.4...3.20 FATAL_ERROR)
 
-project(GLFW VERSION 3.4.0 LANGUAGES C)
+project(Lumina VERSION 3.4.0 LANGUAGES C)
+
+# CMake derives these from the project name, i.e. Lumina_SOURCE_DIR and friends.
+# The rest of the build uses the short LUM_ prefix, matching the C API, so the
+# generated variables are aliased here once.
+set(LUM_SOURCE_DIR   "${Lumina_SOURCE_DIR}")
+set(LUM_BINARY_DIR   "${Lumina_BINARY_DIR}")
+set(LUM_VERSION      "${Lumina_VERSION}")
+set(LUM_VERSION_MAJOR "${Lumina_VERSION_MAJOR}")
+set(LUM_VERSION_MINOR "${Lumina_VERSION_MINOR}")
+set(LUM_VERSION_PATCH "${Lumina_VERSION_PATCH}")
 
 set(CMAKE_LEGACY_CYGWIN_WIN32 OFF)
 
@@ -19,51 +29,51 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    set(GLFW_STANDALONE TRUE)
+    set(LUM_STANDALONE TRUE)
 endif()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" ${GLFW_STANDALONE})
-option(GLFW_BUILD_TESTS "Build the GLFW test programs" ${GLFW_STANDALONE})
-option(GLFW_BUILD_DOCS "Build the GLFW documentation" ON)
-option(GLFW_INSTALL "Generate installation target" ON)
+option(LUM_BUILD_EXAMPLES "Build the Lumina example programs" ${LUM_STANDALONE})
+option(LUM_BUILD_TESTS "Build the Lumina test programs" ${LUM_STANDALONE})
+option(LUM_BUILD_DOCS "Build the Lumina documentation" ON)
+option(LUM_INSTALL "Generate installation target" ON)
 
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
-if (GLFW_USE_OSMESA)
-    message(FATAL_ERROR "GLFW_USE_OSMESA has been removed; set the GLFW_PLATFORM init hint")
+if (LUM_USE_OSMESA)
+    message(FATAL_ERROR "LUM_USE_OSMESA has been removed; set the LUM_PLATFORM init hint")
 endif()
 
-cmake_dependent_option(GLFW_BUILD_WIN32 "Build support for Win32" ON "WIN32" OFF)
-cmake_dependent_option(GLFW_BUILD_COCOA "Build support for Cocoa" ON "APPLE" OFF)
-cmake_dependent_option(GLFW_BUILD_X11 "Build support for X11" ON "UNIX;NOT APPLE" OFF)
-cmake_dependent_option(GLFW_BUILD_WAYLAND "Build support for Wayland"
-    "${GLFW_USE_WAYLAND}" "UNIX;NOT APPLE" OFF)
+cmake_dependent_option(LUM_BUILD_WIN32 "Build support for Win32" ON "WIN32" OFF)
+cmake_dependent_option(LUM_BUILD_COCOA "Build support for Cocoa" ON "APPLE" OFF)
+cmake_dependent_option(LUM_BUILD_X11 "Build support for X11" ON "UNIX;NOT APPLE" OFF)
+cmake_dependent_option(LUM_BUILD_WAYLAND "Build support for Wayland"
+    "${LUM_USE_WAYLAND}" "UNIX;NOT APPLE" OFF)
 
-cmake_dependent_option(GLFW_USE_HYBRID_HPG "Force use of high-performance GPU on hybrid systems" OFF
+cmake_dependent_option(LUM_USE_HYBRID_HPG "Force use of high-performance GPU on hybrid systems" OFF
                        "WIN32" OFF)
 cmake_dependent_option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON
                        "MSVC" OFF)
 
-set(GLFW_LIBRARY_TYPE "${GLFW_LIBRARY_TYPE}" CACHE STRING
-    "Library type override for GLFW (SHARED, STATIC, OBJECT, or empty to follow BUILD_SHARED_LIBS)")
+set(LUM_LIBRARY_TYPE "${LUM_LIBRARY_TYPE}" CACHE STRING
+    "Library type override for Lumina (SHARED, STATIC, OBJECT, or empty to follow BUILD_SHARED_LIBS)")
 
-if (GLFW_LIBRARY_TYPE)
-    if (GLFW_LIBRARY_TYPE STREQUAL "SHARED")
-        set(GLFW_BUILD_SHARED_LIBRARY TRUE)
+if (LUM_LIBRARY_TYPE)
+    if (LUM_LIBRARY_TYPE STREQUAL "SHARED")
+        set(LUM_BUILD_SHARED_LIBRARY TRUE)
     else()
-        set(GLFW_BUILD_SHARED_LIBRARY FALSE)
+        set(LUM_BUILD_SHARED_LIBRARY FALSE)
     endif()
 else()
-    set(GLFW_BUILD_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
+    set(LUM_BUILD_SHARED_LIBRARY ${BUILD_SHARED_LIBS})
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${GLFW_SOURCE_DIR}/CMake/modules")
+list(APPEND CMAKE_MODULE_PATH "${LUM_SOURCE_DIR}/CMake/modules")
 
 find_package(Threads REQUIRED)
 
-if (GLFW_BUILD_DOCS)
+if (LUM_BUILD_DOCS)
     set(DOXYGEN_SKIP_DOT TRUE)
     find_package(Doxygen)
 endif()
@@ -71,16 +81,16 @@ endif()
 #--------------------------------------------------------------------
 # Report backend selection
 #--------------------------------------------------------------------
-if (GLFW_BUILD_WIN32)
+if (LUM_BUILD_WIN32)
     message(STATUS "Including Win32 support")
 endif()
-if (GLFW_BUILD_COCOA)
+if (LUM_BUILD_COCOA)
     message(STATUS "Including Cocoa support")
 endif()
-if (GLFW_BUILD_WAYLAND)
+if (LUM_BUILD_WAYLAND)
     message(STATUS "Including Wayland support")
 endif()
-if (GLFW_BUILD_X11)
+if (LUM_BUILD_X11)
     message(STATUS "Including X11 support")
 endif()
 
@@ -114,15 +124,15 @@ endif()
 #--------------------------------------------------------------------
 include(CMakePackageConfigHelpers)
 
-set(GLFW_CONFIG_PATH "${CMAKE_INSTALL_LIBDIR}/cmake/glfw3")
+set(LUM_CONFIG_PATH "${CMAKE_INSTALL_LIBDIR}/cmake/lumina")
 
-configure_package_config_file(CMake/glfw3Config.cmake.in
-                              src/glfw3Config.cmake
-                              INSTALL_DESTINATION "${GLFW_CONFIG_PATH}"
+configure_package_config_file(CMake/luminaConfig.cmake.in
+                              src/luminaConfig.cmake
+                              INSTALL_DESTINATION "${LUM_CONFIG_PATH}"
                               NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
-write_basic_package_version_file(src/glfw3ConfigVersion.cmake
-                                 VERSION ${GLFW_VERSION}
+write_basic_package_version_file(src/luminaConfigVersion.cmake
+                                 VERSION ${LUM_VERSION}
                                  COMPATIBILITY SameMajorVersion)
 
 #--------------------------------------------------------------------
@@ -130,15 +140,15 @@ write_basic_package_version_file(src/glfw3ConfigVersion.cmake
 #--------------------------------------------------------------------
 add_subdirectory(src)
 
-if (GLFW_BUILD_EXAMPLES)
+if (LUM_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if (GLFW_BUILD_TESTS)
+if (LUM_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-if (DOXYGEN_FOUND AND GLFW_BUILD_DOCS)
+if (DOXYGEN_FOUND AND LUM_BUILD_DOCS)
     add_subdirectory(docs)
 endif()
 
@@ -146,22 +156,22 @@ endif()
 # Install files other than the library
 # The library is installed by src/CMakeLists.txt
 #--------------------------------------------------------------------
-if (GLFW_INSTALL)
-    install(DIRECTORY include/GLFW DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            FILES_MATCHING PATTERN glfw3.h PATTERN glfw3native.h)
+if (LUM_INSTALL)
+    install(DIRECTORY include/Lumina DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            FILES_MATCHING PATTERN lumina.h PATTERN lumina_native.h)
 
-    install(FILES "${GLFW_BINARY_DIR}/src/glfw3Config.cmake"
-                  "${GLFW_BINARY_DIR}/src/glfw3ConfigVersion.cmake"
-            DESTINATION "${GLFW_CONFIG_PATH}")
+    install(FILES "${LUM_BINARY_DIR}/src/luminaConfig.cmake"
+                  "${LUM_BINARY_DIR}/src/luminaConfigVersion.cmake"
+            DESTINATION "${LUM_CONFIG_PATH}")
 
-    install(EXPORT glfwTargets FILE glfw3Targets.cmake
+    install(EXPORT luminaTargets FILE luminaTargets.cmake
             EXPORT_LINK_INTERFACE_LIBRARIES
-            DESTINATION "${GLFW_CONFIG_PATH}")
-    install(FILES "${GLFW_BINARY_DIR}/src/glfw3.pc"
+            DESTINATION "${LUM_CONFIG_PATH}")
+    install(FILES "${LUM_BINARY_DIR}/src/lumina.pc"
             DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
-    if (DOXYGEN_FOUND AND GLFW_BUILD_DOCS)
-        install(DIRECTORY "${GLFW_BINARY_DIR}/docs/html"
+    if (DOXYGEN_FOUND AND LUM_BUILD_DOCS)
+        install(DIRECTORY "${LUM_BINARY_DIR}/docs/html"
                 DESTINATION "${CMAKE_INSTALL_DOCDIR}")
     endif()
 
@@ -172,8 +182,8 @@ if (GLFW_INSTALL)
 
         add_custom_target(uninstall
                           "${CMAKE_COMMAND}" -P
-                          "${GLFW_BINARY_DIR}/cmake_uninstall.cmake")
-        set_target_properties(uninstall PROPERTIES FOLDER "GLFW3")
+                          "${LUM_BINARY_DIR}/cmake_uninstall.cmake")
+        set_target_properties(uninstall PROPERTIES FOLDER "Lumina")
     endif()
 endif()
 

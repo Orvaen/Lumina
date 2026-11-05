@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 X11 - www.glfw.org
+// Lumina X11 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -42,7 +42,7 @@
  *
  * The array keysymtab[] contains pairs of X11 keysym values for graphical
  * characters and the corresponding Unicode value. The function
- * _glfwKeySym2Unicode() maps a keysym onto a Unicode value using a binary
+ * _lumKeySym2Unicode() maps a keysym onto a Unicode value using a binary
  * search, therefore keysymtab[] must remain SORTED by keysym value.
  *
  * We allow to represent any UCS character in the range U-00000000 to
@@ -902,12 +902,12 @@ static const struct codepair {
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Convert XKB KeySym to Unicode
 //
-uint32_t _glfwKeySym2Unicode(unsigned int keysym)
+uint32_t _lumKeySym2Unicode(unsigned int keysym)
 {
     int min = 0;
     int max = sizeof(keysymtab) / sizeof(struct codepair) - 1;
@@ -937,6 +937,6 @@ uint32_t _glfwKeySym2Unicode(unsigned int keysym)
     }
 
     // No matching Unicode value found
-    return GLFW_INVALID_CODEPOINT;
+    return LUM_INVALID_CODEPOINT;
 }
 

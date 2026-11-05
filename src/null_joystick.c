@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2016-2017 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -30,29 +30,29 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwInitJoysticksNull(void)
+LUMbool _lumInitJoysticksNull(void)
 {
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwTerminateJoysticksNull(void)
+void _lumTerminateJoysticksNull(void)
 {
 }
 
-int _glfwPollJoystickNull(_GLFWjoystick* js, int mode)
+int _lumPollJoystickNull(_LUMjoystick* js, int mode)
 {
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
-const char* _glfwGetMappingNameNull(void)
+const char* _lumGetMappingNameNull(void)
 {
     return "";
 }
 
-void _glfwUpdateGamepadGUIDNull(char* guid)
+void _lumUpdateGamepadGUIDNull(char* guid)
 {
 }
 

@@ -29,8 +29,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,32 +42,32 @@ static void error_callback(int error, const char* description)
 
 int main(void)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    window = glfwCreateWindow(400, 400, "English 日本語 русский язык 官話", NULL, NULL);
+    window = lumCreateWindow(400, 400, "English 日本語 русский язык 官話", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
-        glfwWaitEvents();
+        lumSwapBuffers(window);
+        lumWaitEvents();
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

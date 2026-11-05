@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// Lumina macOS - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2016 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -32,24 +32,24 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwPlatformInitTimer(void)
+void _lumPlatformInitTimer(void)
 {
     mach_timebase_info_data_t info;
     mach_timebase_info(&info);
 
-    _glfw.timer.ns.frequency = (info.denom * 1e9) / info.numer;
+    _lum.timer.ns.frequency = (info.denom * 1e9) / info.numer;
 }
 
-uint64_t _glfwPlatformGetTimerValue(void)
+uint64_t _lumPlatformGetTimerValue(void)
 {
     return mach_absolute_time();
 }
 
-uint64_t _glfwPlatformGetTimerFrequency(void)
+uint64_t _lumPlatformGetTimerFrequency(void)
 {
-    return _glfw.timer.ns.frequency;
+    return _lum.timer.ns.frequency;
 }
 

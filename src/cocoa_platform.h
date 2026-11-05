@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// Lumina macOS - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -100,52 +100,52 @@ typedef struct VkMetalSurfaceCreateInfoEXT
 typedef VkResult (APIENTRY *PFN_vkCreateMacOSSurfaceMVK)(VkInstance,const VkMacOSSurfaceCreateInfoMVK*,const VkAllocationCallbacks*,VkSurfaceKHR*);
 typedef VkResult (APIENTRY *PFN_vkCreateMetalSurfaceEXT)(VkInstance,const VkMetalSurfaceCreateInfoEXT*,const VkAllocationCallbacks*,VkSurfaceKHR*);
 
-#define GLFW_COCOA_WINDOW_STATE         _GLFWwindowNS  ns;
-#define GLFW_COCOA_LIBRARY_WINDOW_STATE _GLFWlibraryNS ns;
-#define GLFW_COCOA_MONITOR_STATE        _GLFWmonitorNS ns;
-#define GLFW_COCOA_CURSOR_STATE         _GLFWcursorNS  ns;
+#define LUM_COCOA_WINDOW_STATE         _LUMwindowNS  ns;
+#define LUM_COCOA_LIBRARY_WINDOW_STATE _LUMlibraryNS ns;
+#define LUM_COCOA_MONITOR_STATE        _LUMmonitorNS ns;
+#define LUM_COCOA_CURSOR_STATE         _LUMcursorNS  ns;
 
-#define GLFW_NSGL_CONTEXT_STATE         _GLFWcontextNSGL nsgl;
-#define GLFW_NSGL_LIBRARY_CONTEXT_STATE _GLFWlibraryNSGL nsgl;
+#define LUM_NSGL_CONTEXT_STATE         _LUMcontextNSGL nsgl;
+#define LUM_NSGL_LIBRARY_CONTEXT_STATE _LUMlibraryNSGL nsgl;
 
 // HIToolbox.framework pointer typedefs
-#define kTISPropertyUnicodeKeyLayoutData _glfw.ns.tis.kPropertyUnicodeKeyLayoutData
+#define kTISPropertyUnicodeKeyLayoutData _lum.ns.tis.kPropertyUnicodeKeyLayoutData
 typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
-#define TISCopyCurrentKeyboardLayoutInputSource _glfw.ns.tis.CopyCurrentKeyboardLayoutInputSource
+#define TISCopyCurrentKeyboardLayoutInputSource _lum.ns.tis.CopyCurrentKeyboardLayoutInputSource
 typedef void* (*PFN_TISGetInputSourceProperty)(TISInputSourceRef,CFStringRef);
-#define TISGetInputSourceProperty _glfw.ns.tis.GetInputSourceProperty
+#define TISGetInputSourceProperty _lum.ns.tis.GetInputSourceProperty
 typedef UInt8 (*PFN_LMGetKbdType)(void);
-#define LMGetKbdType _glfw.ns.tis.GetKbdType
+#define LMGetKbdType _lum.ns.tis.GetKbdType
 
 
 // NSGL-specific per-context data
 //
-typedef struct _GLFWcontextNSGL
+typedef struct _LUMcontextNSGL
 {
     id                pixelFormat;
     id                object;
-} _GLFWcontextNSGL;
+} _LUMcontextNSGL;
 
 // NSGL-specific global data
 //
-typedef struct _GLFWlibraryNSGL
+typedef struct _LUMlibraryNSGL
 {
-    // dlopen handle for OpenGL.framework (for glfwGetProcAddress)
+    // dlopen handle for OpenGL.framework (for lumGetProcAddress)
     CFBundleRef     framework;
-} _GLFWlibraryNSGL;
+} _LUMlibraryNSGL;
 
 // Cocoa-specific per-window data
 //
-typedef struct _GLFWwindowNS
+typedef struct _LUMwindowNS
 {
     id              object;
     id              delegate;
     id              view;
     id              layer;
 
-    GLFWbool        maximized;
-    GLFWbool        occluded;
-    GLFWbool        retina;
+    LUMbool        maximized;
+    LUMbool        occluded;
+    LUMbool        retina;
 
     // Cached window properties to filter out duplicate events
     int             width, height;
@@ -156,15 +156,15 @@ typedef struct _GLFWwindowNS
     // since the last cursor motion event was processed
     // This is kept to counteract Cocoa doing the same internally
     double          cursorWarpDeltaX, cursorWarpDeltaY;
-} _GLFWwindowNS;
+} _LUMwindowNS;
 
 // Cocoa-specific global data
 //
-typedef struct _GLFWlibraryNS
+typedef struct _LUMlibraryNS
 {
     CGEventSourceRef    eventSource;
     id                  delegate;
-    GLFWbool            cursorHidden;
+    LUMbool            cursorHidden;
     TISInputSourceRef   inputSource;
     IOHIDManagerRef     hidManager;
     id                  unicodeData;
@@ -172,15 +172,15 @@ typedef struct _GLFWlibraryNS
     id                  keyUpMonitor;
     id                  nibObjects;
 
-    char                keynames[GLFW_KEY_LAST + 1][17];
+    char                keynames[LUM_KEY_LAST + 1][17];
     short int           keycodes[256];
-    short int           scancodes[GLFW_KEY_LAST + 1];
+    short int           scancodes[LUM_KEY_LAST + 1];
     char*               clipboardString;
     CGPoint             cascadePoint;
     // Where to place the cursor when re-enabled
     double              restoreCursorPosX, restoreCursorPosY;
     // The window whose disabled cursor mode is active
-    _GLFWwindow*        disabledCursorWindow;
+    _LUMwindow*        disabledCursorWindow;
 
     struct {
         CFBundleRef     bundle;
@@ -189,114 +189,114 @@ typedef struct _GLFWlibraryNS
         PFN_LMGetKbdType GetKbdType;
         CFStringRef     kPropertyUnicodeKeyLayoutData;
     } tis;
-} _GLFWlibraryNS;
+} _LUMlibraryNS;
 
 // Cocoa-specific per-monitor data
 //
-typedef struct _GLFWmonitorNS
+typedef struct _LUMmonitorNS
 {
     CGDirectDisplayID   displayID;
     CGDisplayModeRef    previousMode;
     uint32_t            unitNumber;
     id                  screen;
     double              fallbackRefreshRate;
-} _GLFWmonitorNS;
+} _LUMmonitorNS;
 
 // Cocoa-specific per-cursor data
 //
-typedef struct _GLFWcursorNS
+typedef struct _LUMcursorNS
 {
     id              object;
-} _GLFWcursorNS;
+} _LUMcursorNS;
 
 
-GLFWbool _glfwConnectCocoa(int platformID, _GLFWplatform* platform);
-int _glfwInitCocoa(void);
-void _glfwTerminateCocoa(void);
+LUMbool _lumConnectCocoa(int platformID, _LUMplatform* platform);
+int _lumInitCocoa(void);
+void _lumTerminateCocoa(void);
 
-int _glfwCreateWindowCocoa(_GLFWwindow* window, const _GLFWwndconfig* wndconfig, const _GLFWctxconfig* ctxconfig, const _GLFWfbconfig* fbconfig);
-void _glfwDestroyWindowCocoa(_GLFWwindow* window);
-void _glfwSetWindowTitleCocoa(_GLFWwindow* window, const char* title);
-void _glfwSetWindowIconCocoa(_GLFWwindow* window, int count, const GLFWimage* images);
-void _glfwGetWindowPosCocoa(_GLFWwindow* window, int* xpos, int* ypos);
-void _glfwSetWindowPosCocoa(_GLFWwindow* window, int xpos, int ypos);
-void _glfwGetWindowSizeCocoa(_GLFWwindow* window, int* width, int* height);
-void _glfwSetWindowSizeCocoa(_GLFWwindow* window, int width, int height);
-void _glfwSetWindowSizeLimitsCocoa(_GLFWwindow* window, int minwidth, int minheight, int maxwidth, int maxheight);
-void _glfwSetWindowAspectRatioCocoa(_GLFWwindow* window, int numer, int denom);
-void _glfwGetFramebufferSizeCocoa(_GLFWwindow* window, int* width, int* height);
-void _glfwGetWindowFrameSizeCocoa(_GLFWwindow* window, int* left, int* top, int* right, int* bottom);
-void _glfwGetWindowContentScaleCocoa(_GLFWwindow* window, float* xscale, float* yscale);
-void _glfwIconifyWindowCocoa(_GLFWwindow* window);
-void _glfwRestoreWindowCocoa(_GLFWwindow* window);
-void _glfwMaximizeWindowCocoa(_GLFWwindow* window);
-void _glfwShowWindowCocoa(_GLFWwindow* window);
-void _glfwHideWindowCocoa(_GLFWwindow* window);
-void _glfwRequestWindowAttentionCocoa(_GLFWwindow* window);
-void _glfwFocusWindowCocoa(_GLFWwindow* window);
-void _glfwSetWindowMonitorCocoa(_GLFWwindow* window, _GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshRate);
-int _glfwWindowFocusedCocoa(_GLFWwindow* window);
-int _glfwWindowIconifiedCocoa(_GLFWwindow* window);
-int _glfwWindowVisibleCocoa(_GLFWwindow* window);
-int _glfwWindowMaximizedCocoa(_GLFWwindow* window);
-int _glfwWindowHoveredCocoa(_GLFWwindow* window);
-int _glfwFramebufferTransparentCocoa(_GLFWwindow* window);
-void _glfwSetWindowResizableCocoa(_GLFWwindow* window, GLFWbool enabled);
-void _glfwSetWindowDecoratedCocoa(_GLFWwindow* window, GLFWbool enabled);
-void _glfwSetWindowFloatingCocoa(_GLFWwindow* window, GLFWbool enabled);
-float _glfwGetWindowOpacityCocoa(_GLFWwindow* window);
-void _glfwSetWindowOpacityCocoa(_GLFWwindow* window, float opacity);
-void _glfwSetWindowMousePassthroughCocoa(_GLFWwindow* window, GLFWbool enabled);
+int _lumCreateWindowCocoa(_LUMwindow* window, const _LUMwndconfig* wndconfig, const _LUMctxconfig* ctxconfig, const _LUMfbconfig* fbconfig);
+void _lumDestroyWindowCocoa(_LUMwindow* window);
+void _lumSetWindowTitleCocoa(_LUMwindow* window, const char* title);
+void _lumSetWindowIconCocoa(_LUMwindow* window, int count, const LUMimage* images);
+void _lumGetWindowPosCocoa(_LUMwindow* window, int* xpos, int* ypos);
+void _lumSetWindowPosCocoa(_LUMwindow* window, int xpos, int ypos);
+void _lumGetWindowSizeCocoa(_LUMwindow* window, int* width, int* height);
+void _lumSetWindowSizeCocoa(_LUMwindow* window, int width, int height);
+void _lumSetWindowSizeLimitsCocoa(_LUMwindow* window, int minwidth, int minheight, int maxwidth, int maxheight);
+void _lumSetWindowAspectRatioCocoa(_LUMwindow* window, int numer, int denom);
+void _lumGetFramebufferSizeCocoa(_LUMwindow* window, int* width, int* height);
+void _lumGetWindowFrameSizeCocoa(_LUMwindow* window, int* left, int* top, int* right, int* bottom);
+void _lumGetWindowContentScaleCocoa(_LUMwindow* window, float* xscale, float* yscale);
+void _lumIconifyWindowCocoa(_LUMwindow* window);
+void _lumRestoreWindowCocoa(_LUMwindow* window);
+void _lumMaximizeWindowCocoa(_LUMwindow* window);
+void _lumShowWindowCocoa(_LUMwindow* window);
+void _lumHideWindowCocoa(_LUMwindow* window);
+void _lumRequestWindowAttentionCocoa(_LUMwindow* window);
+void _lumFocusWindowCocoa(_LUMwindow* window);
+void _lumSetWindowMonitorCocoa(_LUMwindow* window, _LUMmonitor* monitor, int xpos, int ypos, int width, int height, int refreshRate);
+int _lumWindowFocusedCocoa(_LUMwindow* window);
+int _lumWindowIconifiedCocoa(_LUMwindow* window);
+int _lumWindowVisibleCocoa(_LUMwindow* window);
+int _lumWindowMaximizedCocoa(_LUMwindow* window);
+int _lumWindowHoveredCocoa(_LUMwindow* window);
+int _lumFramebufferTransparentCocoa(_LUMwindow* window);
+void _lumSetWindowResizableCocoa(_LUMwindow* window, LUMbool enabled);
+void _lumSetWindowDecoratedCocoa(_LUMwindow* window, LUMbool enabled);
+void _lumSetWindowFloatingCocoa(_LUMwindow* window, LUMbool enabled);
+float _lumGetWindowOpacityCocoa(_LUMwindow* window);
+void _lumSetWindowOpacityCocoa(_LUMwindow* window, float opacity);
+void _lumSetWindowMousePassthroughCocoa(_LUMwindow* window, LUMbool enabled);
 
-void _glfwSetRawMouseMotionCocoa(_GLFWwindow *window, GLFWbool enabled);
-GLFWbool _glfwRawMouseMotionSupportedCocoa(void);
+void _lumSetRawMouseMotionCocoa(_LUMwindow *window, LUMbool enabled);
+LUMbool _lumRawMouseMotionSupportedCocoa(void);
 
-void _glfwPollEventsCocoa(void);
-void _glfwWaitEventsCocoa(void);
-void _glfwWaitEventsTimeoutCocoa(double timeout);
-void _glfwPostEmptyEventCocoa(void);
+void _lumPollEventsCocoa(void);
+void _lumWaitEventsCocoa(void);
+void _lumWaitEventsTimeoutCocoa(double timeout);
+void _lumPostEmptyEventCocoa(void);
 
-void _glfwGetCursorPosCocoa(_GLFWwindow* window, double* xpos, double* ypos);
-void _glfwSetCursorPosCocoa(_GLFWwindow* window, double xpos, double ypos);
-void _glfwSetCursorModeCocoa(_GLFWwindow* window, int mode);
-const char* _glfwGetScancodeNameCocoa(int scancode);
-int _glfwGetKeyScancodeCocoa(int key);
-int _glfwCreateCursorCocoa(_GLFWcursor* cursor, const GLFWimage* image, int xhot, int yhot);
-int _glfwCreateStandardCursorCocoa(_GLFWcursor* cursor, int shape);
-void _glfwDestroyCursorCocoa(_GLFWcursor* cursor);
-void _glfwSetCursorCocoa(_GLFWwindow* window, _GLFWcursor* cursor);
-void _glfwSetClipboardStringCocoa(const char* string);
-const char* _glfwGetClipboardStringCocoa(void);
+void _lumGetCursorPosCocoa(_LUMwindow* window, double* xpos, double* ypos);
+void _lumSetCursorPosCocoa(_LUMwindow* window, double xpos, double ypos);
+void _lumSetCursorModeCocoa(_LUMwindow* window, int mode);
+const char* _lumGetScancodeNameCocoa(int scancode);
+int _lumGetKeyScancodeCocoa(int key);
+int _lumCreateCursorCocoa(_LUMcursor* cursor, const LUMimage* image, int xhot, int yhot);
+int _lumCreateStandardCursorCocoa(_LUMcursor* cursor, int shape);
+void _lumDestroyCursorCocoa(_LUMcursor* cursor);
+void _lumSetCursorCocoa(_LUMwindow* window, _LUMcursor* cursor);
+void _lumSetClipboardStringCocoa(const char* string);
+const char* _lumGetClipboardStringCocoa(void);
 
-EGLenum _glfwGetEGLPlatformCocoa(EGLint** attribs);
-EGLNativeDisplayType _glfwGetEGLNativeDisplayCocoa(void);
-EGLNativeWindowType _glfwGetEGLNativeWindowCocoa(_GLFWwindow* window);
+EGLenum _lumGetEGLPlatformCocoa(EGLint** attribs);
+EGLNativeDisplayType _lumGetEGLNativeDisplayCocoa(void);
+EGLNativeWindowType _lumGetEGLNativeWindowCocoa(_LUMwindow* window);
 
-void _glfwGetRequiredInstanceExtensionsCocoa(char** extensions);
-int _glfwGetPhysicalDevicePresentationSupportCocoa(VkInstance instance, VkPhysicalDevice device, uint32_t queuefamily);
-VkResult _glfwCreateWindowSurfaceCocoa(VkInstance instance, _GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
+void _lumGetRequiredInstanceExtensionsCocoa(char** extensions);
+int _lumGetPhysicalDevicePresentationSupportCocoa(VkInstance instance, VkPhysicalDevice device, uint32_t queuefamily);
+VkResult _lumCreateWindowSurfaceCocoa(VkInstance instance, _LUMwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
 
-void _glfwFreeMonitorCocoa(_GLFWmonitor* monitor);
-void _glfwGetMonitorPosCocoa(_GLFWmonitor* monitor, int* xpos, int* ypos);
-void _glfwGetMonitorContentScaleCocoa(_GLFWmonitor* monitor, float* xscale, float* yscale);
-void _glfwGetMonitorWorkareaCocoa(_GLFWmonitor* monitor, int* xpos, int* ypos, int* width, int* height);
-GLFWvidmode* _glfwGetVideoModesCocoa(_GLFWmonitor* monitor, int* count);
-void _glfwGetVideoModeCocoa(_GLFWmonitor* monitor, GLFWvidmode* mode);
-GLFWbool _glfwGetGammaRampCocoa(_GLFWmonitor* monitor, GLFWgammaramp* ramp);
-void _glfwSetGammaRampCocoa(_GLFWmonitor* monitor, const GLFWgammaramp* ramp);
+void _lumFreeMonitorCocoa(_LUMmonitor* monitor);
+void _lumGetMonitorPosCocoa(_LUMmonitor* monitor, int* xpos, int* ypos);
+void _lumGetMonitorContentScaleCocoa(_LUMmonitor* monitor, float* xscale, float* yscale);
+void _lumGetMonitorWorkareaCocoa(_LUMmonitor* monitor, int* xpos, int* ypos, int* width, int* height);
+LUMvidmode* _lumGetVideoModesCocoa(_LUMmonitor* monitor, int* count);
+void _lumGetVideoModeCocoa(_LUMmonitor* monitor, LUMvidmode* mode);
+LUMbool _lumGetGammaRampCocoa(_LUMmonitor* monitor, LUMgammaramp* ramp);
+void _lumSetGammaRampCocoa(_LUMmonitor* monitor, const LUMgammaramp* ramp);
 
-void _glfwPollMonitorsCocoa(void);
-void _glfwSetVideoModeCocoa(_GLFWmonitor* monitor, const GLFWvidmode* desired);
-void _glfwRestoreVideoModeCocoa(_GLFWmonitor* monitor);
+void _lumPollMonitorsCocoa(void);
+void _lumSetVideoModeCocoa(_LUMmonitor* monitor, const LUMvidmode* desired);
+void _lumRestoreVideoModeCocoa(_LUMmonitor* monitor);
 
-float _glfwTransformYCocoa(float y);
+float _lumTransformYCocoa(float y);
 
-void* _glfwLoadLocalVulkanLoaderCocoa(void);
+void* _lumLoadLocalVulkanLoaderCocoa(void);
 
-GLFWbool _glfwInitNSGL(void);
-void _glfwTerminateNSGL(void);
-GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
-                                const _GLFWctxconfig* ctxconfig,
-                                const _GLFWfbconfig* fbconfig);
-void _glfwDestroyContextNSGL(_GLFWwindow* window);
+LUMbool _lumInitNSGL(void);
+void _lumTerminateNSGL(void);
+LUMbool _lumCreateContextNSGL(_LUMwindow* window,
+                                const _LUMctxconfig* ctxconfig,
+                                const _LUMfbconfig* fbconfig);
+void _lumDestroyContextNSGL(_LUMwindow* window);
 

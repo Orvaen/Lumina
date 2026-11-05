@@ -1,7 +1,7 @@
 
-link_libraries(glfw)
+link_libraries(lumina)
 
-include_directories("${GLFW_SOURCE_DIR}/deps")
+include_directories("${LUM_SOURCE_DIR}/deps")
 
 if (MATH_LIBRARY)
     link_libraries("${MATH_LIBRARY}")
@@ -13,21 +13,22 @@ if (MSVC OR CMAKE_C_SIMULATE_ID STREQUAL "MSVC")
 endif()
 
 if (WIN32)
-    set(ICON glfw.rc)
+    set(ICON lumina.rc)
 elseif (APPLE)
-    set(ICON glfw.icns)
+    set(ICON lumina.icns)
 endif()
 
-set(GLAD_GL "${GLFW_SOURCE_DIR}/deps/glad/gl.h")
-set(GLAD_GLES2 "${GLFW_SOURCE_DIR}/deps/glad/gles2.h")
-set(GETOPT "${GLFW_SOURCE_DIR}/deps/getopt.h"
-           "${GLFW_SOURCE_DIR}/deps/getopt.c")
-set(TINYCTHREAD "${GLFW_SOURCE_DIR}/deps/tinycthread.h"
-                "${GLFW_SOURCE_DIR}/deps/tinycthread.c")
+set(GLAD_GL "${LUM_SOURCE_DIR}/deps/glad/gl.h")
+set(GLAD_GLES2 "${LUM_SOURCE_DIR}/deps/glad/gles2.h")
+set(GETOPT "${LUM_SOURCE_DIR}/deps/getopt.h"
+           "${LUM_SOURCE_DIR}/deps/getopt.c")
+set(TINYCTHREAD "${LUM_SOURCE_DIR}/deps/tinycthread.h"
+                "${LUM_SOURCE_DIR}/deps/tinycthread.c")
 
 add_executable(boing WIN32 MACOSX_BUNDLE boing.c ${ICON} ${GLAD_GL})
 add_executable(gears WIN32 MACOSX_BUNDLE gears.c ${ICON} ${GLAD_GL})
 add_executable(heightmap WIN32 MACOSX_BUNDLE heightmap.c ${ICON} ${GLAD_GL})
+add_executable(minimal WIN32 MACOSX_BUNDLE minimal.c ${ICON} ${GLAD_GL})
 add_executable(offscreen offscreen.c ${ICON} ${GLAD_GL})
 add_executable(particles WIN32 MACOSX_BUNDLE particles.c ${ICON} ${TINYCTHREAD} ${GETOPT} ${GLAD_GL})
 add_executable(sharing WIN32 MACOSX_BUNDLE sharing.c ${ICON} ${GLAD_GL})
@@ -42,15 +43,15 @@ if (RT_LIBRARY)
     target_link_libraries(particles "${RT_LIBRARY}")
 endif()
 
-set(GUI_ONLY_BINARIES boing gears heightmap particles sharing splitview
+set(GUI_ONLY_BINARIES boing gears heightmap minimal particles sharing splitview
     triangle-opengl triangle-opengles wave windows)
 set(CONSOLE_BINARIES offscreen)
 
 set_target_properties(${GUI_ONLY_BINARIES} ${CONSOLE_BINARIES} PROPERTIES
                       C_STANDARD 99
-                      FOLDER "GLFW3/Examples")
+                      FOLDER "Lumina/Examples")
 
-if (GLFW_USE_OSMESA)
+if (LUM_USE_OSMESA)
     find_package(OSMesa REQUIRED)
     target_compile_definitions(offscreen PRIVATE USE_NATIVE_OSMESA)
 endif()
@@ -69,6 +70,7 @@ if (APPLE)
     set_target_properties(boing PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Boing")
     set_target_properties(gears PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Gears")
     set_target_properties(heightmap PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Heightmap")
+    set_target_properties(minimal PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Minimal")
     set_target_properties(particles PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Particles")
     set_target_properties(sharing PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Sharing")
     set_target_properties(triangle-opengl PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "OpenGL Triangle")
@@ -77,12 +79,12 @@ if (APPLE)
     set_target_properties(wave PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Wave")
     set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Windows")
 
-    set_source_files_properties(glfw.icns PROPERTIES
+    set_source_files_properties(lumina.icns PROPERTIES
                                 MACOSX_PACKAGE_LOCATION "Resources")
     set_target_properties(${GUI_ONLY_BINARIES} PROPERTIES
-                          MACOSX_BUNDLE_SHORT_VERSION_STRING ${GLFW_VERSION}
-                          MACOSX_BUNDLE_LONG_VERSION_STRING ${GLFW_VERSION}
-                          MACOSX_BUNDLE_ICON_FILE glfw.icns
-                          MACOSX_BUNDLE_INFO_PLIST "${GLFW_SOURCE_DIR}/CMake/Info.plist.in")
+                          MACOSX_BUNDLE_SHORT_VERSION_STRING ${LUM_VERSION}
+                          MACOSX_BUNDLE_LONG_VERSION_STRING ${LUM_VERSION}
+                          MACOSX_BUNDLE_ICON_FILE lumina.icns
+                          MACOSX_BUNDLE_INFO_PLIST "${LUM_SOURCE_DIR}/CMake/Info.plist.in")
 endif()
 

@@ -31,8 +31,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 /* Map height updates */
 #define MAX_CIRCLE_SIZE (5.0f)
@@ -379,16 +379,16 @@ static void update_mesh(void)
 }
 
 /**********************************************************************
- * GLFW callback functions
+ * Lumina callback functions
  *********************************************************************/
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
     switch(key)
     {
-        case GLFW_KEY_ESCAPE:
+        case LUM_KEY_ESCAPE:
             /* Exit program on Escape */
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
     }
 }
@@ -400,7 +400,7 @@ static void error_callback(int error, const char* description)
 
 int main(int argc, char** argv)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
     int iter;
     double dt;
     double last_update_time;
@@ -412,36 +412,36 @@ int main(int argc, char** argv)
 
     GLuint shader_program;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    lumWindowHint(LUM_RESIZABLE, LUM_FALSE);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 3);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 2);
+    lumWindowHint(LUM_OPENGL_PROFILE, LUM_OPENGL_CORE_PROFILE);
+    lumWindowHint(LUM_OPENGL_FORWARD_COMPAT, LUM_TRUE);
 
-    window = glfwCreateWindow(800, 600, "GLFW OpenGL3 Heightmap demo", NULL, NULL);
+    window = lumCreateWindow(800, 600, "Lumina OpenGL3 Heightmap demo", NULL, NULL);
     if (! window )
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
     /* Register events callback */
-    glfwSetKeyCallback(window, key_callback);
+    lumSetKeyCallback(window, key_callback);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
 
     /* Prepare opengl resources for rendering */
     shader_program = make_shader_program(vertex_shader_text, fragment_shader_text);
 
     if (shader_program == 0u)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
@@ -472,16 +472,16 @@ int main(int argc, char** argv)
     /* Create the vbo to store all the information for the grid and the height */
 
     /* setup the scene ready for rendering */
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     /* main loop */
     frame = 0;
     iter = 0;
-    last_update_time = glfwGetTime();
+    last_update_time = lumGetTime();
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         ++frame;
         /* render the next frame */
@@ -489,10 +489,10 @@ int main(int argc, char** argv)
         glDrawElements(GL_LINES, 2* MAP_NUM_LINES , GL_UNSIGNED_INT, 0);
 
         /* display and process events through callbacks */
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
         /* Check the frame rate and update the heightmap if needed */
-        dt = glfwGetTime();
+        dt = lumGetTime();
         if ((dt - last_update_time) > 0.2)
         {
             /* generate the next iteration of the heightmap */
@@ -507,7 +507,7 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

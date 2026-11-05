@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -37,33 +37,33 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                         GLFW event API                       //////
+//////                         Lumina event API                       //////
 //////////////////////////////////////////////////////////////////////////
 
 // Notifies shared code that a window has lost or received input focus
 //
-void _glfwInputWindowFocus(_GLFWwindow* window, GLFWbool focused)
+void _lumInputWindowFocus(_LUMwindow* window, LUMbool focused)
 {
     if (window->callbacks.focus)
-        window->callbacks.focus((GLFWwindow*) window, focused);
+        window->callbacks.focus((LUMwindow*) window, focused);
 
     if (!focused)
     {
         int key, button;
 
-        for (key = 0;  key <= GLFW_KEY_LAST;  key++)
+        for (key = 0;  key <= LUM_KEY_LAST;  key++)
         {
-            if (window->keys[key] == GLFW_PRESS)
+            if (window->keys[key] == LUM_PRESS)
             {
-                const int scancode = _glfw.platform.getKeyScancode(key);
-                _glfwInputKey(window, key, scancode, GLFW_RELEASE, 0);
+                const int scancode = _lum.platform.getKeyScancode(key);
+                _lumInputKey(window, key, scancode, LUM_RELEASE, 0);
             }
         }
 
-        for (button = 0;  button <= GLFW_MOUSE_BUTTON_LAST;  button++)
+        for (button = 0;  button <= LUM_MOUSE_BUTTON_LAST;  button++)
         {
-            if (window->mouseButtons[button] == GLFW_PRESS)
-                _glfwInputMouseClick(window, button, GLFW_RELEASE, 0);
+            if (window->mouseButtons[button] == LUM_PRESS)
+                _lumInputMouseClick(window, button, LUM_RELEASE, 0);
         }
     }
 }
@@ -71,402 +71,582 @@ void _glfwInputWindowFocus(_GLFWwindow* window, GLFWbool focused)
 // Notifies shared code that a window has moved
 // The position is specified in content area relative screen coordinates
 //
-void _glfwInputWindowPos(_GLFWwindow* window, int x, int y)
+void _lumInputWindowPos(_LUMwindow* window, int x, int y)
 {
     if (window->callbacks.pos)
-        window->callbacks.pos((GLFWwindow*) window, x, y);
+        window->callbacks.pos((LUMwindow*) window, x, y);
 }
 
 // Notifies shared code that a window has been resized
 // The size is specified in screen coordinates
 //
-void _glfwInputWindowSize(_GLFWwindow* window, int width, int height)
+void _lumInputWindowSize(_LUMwindow* window, int width, int height)
 {
     if (window->callbacks.size)
-        window->callbacks.size((GLFWwindow*) window, width, height);
+        window->callbacks.size((LUMwindow*) window, width, height);
 }
 
 // Notifies shared code that mouse hittest needs to be resolved
 //
-void _glfwInputTitleBarHitTest(_GLFWwindow* window, int posX, int posY, int* hit)
+void _lumInputTitleBarHitTest(_LUMwindow* window, int posX, int posY, int* hit)
 {
     if (window->callbacks.tbhittest)
-        window->callbacks.tbhittest((GLFWwindow*)window, posX, posY, hit);
+        window->callbacks.tbhittest((LUMwindow*)window, posX, posY, hit);
 }
 
 // Notifies shared code that a window has been iconified or restored
 //
-void _glfwInputWindowIconify(_GLFWwindow* window, GLFWbool iconified)
+void _lumInputWindowIconify(_LUMwindow* window, LUMbool iconified)
 {
     if (window->callbacks.iconify)
-        window->callbacks.iconify((GLFWwindow*) window, iconified);
+        window->callbacks.iconify((LUMwindow*) window, iconified);
 }
 
 // Notifies shared code that a window has been maximized or restored
 //
-void _glfwInputWindowMaximize(_GLFWwindow* window, GLFWbool maximized)
+void _lumInputWindowMaximize(_LUMwindow* window, LUMbool maximized)
 {
     if (window->callbacks.maximize)
-        window->callbacks.maximize((GLFWwindow*) window, maximized);
+        window->callbacks.maximize((LUMwindow*) window, maximized);
 }
 
 // Notifies shared code that a window framebuffer has been resized
 // The size is specified in pixels
 //
-void _glfwInputFramebufferSize(_GLFWwindow* window, int width, int height)
+void _lumInputFramebufferSize(_LUMwindow* window, int width, int height)
 {
     if (window->callbacks.fbsize)
-        window->callbacks.fbsize((GLFWwindow*) window, width, height);
+        window->callbacks.fbsize((LUMwindow*) window, width, height);
 }
 
 // Notifies shared code that a window content scale has changed
 // The scale is specified as the ratio between the current and default DPI
 //
-void _glfwInputWindowContentScale(_GLFWwindow* window, float xscale, float yscale)
+void _lumInputWindowContentScale(_LUMwindow* window, float xscale, float yscale)
 {
     if (window->callbacks.scale)
-        window->callbacks.scale((GLFWwindow*) window, xscale, yscale);
+        window->callbacks.scale((LUMwindow*) window, xscale, yscale);
 }
 
 // Notifies shared code that the window contents needs updating
 //
-void _glfwInputWindowDamage(_GLFWwindow* window)
+void _lumInputWindowDamage(_LUMwindow* window)
 {
     if (window->callbacks.refresh)
-        window->callbacks.refresh((GLFWwindow*) window);
+        window->callbacks.refresh((LUMwindow*) window);
 }
 
 // Notifies shared code that the user wishes to close a window
 //
-void _glfwInputWindowCloseRequest(_GLFWwindow* window)
+void _lumInputWindowCloseRequest(_LUMwindow* window)
 {
-    window->shouldClose = GLFW_TRUE;
+    window->shouldClose = LUM_TRUE;
 
     if (window->callbacks.close)
-        window->callbacks.close((GLFWwindow*) window);
+        window->callbacks.close((LUMwindow*) window);
 }
 
 // Notifies shared code that a window has changed its desired monitor
 //
-void _glfwInputWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor)
+void _lumInputWindowMonitor(_LUMwindow* window, _LUMmonitor* monitor)
 {
     window->monitor = monitor;
 }
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW public API                       //////
+//////                        Lumina public API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI GLFWwindow* glfwCreateWindow(int width, int height,
-                                     const char* title,
-                                     GLFWmonitor* monitor,
-                                     GLFWwindow* share)
+// Fills the creation configs with the library defaults.
+//
+// Single source of truth for every default, shared by lumDefaultWindowHints
+// and lumCreateWindowEx so the two paths cannot drift apart.
+//
+static void setDefaultConfigs(_LUMwndconfig* wndconfig,
+                              _LUMctxconfig* ctxconfig,
+                              _LUMfbconfig* fbconfig,
+                              int* refreshRate)
 {
-    _GLFWfbconfig fbconfig;
-    _GLFWctxconfig ctxconfig;
-    _GLFWwndconfig wndconfig;
-    _GLFWwindow* window;
+    // The default is OpenGL with minimum version 1.0
+    memset(ctxconfig, 0, sizeof(_LUMctxconfig));
+    ctxconfig->client = LUM_OPENGL_API;
+    ctxconfig->source = LUM_NATIVE_CONTEXT_API;
+    ctxconfig->major  = 1;
+    ctxconfig->minor  = 0;
+
+    // The default is a focused, visible, resizable window with decorations
+    memset(wndconfig, 0, sizeof(_LUMwndconfig));
+    wndconfig->resizable    = LUM_TRUE;
+    wndconfig->visible      = LUM_TRUE;
+    wndconfig->decorated    = LUM_TRUE;
+    wndconfig->titlebar     = LUM_TRUE;
+    wndconfig->focused      = LUM_TRUE;
+    wndconfig->autoIconify  = LUM_TRUE;
+    wndconfig->centerCursor = LUM_TRUE;
+    wndconfig->focusOnShow  = LUM_TRUE;
+
+    // The default is to use full Retina resolution framebuffers
+    wndconfig->ns.retina = LUM_TRUE;
+
+    // The default is 24 bits of color, 24 bits of depth and 8 bits of stencil,
+    // double buffered
+    memset(fbconfig, 0, sizeof(_LUMfbconfig));
+    fbconfig->redBits      = 8;
+    fbconfig->greenBits    = 8;
+    fbconfig->blueBits     = 8;
+    fbconfig->alphaBits    = 8;
+    fbconfig->depthBits    = 24;
+    fbconfig->stencilBits  = 8;
+    fbconfig->doublebuffer = LUM_TRUE;
+
+    // The default is to select the highest available refresh rate
+    *refreshRate = LUM_DONT_CARE;
+}
+
+// Resolves a descriptor switch against the library default
+//
+static LUMbool descToggle(LUMtoggle value, LUMbool fallback)
+{
+    if (value == LUM_ON)
+        return LUM_TRUE;
+    if (value == LUM_OFF)
+        return LUM_FALSE;
+
+    return fallback;
+}
+
+// Resolves a descriptor integer, where zero means "use the default"
+//
+static int descInt(int value, int fallback)
+{
+    return value ? value : fallback;
+}
+
+// As descInt, but LUM_BITS_NONE asks for a buffer of exactly zero bits
+//
+static int descBits(int value, int fallback)
+{
+    if (value == LUM_BITS_NONE)
+        return 0;
+
+    return value ? value : fallback;
+}
+
+// Copies an optional descriptor string into a fixed size config field
+//
+static void descString(char* target, size_t size, const char* source)
+{
+    if (!source)
+        return;
+
+    strncpy(target, source, size - 1);
+    target[size - 1] = 0;
+}
+
+// The shared tail of window creation
+//
+// Both public creation functions end up here once their parameters have been
+// turned into the three configuration structs the platform layer expects.
+//
+static LUMwindow* createWindow(const _LUMwndconfig* wndconfig,
+                                const _LUMctxconfig* ctxconfig,
+                                const _LUMfbconfig* fbconfig,
+                                LUMmonitor* monitor,
+                                int refreshRate)
+{
+    _LUMwindow* window;
+
+    if (wndconfig->width <= 0 || wndconfig->height <= 0)
+    {
+        _lumInputError(LUM_INVALID_VALUE,
+                        "Invalid window size %ix%i",
+                        wndconfig->width, wndconfig->height);
+
+        return NULL;
+    }
+
+    if (!_lumIsValidContextConfig(ctxconfig))
+        return NULL;
+
+    window = _lum_calloc(1, sizeof(_LUMwindow));
+    window->next = _lum.windowListHead;
+    _lum.windowListHead = window;
+
+    window->videoMode.width       = wndconfig->width;
+    window->videoMode.height      = wndconfig->height;
+    window->videoMode.redBits     = fbconfig->redBits;
+    window->videoMode.greenBits   = fbconfig->greenBits;
+    window->videoMode.blueBits    = fbconfig->blueBits;
+    window->videoMode.refreshRate = refreshRate;
+
+    window->monitor          = (_LUMmonitor*) monitor;
+    window->resizable        = wndconfig->resizable;
+    window->decorated        = wndconfig->decorated;
+    window->autoIconify      = wndconfig->autoIconify;
+    window->floating         = wndconfig->floating;
+    window->focusOnShow      = wndconfig->focusOnShow;
+    window->mousePassthrough = wndconfig->mousePassthrough;
+    window->cursorMode       = LUM_CURSOR_NORMAL;
+
+    window->doublebuffer = fbconfig->doublebuffer;
+
+    window->minwidth    = LUM_DONT_CARE;
+    window->minheight   = LUM_DONT_CARE;
+    window->maxwidth    = LUM_DONT_CARE;
+    window->maxheight   = LUM_DONT_CARE;
+    window->numer       = LUM_DONT_CARE;
+    window->denom       = LUM_DONT_CARE;
+
+    // Open the actual window and create its context
+    if (!_lum.platform.createWindow(window, wndconfig, ctxconfig, fbconfig))
+    {
+        lumDestroyWindow((LUMwindow*) window);
+        return NULL;
+    }
+
+    if (ctxconfig->client != LUM_NO_API)
+    {
+        if (!_lumRefreshContextAttribs(window, ctxconfig))
+        {
+            lumDestroyWindow((LUMwindow*) window);
+            return NULL;
+        }
+    }
+
+    if (wndconfig->mousePassthrough)
+        _lum.platform.setWindowMousePassthrough(window, LUM_TRUE);
+
+    if (window->monitor)
+    {
+        if (wndconfig->centerCursor)
+            _lumCenterCursorInContentArea(window);
+    }
+    else
+    {
+        if (wndconfig->visible)
+        {
+            _lum.platform.showWindow(window);
+            if (wndconfig->focused)
+                _lum.platform.focusWindow(window);
+        }
+    }
+
+    return (LUMwindow*) window;
+}
+
+LUMAPI LUMwindow* lumCreateWindow(int width, int height,
+                                     const char* title,
+                                     LUMmonitor* monitor,
+                                     LUMwindow* share)
+{
+    _LUMfbconfig fbconfig;
+    _LUMctxconfig ctxconfig;
+    _LUMwndconfig wndconfig;
 
     assert(title != NULL);
     assert(width >= 0);
     assert(height >= 0);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (width <= 0 || height <= 0)
-    {
-        _glfwInputError(GLFW_INVALID_VALUE,
-                        "Invalid window size %ix%i",
-                        width, height);
-
-        return NULL;
-    }
-
-    fbconfig  = _glfw.hints.framebuffer;
-    ctxconfig = _glfw.hints.context;
-    wndconfig = _glfw.hints.window;
+    fbconfig  = _lum.hints.framebuffer;
+    ctxconfig = _lum.hints.context;
+    wndconfig = _lum.hints.window;
 
     wndconfig.width   = width;
     wndconfig.height  = height;
     wndconfig.title   = title;
-    ctxconfig.share   = (_GLFWwindow*) share;
+    ctxconfig.share   = (_LUMwindow*) share;
 
-    if (!_glfwIsValidContextConfig(&ctxconfig))
-        return NULL;
+    return createWindow(&wndconfig, &ctxconfig, &fbconfig,
+                        monitor, _lum.hints.refreshRate);
+}
 
-    window = _glfw_calloc(1, sizeof(_GLFWwindow));
-    window->next = _glfw.windowListHead;
-    _glfw.windowListHead = window;
+LUMAPI LUMwindow* lumCreateWindowEx(const LUMwindowdesc* desc)
+{
+    _LUMfbconfig fbconfig;
+    _LUMctxconfig ctxconfig;
+    _LUMwndconfig wndconfig;
+    LUMwindow* window;
+    int refreshRate;
 
-    window->videoMode.width       = width;
-    window->videoMode.height      = height;
-    window->videoMode.redBits     = fbconfig.redBits;
-    window->videoMode.greenBits   = fbconfig.greenBits;
-    window->videoMode.blueBits    = fbconfig.blueBits;
-    window->videoMode.refreshRate = _glfw.hints.refreshRate;
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    window->monitor          = (_GLFWmonitor*) monitor;
-    window->resizable        = wndconfig.resizable;
-    window->decorated        = wndconfig.decorated;
-    window->autoIconify      = wndconfig.autoIconify;
-    window->floating         = wndconfig.floating;
-    window->focusOnShow      = wndconfig.focusOnShow;
-    window->mousePassthrough = wndconfig.mousePassthrough;
-    window->cursorMode       = GLFW_CURSOR_NORMAL;
-
-    window->doublebuffer = fbconfig.doublebuffer;
-
-    window->minwidth    = GLFW_DONT_CARE;
-    window->minheight   = GLFW_DONT_CARE;
-    window->maxwidth    = GLFW_DONT_CARE;
-    window->maxheight   = GLFW_DONT_CARE;
-    window->numer       = GLFW_DONT_CARE;
-    window->denom       = GLFW_DONT_CARE;
-
-    // Open the actual window and create its context
-    if (!_glfw.platform.createWindow(window, &wndconfig, &ctxconfig, &fbconfig))
+    if (desc == NULL)
     {
-        glfwDestroyWindow((GLFWwindow*) window);
+        _lumInputError(LUM_INVALID_VALUE, "Window descriptor must not be NULL");
         return NULL;
     }
 
-    if (ctxconfig.client != GLFW_NO_API)
+    if (desc->title == NULL)
     {
-        if (!_glfwRefreshContextAttribs(window, &ctxconfig))
-        {
-            glfwDestroyWindow((GLFWwindow*) window);
-            return NULL;
-        }
+        _lumInputError(LUM_INVALID_VALUE, "Window title must not be NULL");
+        return NULL;
     }
 
-    if (wndconfig.mousePassthrough)
-        _glfw.platform.setWindowMousePassthrough(window, GLFW_TRUE);
+    // Start from the library defaults, then apply whatever the descriptor
+    // states.  A field left at zero therefore keeps its default.
+    setDefaultConfigs(&wndconfig, &ctxconfig, &fbconfig, &refreshRate);
 
-    if (window->monitor)
-    {
-        if (wndconfig.centerCursor)
-            _glfwCenterCursorInContentArea(window);
-    }
+    wndconfig.width  = desc->width;
+    wndconfig.height = desc->height;
+    wndconfig.title  = desc->title;
+
+    wndconfig.resizable        = descToggle(desc->resizable, wndconfig.resizable);
+    wndconfig.visible          = descToggle(desc->visible, wndconfig.visible);
+    wndconfig.decorated        = descToggle(desc->decorated, wndconfig.decorated);
+    wndconfig.titlebar         = descToggle(desc->titlebar, wndconfig.titlebar);
+    wndconfig.focused          = descToggle(desc->focused, wndconfig.focused);
+    wndconfig.autoIconify      = descToggle(desc->autoIconify, wndconfig.autoIconify);
+    wndconfig.floating         = descToggle(desc->floating, wndconfig.floating);
+    wndconfig.maximized        = descToggle(desc->maximized, wndconfig.maximized);
+    wndconfig.centerCursor     = descToggle(desc->centerCursor, wndconfig.centerCursor);
+    wndconfig.focusOnShow      = descToggle(desc->focusOnShow, wndconfig.focusOnShow);
+    wndconfig.mousePassthrough = descToggle(desc->mousePassthrough,
+                                            wndconfig.mousePassthrough);
+    wndconfig.scaleToMonitor   = descToggle(desc->scaleToMonitor,
+                                            wndconfig.scaleToMonitor);
+
+    wndconfig.ns.retina     = descToggle(desc->cocoaRetinaFramebuffer,
+                                         wndconfig.ns.retina);
+    wndconfig.win32.keymenu = descToggle(desc->win32KeyboardMenu,
+                                         wndconfig.win32.keymenu);
+
+    descString(wndconfig.ns.frameName, sizeof(wndconfig.ns.frameName),
+               desc->cocoaFrameName);
+    descString(wndconfig.x11.className, sizeof(wndconfig.x11.className),
+               desc->x11ClassName);
+    descString(wndconfig.x11.instanceName, sizeof(wndconfig.x11.instanceName),
+               desc->x11InstanceName);
+
+    // A descriptor says "no context" with a switch, because LUM_NO_API is zero
+    // and zero already means "use the default" everywhere else.
+    if (desc->context == LUM_OFF)
+        ctxconfig.client = LUM_NO_API;
     else
-    {
-        if (wndconfig.visible)
-        {
-            _glfw.platform.showWindow(window);
-            if (wndconfig.focused)
-                _glfw.platform.focusWindow(window);
-        }
-    }
+        ctxconfig.client = descInt(desc->clientApi, ctxconfig.client);
 
-    return (GLFWwindow*) window;
+    ctxconfig.source       = descInt(desc->contextCreationApi, ctxconfig.source);
+    ctxconfig.major        = descInt(desc->glMajor, ctxconfig.major);
+    ctxconfig.minor        = desc->glMinor;
+    ctxconfig.profile      = descInt(desc->glProfile, ctxconfig.profile);
+    ctxconfig.robustness   = descInt(desc->robustness, ctxconfig.robustness);
+    ctxconfig.release      = descInt(desc->releaseBehavior, ctxconfig.release);
+    ctxconfig.forward      = descToggle(desc->forwardCompatible, ctxconfig.forward);
+    ctxconfig.debug        = descToggle(desc->debugContext, ctxconfig.debug);
+    ctxconfig.noerror      = descToggle(desc->noErrorContext, ctxconfig.noerror);
+    ctxconfig.nsgl.offline = descToggle(desc->cocoaGraphicsSwitching,
+                                        ctxconfig.nsgl.offline);
+    ctxconfig.share        = (_LUMwindow*) desc->share;
+
+    fbconfig.redBits        = descBits(desc->redBits, fbconfig.redBits);
+    fbconfig.greenBits      = descBits(desc->greenBits, fbconfig.greenBits);
+    fbconfig.blueBits       = descBits(desc->blueBits, fbconfig.blueBits);
+    fbconfig.alphaBits      = descBits(desc->alphaBits, fbconfig.alphaBits);
+    fbconfig.depthBits      = descBits(desc->depthBits, fbconfig.depthBits);
+    fbconfig.stencilBits    = descBits(desc->stencilBits, fbconfig.stencilBits);
+    fbconfig.accumRedBits   = descBits(desc->accumRedBits, fbconfig.accumRedBits);
+    fbconfig.accumGreenBits = descBits(desc->accumGreenBits, fbconfig.accumGreenBits);
+    fbconfig.accumBlueBits  = descBits(desc->accumBlueBits, fbconfig.accumBlueBits);
+    fbconfig.accumAlphaBits = descBits(desc->accumAlphaBits, fbconfig.accumAlphaBits);
+    fbconfig.auxBuffers     = descBits(desc->auxBuffers, fbconfig.auxBuffers);
+    fbconfig.samples        = descBits(desc->samples, fbconfig.samples);
+    fbconfig.stereo         = descToggle(desc->stereo, fbconfig.stereo);
+    fbconfig.sRGB           = descToggle(desc->srgbCapable, fbconfig.sRGB);
+    fbconfig.doublebuffer   = descToggle(desc->doublebuffer, fbconfig.doublebuffer);
+    fbconfig.transparent    = descToggle(desc->transparentFramebuffer,
+                                         fbconfig.transparent);
+
+    refreshRate = descInt(desc->refreshRate, refreshRate);
+
+    window = createWindow(&wndconfig, &ctxconfig, &fbconfig,
+                          desc->monitor, refreshRate);
+    if (!window)
+        return NULL;
+
+    if (desc->makeCurrent == LUM_ON && ctxconfig.client != LUM_NO_API)
+        lumMakeContextCurrent(window);
+
+    return window;
 }
 
-void glfwDefaultWindowHints(void)
+void lumDefaultWindowHints(void)
 {
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    // The default is OpenGL with minimum version 1.0
-    memset(&_glfw.hints.context, 0, sizeof(_glfw.hints.context));
-    _glfw.hints.context.client = GLFW_OPENGL_API;
-    _glfw.hints.context.source = GLFW_NATIVE_CONTEXT_API;
-    _glfw.hints.context.major  = 1;
-    _glfw.hints.context.minor  = 0;
-
-    // The default is a focused, visible, resizable window with decorations
-    memset(&_glfw.hints.window, 0, sizeof(_glfw.hints.window));
-    _glfw.hints.window.resizable    = GLFW_TRUE;
-    _glfw.hints.window.visible      = GLFW_TRUE;
-    _glfw.hints.window.decorated    = GLFW_TRUE;
-    _glfw.hints.window.titlebar     = GLFW_TRUE;
-    _glfw.hints.window.focused      = GLFW_TRUE;
-    _glfw.hints.window.autoIconify  = GLFW_TRUE;
-    _glfw.hints.window.centerCursor = GLFW_TRUE;
-    _glfw.hints.window.focusOnShow  = GLFW_TRUE;
-
-    // The default is 24 bits of color, 24 bits of depth and 8 bits of stencil,
-    // double buffered
-    memset(&_glfw.hints.framebuffer, 0, sizeof(_glfw.hints.framebuffer));
-    _glfw.hints.framebuffer.redBits      = 8;
-    _glfw.hints.framebuffer.greenBits    = 8;
-    _glfw.hints.framebuffer.blueBits     = 8;
-    _glfw.hints.framebuffer.alphaBits    = 8;
-    _glfw.hints.framebuffer.depthBits    = 24;
-    _glfw.hints.framebuffer.stencilBits  = 8;
-    _glfw.hints.framebuffer.doublebuffer = GLFW_TRUE;
-
-    // The default is to select the highest available refresh rate
-    _glfw.hints.refreshRate = GLFW_DONT_CARE;
-
-    // The default is to use full Retina resolution framebuffers
-    _glfw.hints.window.ns.retina = GLFW_TRUE;
+    setDefaultConfigs(&_lum.hints.window,
+                      &_lum.hints.context,
+                      &_lum.hints.framebuffer,
+                      &_lum.hints.refreshRate);
 }
 
-GLFWAPI void glfwWindowHint(int hint, int value)
+LUMAPI void lumWindowHint(int hint, int value)
 {
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     switch (hint)
     {
-        case GLFW_RED_BITS:
-            _glfw.hints.framebuffer.redBits = value;
+        case LUM_RED_BITS:
+            _lum.hints.framebuffer.redBits = value;
             return;
-        case GLFW_GREEN_BITS:
-            _glfw.hints.framebuffer.greenBits = value;
+        case LUM_GREEN_BITS:
+            _lum.hints.framebuffer.greenBits = value;
             return;
-        case GLFW_BLUE_BITS:
-            _glfw.hints.framebuffer.blueBits = value;
+        case LUM_BLUE_BITS:
+            _lum.hints.framebuffer.blueBits = value;
             return;
-        case GLFW_ALPHA_BITS:
-            _glfw.hints.framebuffer.alphaBits = value;
+        case LUM_ALPHA_BITS:
+            _lum.hints.framebuffer.alphaBits = value;
             return;
-        case GLFW_DEPTH_BITS:
-            _glfw.hints.framebuffer.depthBits = value;
+        case LUM_DEPTH_BITS:
+            _lum.hints.framebuffer.depthBits = value;
             return;
-        case GLFW_STENCIL_BITS:
-            _glfw.hints.framebuffer.stencilBits = value;
+        case LUM_STENCIL_BITS:
+            _lum.hints.framebuffer.stencilBits = value;
             return;
-        case GLFW_ACCUM_RED_BITS:
-            _glfw.hints.framebuffer.accumRedBits = value;
+        case LUM_ACCUM_RED_BITS:
+            _lum.hints.framebuffer.accumRedBits = value;
             return;
-        case GLFW_ACCUM_GREEN_BITS:
-            _glfw.hints.framebuffer.accumGreenBits = value;
+        case LUM_ACCUM_GREEN_BITS:
+            _lum.hints.framebuffer.accumGreenBits = value;
             return;
-        case GLFW_ACCUM_BLUE_BITS:
-            _glfw.hints.framebuffer.accumBlueBits = value;
+        case LUM_ACCUM_BLUE_BITS:
+            _lum.hints.framebuffer.accumBlueBits = value;
             return;
-        case GLFW_ACCUM_ALPHA_BITS:
-            _glfw.hints.framebuffer.accumAlphaBits = value;
+        case LUM_ACCUM_ALPHA_BITS:
+            _lum.hints.framebuffer.accumAlphaBits = value;
             return;
-        case GLFW_AUX_BUFFERS:
-            _glfw.hints.framebuffer.auxBuffers = value;
+        case LUM_AUX_BUFFERS:
+            _lum.hints.framebuffer.auxBuffers = value;
             return;
-        case GLFW_STEREO:
-            _glfw.hints.framebuffer.stereo = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_STEREO:
+            _lum.hints.framebuffer.stereo = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_DOUBLEBUFFER:
-            _glfw.hints.framebuffer.doublebuffer = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_DOUBLEBUFFER:
+            _lum.hints.framebuffer.doublebuffer = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_TRANSPARENT_FRAMEBUFFER:
-            _glfw.hints.framebuffer.transparent = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_TRANSPARENT_FRAMEBUFFER:
+            _lum.hints.framebuffer.transparent = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_SAMPLES:
-            _glfw.hints.framebuffer.samples = value;
+        case LUM_SAMPLES:
+            _lum.hints.framebuffer.samples = value;
             return;
-        case GLFW_SRGB_CAPABLE:
-            _glfw.hints.framebuffer.sRGB = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_SRGB_CAPABLE:
+            _lum.hints.framebuffer.sRGB = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_RESIZABLE:
-            _glfw.hints.window.resizable = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_RESIZABLE:
+            _lum.hints.window.resizable = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_DECORATED:
-            _glfw.hints.window.decorated = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_DECORATED:
+            _lum.hints.window.decorated = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_TITLEBAR:
-            _glfw.hints.window.titlebar = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_TITLEBAR:
+            _lum.hints.window.titlebar = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_FOCUSED:
-            _glfw.hints.window.focused = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_FOCUSED:
+            _lum.hints.window.focused = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_AUTO_ICONIFY:
-            _glfw.hints.window.autoIconify = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_AUTO_ICONIFY:
+            _lum.hints.window.autoIconify = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_FLOATING:
-            _glfw.hints.window.floating = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_FLOATING:
+            _lum.hints.window.floating = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_MAXIMIZED:
-            _glfw.hints.window.maximized = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_MAXIMIZED:
+            _lum.hints.window.maximized = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_VISIBLE:
-            _glfw.hints.window.visible = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_VISIBLE:
+            _lum.hints.window.visible = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_COCOA_RETINA_FRAMEBUFFER:
-            _glfw.hints.window.ns.retina = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_COCOA_RETINA_FRAMEBUFFER:
+            _lum.hints.window.ns.retina = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_WIN32_KEYBOARD_MENU:
-            _glfw.hints.window.win32.keymenu = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_WIN32_KEYBOARD_MENU:
+            _lum.hints.window.win32.keymenu = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_COCOA_GRAPHICS_SWITCHING:
-            _glfw.hints.context.nsgl.offline = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_COCOA_GRAPHICS_SWITCHING:
+            _lum.hints.context.nsgl.offline = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_SCALE_TO_MONITOR:
-            _glfw.hints.window.scaleToMonitor = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_SCALE_TO_MONITOR:
+            _lum.hints.window.scaleToMonitor = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_CENTER_CURSOR:
-            _glfw.hints.window.centerCursor = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_CENTER_CURSOR:
+            _lum.hints.window.centerCursor = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_FOCUS_ON_SHOW:
-            _glfw.hints.window.focusOnShow = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_FOCUS_ON_SHOW:
+            _lum.hints.window.focusOnShow = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_MOUSE_PASSTHROUGH:
-            _glfw.hints.window.mousePassthrough = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_MOUSE_PASSTHROUGH:
+            _lum.hints.window.mousePassthrough = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_CLIENT_API:
-            _glfw.hints.context.client = value;
+        case LUM_CLIENT_API:
+            _lum.hints.context.client = value;
             return;
-        case GLFW_CONTEXT_CREATION_API:
-            _glfw.hints.context.source = value;
+        case LUM_CONTEXT_CREATION_API:
+            _lum.hints.context.source = value;
             return;
-        case GLFW_CONTEXT_VERSION_MAJOR:
-            _glfw.hints.context.major = value;
+        case LUM_CONTEXT_VERSION_MAJOR:
+            _lum.hints.context.major = value;
             return;
-        case GLFW_CONTEXT_VERSION_MINOR:
-            _glfw.hints.context.minor = value;
+        case LUM_CONTEXT_VERSION_MINOR:
+            _lum.hints.context.minor = value;
             return;
-        case GLFW_CONTEXT_ROBUSTNESS:
-            _glfw.hints.context.robustness = value;
+        case LUM_CONTEXT_ROBUSTNESS:
+            _lum.hints.context.robustness = value;
             return;
-        case GLFW_OPENGL_FORWARD_COMPAT:
-            _glfw.hints.context.forward = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_OPENGL_FORWARD_COMPAT:
+            _lum.hints.context.forward = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_CONTEXT_DEBUG:
-            _glfw.hints.context.debug = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_CONTEXT_DEBUG:
+            _lum.hints.context.debug = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_CONTEXT_NO_ERROR:
-            _glfw.hints.context.noerror = value ? GLFW_TRUE : GLFW_FALSE;
+        case LUM_CONTEXT_NO_ERROR:
+            _lum.hints.context.noerror = value ? LUM_TRUE : LUM_FALSE;
             return;
-        case GLFW_OPENGL_PROFILE:
-            _glfw.hints.context.profile = value;
+        case LUM_OPENGL_PROFILE:
+            _lum.hints.context.profile = value;
             return;
-        case GLFW_CONTEXT_RELEASE_BEHAVIOR:
-            _glfw.hints.context.release = value;
+        case LUM_CONTEXT_RELEASE_BEHAVIOR:
+            _lum.hints.context.release = value;
             return;
-        case GLFW_REFRESH_RATE:
-            _glfw.hints.refreshRate = value;
+        case LUM_REFRESH_RATE:
+            _lum.hints.refreshRate = value;
             return;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid window hint 0x%08X", hint);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid window hint 0x%08X", hint);
 }
 
-GLFWAPI void glfwWindowHintString(int hint, const char* value)
+LUMAPI void lumWindowHintString(int hint, const char* value)
 {
     assert(value != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     switch (hint)
     {
-        case GLFW_COCOA_FRAME_NAME:
-            strncpy(_glfw.hints.window.ns.frameName, value,
-                    sizeof(_glfw.hints.window.ns.frameName) - 1);
+        case LUM_COCOA_FRAME_NAME:
+            strncpy(_lum.hints.window.ns.frameName, value,
+                    sizeof(_lum.hints.window.ns.frameName) - 1);
             return;
-        case GLFW_X11_CLASS_NAME:
-            strncpy(_glfw.hints.window.x11.className, value,
-                    sizeof(_glfw.hints.window.x11.className) - 1);
+        case LUM_X11_CLASS_NAME:
+            strncpy(_lum.hints.window.x11.className, value,
+                    sizeof(_lum.hints.window.x11.className) - 1);
             return;
-        case GLFW_X11_INSTANCE_NAME:
-            strncpy(_glfw.hints.window.x11.instanceName, value,
-                    sizeof(_glfw.hints.window.x11.instanceName) - 1);
+        case LUM_X11_INSTANCE_NAME:
+            strncpy(_lum.hints.window.x11.instanceName, value,
+                    sizeof(_lum.hints.window.x11.instanceName) - 1);
             return;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid window hint string 0x%08X", hint);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid window hint string 0x%08X", hint);
 }
 
-GLFWAPI void glfwDestroyWindow(GLFWwindow* handle)
+LUMAPI void lumDestroyWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     // Allow closing of NULL (to match the behavior of free)
     if (window == NULL)
@@ -477,14 +657,14 @@ GLFWAPI void glfwDestroyWindow(GLFWwindow* handle)
 
     // The window's context must not be current on another thread when the
     // window is destroyed
-    if (window == _glfwPlatformGetTls(&_glfw.contextSlot))
-        glfwMakeContextCurrent(NULL);
+    if (window == _lumPlatformGetTls(&_lum.contextSlot))
+        lumMakeContextCurrent(NULL);
 
-    _glfw.platform.destroyWindow(window);
+    _lum.platform.destroyWindow(window);
 
     // Unlink window from global linked list
     {
-        _GLFWwindow** prev = &_glfw.windowListHead;
+        _LUMwindow** prev = &_lum.windowListHead;
 
         while (*prev != window)
             prev = &((*prev)->next);
@@ -492,52 +672,52 @@ GLFWAPI void glfwDestroyWindow(GLFWwindow* handle)
         *prev = window->next;
     }
 
-    _glfw_free(window);
+    _lum_free(window);
 }
 
-GLFWAPI int glfwWindowShouldClose(GLFWwindow* handle)
+LUMAPI int lumWindowShouldClose(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
     return window->shouldClose;
 }
 
-GLFWAPI void glfwSetWindowShouldClose(GLFWwindow* handle, int value)
+LUMAPI void lumSetWindowShouldClose(LUMwindow* handle, int value)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
     window->shouldClose = value;
 }
 
-GLFWAPI void glfwSetWindowTitle(GLFWwindow* handle, const char* title)
+LUMAPI void lumSetWindowTitle(LUMwindow* handle, const char* title)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
     assert(title != NULL);
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.setWindowTitle(window, title);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.setWindowTitle(window, title);
 }
 
-GLFWAPI void glfwSetWindowIcon(GLFWwindow* handle,
-                               int count, const GLFWimage* images)
+LUMAPI void lumSetWindowIcon(LUMwindow* handle,
+                               int count, const LUMimage* images)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
     assert(count >= 0);
     assert(count == 0 || images != NULL);
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.setWindowIcon(window, count, images);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.setWindowIcon(window, count, images);
 }
 
-GLFWAPI void glfwGetWindowPos(GLFWwindow* handle, int* xpos, int* ypos)
+LUMAPI void lumGetWindowPos(LUMwindow* handle, int* xpos, int* ypos)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (xpos)
@@ -545,26 +725,26 @@ GLFWAPI void glfwGetWindowPos(GLFWwindow* handle, int* xpos, int* ypos)
     if (ypos)
         *ypos = 0;
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.getWindowPos(window, xpos, ypos);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.getWindowPos(window, xpos, ypos);
 }
 
-GLFWAPI void glfwSetWindowPos(GLFWwindow* handle, int xpos, int ypos)
+LUMAPI void lumSetWindowPos(LUMwindow* handle, int xpos, int ypos)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (window->monitor)
         return;
 
-    _glfw.platform.setWindowPos(window, xpos, ypos);
+    _lum.platform.setWindowPos(window, xpos, ypos);
 }
 
-GLFWAPI void glfwGetWindowSize(GLFWwindow* handle, int* width, int* height)
+LUMAPI void lumGetWindowSize(LUMwindow* handle, int* width, int* height)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (width)
@@ -572,51 +752,51 @@ GLFWAPI void glfwGetWindowSize(GLFWwindow* handle, int* width, int* height)
     if (height)
         *height = 0;
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.getWindowSize(window, width, height);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.getWindowSize(window, width, height);
 }
 
-GLFWAPI void glfwSetWindowSize(GLFWwindow* handle, int width, int height)
+LUMAPI void lumSetWindowSize(LUMwindow* handle, int width, int height)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
     assert(width >= 0);
     assert(height >= 0);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     window->videoMode.width  = width;
     window->videoMode.height = height;
 
-    _glfw.platform.setWindowSize(window, width, height);
+    _lum.platform.setWindowSize(window, width, height);
 }
 
-GLFWAPI void glfwSetWindowSizeLimits(GLFWwindow* handle,
+LUMAPI void lumSetWindowSizeLimits(LUMwindow* handle,
                                      int minwidth, int minheight,
                                      int maxwidth, int maxheight)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    if (minwidth != GLFW_DONT_CARE && minheight != GLFW_DONT_CARE)
+    if (minwidth != LUM_DONT_CARE && minheight != LUM_DONT_CARE)
     {
         if (minwidth < 0 || minheight < 0)
         {
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Invalid window minimum size %ix%i",
                             minwidth, minheight);
             return;
         }
     }
 
-    if (maxwidth != GLFW_DONT_CARE && maxheight != GLFW_DONT_CARE)
+    if (maxwidth != LUM_DONT_CARE && maxheight != LUM_DONT_CARE)
     {
         if (maxwidth < 0 || maxheight < 0 ||
             maxwidth < minwidth || maxheight < minheight)
         {
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Invalid window maximum size %ix%i",
                             maxwidth, maxheight);
             return;
@@ -631,25 +811,25 @@ GLFWAPI void glfwSetWindowSizeLimits(GLFWwindow* handle,
     if (window->monitor || !window->resizable)
         return;
 
-    _glfw.platform.setWindowSizeLimits(window,
+    _lum.platform.setWindowSizeLimits(window,
                                        minwidth, minheight,
                                        maxwidth, maxheight);
 }
 
-GLFWAPI void glfwSetWindowAspectRatio(GLFWwindow* handle, int numer, int denom)
+LUMAPI void lumSetWindowAspectRatio(LUMwindow* handle, int numer, int denom)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
     assert(numer != 0);
     assert(denom != 0);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    if (numer != GLFW_DONT_CARE && denom != GLFW_DONT_CARE)
+    if (numer != LUM_DONT_CARE && denom != LUM_DONT_CARE)
     {
         if (numer <= 0 || denom <= 0)
         {
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Invalid window aspect ratio %i:%i",
                             numer, denom);
             return;
@@ -662,12 +842,12 @@ GLFWAPI void glfwSetWindowAspectRatio(GLFWwindow* handle, int numer, int denom)
     if (window->monitor || !window->resizable)
         return;
 
-    _glfw.platform.setWindowAspectRatio(window, numer, denom);
+    _lum.platform.setWindowAspectRatio(window, numer, denom);
 }
 
-GLFWAPI void glfwGetFramebufferSize(GLFWwindow* handle, int* width, int* height)
+LUMAPI void lumGetFramebufferSize(LUMwindow* handle, int* width, int* height)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (width)
@@ -675,15 +855,15 @@ GLFWAPI void glfwGetFramebufferSize(GLFWwindow* handle, int* width, int* height)
     if (height)
         *height = 0;
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.getFramebufferSize(window, width, height);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.getFramebufferSize(window, width, height);
 }
 
-GLFWAPI void glfwGetWindowFrameSize(GLFWwindow* handle,
+LUMAPI void lumGetWindowFrameSize(LUMwindow* handle,
                                     int* left, int* top,
                                     int* right, int* bottom)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (left)
@@ -695,14 +875,14 @@ GLFWAPI void glfwGetWindowFrameSize(GLFWwindow* handle,
     if (bottom)
         *bottom = 0;
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.getWindowFrameSize(window, left, top, right, bottom);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.getWindowFrameSize(window, left, top, right, bottom);
 }
 
-GLFWAPI void glfwGetWindowContentScale(GLFWwindow* handle,
+LUMAPI void lumGetWindowContentScale(LUMwindow* handle,
                                        float* xscale, float* yscale)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (xscale)
@@ -710,269 +890,269 @@ GLFWAPI void glfwGetWindowContentScale(GLFWwindow* handle,
     if (yscale)
         *yscale = 0.f;
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.getWindowContentScale(window, xscale, yscale);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.getWindowContentScale(window, xscale, yscale);
 }
 
-GLFWAPI float glfwGetWindowOpacity(GLFWwindow* handle)
+LUMAPI float lumGetWindowOpacity(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(1.f);
-    return _glfw.platform.getWindowOpacity(window);
+    _LUM_REQUIRE_INIT_OR_RETURN(1.f);
+    return _lum.platform.getWindowOpacity(window);
 }
 
-GLFWAPI void glfwSetWindowOpacity(GLFWwindow* handle, float opacity)
+LUMAPI void lumSetWindowOpacity(LUMwindow* handle, float opacity)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
     assert(opacity == opacity);
     assert(opacity >= 0.f);
     assert(opacity <= 1.f);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (opacity != opacity || opacity < 0.f || opacity > 1.f)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid window opacity %f", opacity);
+        _lumInputError(LUM_INVALID_VALUE, "Invalid window opacity %f", opacity);
         return;
     }
 
-    _glfw.platform.setWindowOpacity(window, opacity);
+    _lum.platform.setWindowOpacity(window, opacity);
 }
 
-GLFWAPI void glfwIconifyWindow(GLFWwindow* handle)
+LUMAPI void lumIconifyWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.iconifyWindow(window);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.iconifyWindow(window);
 }
 
-GLFWAPI void glfwRestoreWindow(GLFWwindow* handle)
+LUMAPI void lumRestoreWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.restoreWindow(window);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.restoreWindow(window);
 }
 
-GLFWAPI void glfwMaximizeWindow(GLFWwindow* handle)
+LUMAPI void lumMaximizeWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (window->monitor)
         return;
 
-    _glfw.platform.maximizeWindow(window);
+    _lum.platform.maximizeWindow(window);
 }
 
-GLFWAPI void glfwShowWindow(GLFWwindow* handle)
+LUMAPI void lumShowWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (window->monitor)
         return;
 
-    _glfw.platform.showWindow(window);
+    _lum.platform.showWindow(window);
 
     if (window->focusOnShow)
-        _glfw.platform.focusWindow(window);
+        _lum.platform.focusWindow(window);
 }
 
-GLFWAPI void glfwRequestWindowAttention(GLFWwindow* handle)
+LUMAPI void lumRequestWindowAttention(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    _glfw.platform.requestWindowAttention(window);
+    _lum.platform.requestWindowAttention(window);
 }
 
-GLFWAPI void glfwHideWindow(GLFWwindow* handle)
+LUMAPI void lumHideWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (window->monitor)
         return;
 
-    _glfw.platform.hideWindow(window);
+    _lum.platform.hideWindow(window);
 }
 
-GLFWAPI void glfwFocusWindow(GLFWwindow* handle)
+LUMAPI void lumFocusWindow(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    _glfw.platform.focusWindow(window);
+    _lum.platform.focusWindow(window);
 }
 
-GLFWAPI int glfwGetWindowAttrib(GLFWwindow* handle, int attrib)
+LUMAPI int lumGetWindowAttrib(LUMwindow* handle, int attrib)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
 
     switch (attrib)
     {
-        case GLFW_FOCUSED:
-            return _glfw.platform.windowFocused(window);
-        case GLFW_ICONIFIED:
-            return _glfw.platform.windowIconified(window);
-        case GLFW_VISIBLE:
-            return _glfw.platform.windowVisible(window);
-        case GLFW_MAXIMIZED:
-            return _glfw.platform.windowMaximized(window);
-        case GLFW_HOVERED:
-            return _glfw.platform.windowHovered(window);
-        case GLFW_FOCUS_ON_SHOW:
+        case LUM_FOCUSED:
+            return _lum.platform.windowFocused(window);
+        case LUM_ICONIFIED:
+            return _lum.platform.windowIconified(window);
+        case LUM_VISIBLE:
+            return _lum.platform.windowVisible(window);
+        case LUM_MAXIMIZED:
+            return _lum.platform.windowMaximized(window);
+        case LUM_HOVERED:
+            return _lum.platform.windowHovered(window);
+        case LUM_FOCUS_ON_SHOW:
             return window->focusOnShow;
-        case GLFW_MOUSE_PASSTHROUGH:
+        case LUM_MOUSE_PASSTHROUGH:
             return window->mousePassthrough;
-        case GLFW_TRANSPARENT_FRAMEBUFFER:
-            return _glfw.platform.framebufferTransparent(window);
-        case GLFW_RESIZABLE:
+        case LUM_TRANSPARENT_FRAMEBUFFER:
+            return _lum.platform.framebufferTransparent(window);
+        case LUM_RESIZABLE:
             return window->resizable;
-        case GLFW_DECORATED:
+        case LUM_DECORATED:
             return window->decorated;
-        case GLFW_TITLEBAR:
-            return _glfw.hints.window.titlebar;
-        case GLFW_FLOATING:
+        case LUM_TITLEBAR:
+            return _lum.hints.window.titlebar;
+        case LUM_FLOATING:
             return window->floating;
-        case GLFW_AUTO_ICONIFY:
+        case LUM_AUTO_ICONIFY:
             return window->autoIconify;
-        case GLFW_DOUBLEBUFFER:
+        case LUM_DOUBLEBUFFER:
             return window->doublebuffer;
-        case GLFW_CLIENT_API:
+        case LUM_CLIENT_API:
             return window->context.client;
-        case GLFW_CONTEXT_CREATION_API:
+        case LUM_CONTEXT_CREATION_API:
             return window->context.source;
-        case GLFW_CONTEXT_VERSION_MAJOR:
+        case LUM_CONTEXT_VERSION_MAJOR:
             return window->context.major;
-        case GLFW_CONTEXT_VERSION_MINOR:
+        case LUM_CONTEXT_VERSION_MINOR:
             return window->context.minor;
-        case GLFW_CONTEXT_REVISION:
+        case LUM_CONTEXT_REVISION:
             return window->context.revision;
-        case GLFW_CONTEXT_ROBUSTNESS:
+        case LUM_CONTEXT_ROBUSTNESS:
             return window->context.robustness;
-        case GLFW_OPENGL_FORWARD_COMPAT:
+        case LUM_OPENGL_FORWARD_COMPAT:
             return window->context.forward;
-        case GLFW_CONTEXT_DEBUG:
+        case LUM_CONTEXT_DEBUG:
             return window->context.debug;
-        case GLFW_OPENGL_PROFILE:
+        case LUM_OPENGL_PROFILE:
             return window->context.profile;
-        case GLFW_CONTEXT_RELEASE_BEHAVIOR:
+        case LUM_CONTEXT_RELEASE_BEHAVIOR:
             return window->context.release;
-        case GLFW_CONTEXT_NO_ERROR:
+        case LUM_CONTEXT_NO_ERROR:
             return window->context.noerror;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid window attribute 0x%08X", attrib);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid window attribute 0x%08X", attrib);
     return 0;
 }
 
-GLFWAPI void glfwSetWindowAttrib(GLFWwindow* handle, int attrib, int value)
+LUMAPI void lumSetWindowAttrib(LUMwindow* handle, int attrib, int value)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    value = value ? GLFW_TRUE : GLFW_FALSE;
+    value = value ? LUM_TRUE : LUM_FALSE;
 
     switch (attrib)
     {
-        case GLFW_AUTO_ICONIFY:
+        case LUM_AUTO_ICONIFY:
             window->autoIconify = value;
             return;
 
-        case GLFW_RESIZABLE:
+        case LUM_RESIZABLE:
             window->resizable = value;
             if (!window->monitor)
-                _glfw.platform.setWindowResizable(window, value);
+                _lum.platform.setWindowResizable(window, value);
             return;
 
-        case GLFW_DECORATED:
+        case LUM_DECORATED:
             window->decorated = value;
             if (!window->monitor)
-                _glfw.platform.setWindowDecorated(window, value);
-		case GLFW_TITLEBAR:
-			if (_glfw.hints.window.titlebar == value)
+                _lum.platform.setWindowDecorated(window, value);
+		case LUM_TITLEBAR:
+			if (_lum.hints.window.titlebar == value)
             	return;
 
-            _glfw.hints.window.titlebar = value;
+            _lum.hints.window.titlebar = value;
     	    if (!window->monitor)
-                _glfw.platform.setWindowTitleBar(window, value);
+                _lum.platform.setWindowTitleBar(window, value);
             return;
-        case GLFW_FLOATING:
+        case LUM_FLOATING:
             window->floating = value;
             if (!window->monitor)
-                _glfw.platform.setWindowFloating(window, value);
+                _lum.platform.setWindowFloating(window, value);
             return;
 
-        case GLFW_FOCUS_ON_SHOW:
+        case LUM_FOCUS_ON_SHOW:
             window->focusOnShow = value;
             return;
 
-        case GLFW_MOUSE_PASSTHROUGH:
+        case LUM_MOUSE_PASSTHROUGH:
             window->mousePassthrough = value;
-            _glfw.platform.setWindowMousePassthrough(window, value);
+            _lum.platform.setWindowMousePassthrough(window, value);
             return;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid window attribute 0x%08X", attrib);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid window attribute 0x%08X", attrib);
 }
 
-GLFWAPI GLFWmonitor* glfwGetWindowMonitor(GLFWwindow* handle)
+LUMAPI LUMmonitor* lumGetWindowMonitor(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return (GLFWmonitor*) window->monitor;
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    return (LUMmonitor*) window->monitor;
 }
 
-GLFWAPI void glfwSetWindowMonitor(GLFWwindow* wh,
-                                  GLFWmonitor* mh,
+LUMAPI void lumSetWindowMonitor(LUMwindow* wh,
+                                  LUMmonitor* mh,
                                   int xpos, int ypos,
                                   int width, int height,
                                   int refreshRate)
 {
-    _GLFWwindow* window = (_GLFWwindow*) wh;
-    _GLFWmonitor* monitor = (_GLFWmonitor*) mh;
+    _LUMwindow* window = (_LUMwindow*) wh;
+    _LUMmonitor* monitor = (_LUMmonitor*) mh;
     assert(window != NULL);
     assert(width >= 0);
     assert(height >= 0);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (width <= 0 || height <= 0)
     {
-        _glfwInputError(GLFW_INVALID_VALUE,
+        _lumInputError(LUM_INVALID_VALUE,
                         "Invalid window size %ix%i",
                         width, height);
         return;
     }
 
-    if (refreshRate < 0 && refreshRate != GLFW_DONT_CARE)
+    if (refreshRate < 0 && refreshRate != LUM_DONT_CARE)
     {
-        _glfwInputError(GLFW_INVALID_VALUE,
+        _lumInputError(LUM_INVALID_VALUE,
                         "Invalid refresh rate %i",
                         refreshRate);
         return;
@@ -982,169 +1162,169 @@ GLFWAPI void glfwSetWindowMonitor(GLFWwindow* wh,
     window->videoMode.height      = height;
     window->videoMode.refreshRate = refreshRate;
 
-    _glfw.platform.setWindowMonitor(window, monitor,
+    _lum.platform.setWindowMonitor(window, monitor,
                                     xpos, ypos, width, height,
                                     refreshRate);
 }
 
-GLFWAPI void glfwSetWindowUserPointer(GLFWwindow* handle, void* pointer)
+LUMAPI void lumSetWindowUserPointer(LUMwindow* handle, void* pointer)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
     window->userPointer = pointer;
 }
 
-GLFWAPI void* glfwGetWindowUserPointer(GLFWwindow* handle)
+LUMAPI void* lumGetWindowUserPointer(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
     return window->userPointer;
 }
 
-GLFWAPI GLFWwindowposfun glfwSetWindowPosCallback(GLFWwindow* handle,
-                                                  GLFWwindowposfun cbfun)
+LUMAPI LUMwindowposfun lumSetWindowPosCallback(LUMwindow* handle,
+                                                  LUMwindowposfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowposfun, window->callbacks.pos, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowposfun, window->callbacks.pos, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWtitlebarhittestfun glfwSetTitlebarHitTestCallback(GLFWwindow* handle, GLFWtitlebarhittestfun tbhtfun)
+LUMAPI LUMtitlebarhittestfun lumSetTitlebarHitTestCallback(LUMwindow* handle, LUMtitlebarhittestfun tbhtfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*)handle;
+    _LUMwindow* window = (_LUMwindow*)handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWtitlebarhittestfun, window->callbacks.tbhittest, tbhtfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMtitlebarhittestfun, window->callbacks.tbhittest, tbhtfun);
     return tbhtfun;
 }
 
-GLFWAPI GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* handle,
-                                                    GLFWwindowsizefun cbfun)
+LUMAPI LUMwindowsizefun lumSetWindowSizeCallback(LUMwindow* handle,
+                                                    LUMwindowsizefun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowsizefun, window->callbacks.size, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowsizefun, window->callbacks.size, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowclosefun glfwSetWindowCloseCallback(GLFWwindow* handle,
-                                                      GLFWwindowclosefun cbfun)
+LUMAPI LUMwindowclosefun lumSetWindowCloseCallback(LUMwindow* handle,
+                                                      LUMwindowclosefun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowclosefun, window->callbacks.close, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowclosefun, window->callbacks.close, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowrefreshfun glfwSetWindowRefreshCallback(GLFWwindow* handle,
-                                                          GLFWwindowrefreshfun cbfun)
+LUMAPI LUMwindowrefreshfun lumSetWindowRefreshCallback(LUMwindow* handle,
+                                                          LUMwindowrefreshfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowrefreshfun, window->callbacks.refresh, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowrefreshfun, window->callbacks.refresh, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowfocusfun glfwSetWindowFocusCallback(GLFWwindow* handle,
-                                                      GLFWwindowfocusfun cbfun)
+LUMAPI LUMwindowfocusfun lumSetWindowFocusCallback(LUMwindow* handle,
+                                                      LUMwindowfocusfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowfocusfun, window->callbacks.focus, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowfocusfun, window->callbacks.focus, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowiconifyfun glfwSetWindowIconifyCallback(GLFWwindow* handle,
-                                                          GLFWwindowiconifyfun cbfun)
+LUMAPI LUMwindowiconifyfun lumSetWindowIconifyCallback(LUMwindow* handle,
+                                                          LUMwindowiconifyfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowiconifyfun, window->callbacks.iconify, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowiconifyfun, window->callbacks.iconify, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowmaximizefun glfwSetWindowMaximizeCallback(GLFWwindow* handle,
-                                                            GLFWwindowmaximizefun cbfun)
+LUMAPI LUMwindowmaximizefun lumSetWindowMaximizeCallback(LUMwindow* handle,
+                                                            LUMwindowmaximizefun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowmaximizefun, window->callbacks.maximize, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowmaximizefun, window->callbacks.maximize, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* handle,
-                                                              GLFWframebuffersizefun cbfun)
+LUMAPI LUMframebuffersizefun lumSetFramebufferSizeCallback(LUMwindow* handle,
+                                                              LUMframebuffersizefun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWframebuffersizefun, window->callbacks.fbsize, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMframebuffersizefun, window->callbacks.fbsize, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWwindowcontentscalefun glfwSetWindowContentScaleCallback(GLFWwindow* handle,
-                                                                    GLFWwindowcontentscalefun cbfun)
+LUMAPI LUMwindowcontentscalefun lumSetWindowContentScaleCallback(LUMwindow* handle,
+                                                                    LUMwindowcontentscalefun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWwindowcontentscalefun, window->callbacks.scale, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMwindowcontentscalefun, window->callbacks.scale, cbfun);
     return cbfun;
 }
 
-GLFWAPI void glfwPollEvents(void)
+LUMAPI void lumPollEvents(void)
 {
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.pollEvents();
+    _LUM_REQUIRE_INIT();
+    _lum.platform.pollEvents();
 }
 
-GLFWAPI void glfwWaitEvents(void)
+LUMAPI void lumWaitEvents(void)
 {
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.waitEvents();
+    _LUM_REQUIRE_INIT();
+    _lum.platform.waitEvents();
 }
 
-GLFWAPI void glfwWaitEventsTimeout(double timeout)
+LUMAPI void lumWaitEventsTimeout(double timeout)
 {
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
     assert(timeout == timeout);
     assert(timeout >= 0.0);
     assert(timeout <= DBL_MAX);
 
     if (timeout != timeout || timeout < 0.0 || timeout > DBL_MAX)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", timeout);
+        _lumInputError(LUM_INVALID_VALUE, "Invalid time %f", timeout);
         return;
     }
 
-    _glfw.platform.waitEventsTimeout(timeout);
+    _lum.platform.waitEventsTimeout(timeout);
 }
 
-GLFWAPI void glfwPostEmptyEvent(void)
+LUMAPI void lumPostEmptyEvent(void)
 {
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.postEmptyEvent();
+    _LUM_REQUIRE_INIT();
+    _lum.platform.postEmptyEvent();
 }
 

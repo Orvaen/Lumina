@@ -1,0 +1,216 @@
+/*!
+
+@page first_window Open a window
+
+@tableofcontents
+
+This is the shortest complete Lumina program: about fifty lines that open a
+window, fill it with a colour and exit when you close it or press _Escape_.  It
+is the page to read first.  Nothing else in this documentation is a prerequisite
+for it.
+
+The code is not an excerpt written for the page.  It is `examples/minimal.c`,
+which is compiled every time Lumina's examples are built, so it cannot drift out
+of date.
+
+@section first_window_whole The whole program
+
+@snippet minimal.c code
+
+That is the entire program.  If you already have Lumina building, copy it into a
+file, build it as described in @ref first_window_build below, and you have a
+window.
+
+The rest of this page explains each part of it.
+
+
+@section first_window_walk What each part does
+
+@subsection first_window_include Including the headers
+
+@code
+#define GLAD_GL_IMPLEMENTATION
+#include <glad/gl.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
+@endcode
+
+The only header Lumina itself needs is `Lumina/lumina.h`.  The two other lines
+bring in [glad](https://gen.glad.sh/), an extension loader library, because the
+OpenGL header shipped with your development environment may be very old — on
+Windows it typically stops at OpenGL 1.2.
+
+`LUM_INCLUDE_NONE` tells Lumina not to include an OpenGL header of its own,
+since glad has already provided one.  You can leave both glad lines out if you
+are happy with whatever OpenGL version your system header exposes, or if you are
+not drawing anything yet.  See @ref build_include for the full set of options.
+
+@subsection first_window_errors Hearing about errors
+
+@code
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Lumina error: %s\n", description);
+}
+@endcode
+
+Set with @ref lumSetErrorCallback, this is called whenever a Lumina function
+fails, with a human-readable description of what went wrong.  It is the first
+thing to set, because it works even before the library is initialized, and
+without it a failure tells you only that something returned `NULL`.
+
+@subsection first_window_init Initializing the library
+
+@code
+if (!lumInit())
+    return EXIT_FAILURE;
+@endcode
+
+@ref lumInit must succeed before any other function except the error callback
+and a few version queries.  @ref lumTerminate, at the other end of the program,
+undoes it and releases everything Lumina allocated.
+
+@subsection first_window_create Creating the window
+
+@code
+window = lumCreateWindowEx(&(LUMwindowdesc)
+{
+    .width       = 640,
+    .height      = 480,
+    .title       = "My first Lumina window",
+    .makeCurrent = LUM_ON
+});
+@endcode
+
+@ref lumCreateWindowEx creates a window together with an OpenGL context, and
+takes everything it needs from a @ref LUMwindowdesc.  __Every field left out
+takes the library default__, so only the four that matter here are written: the
+size of the content area, the window title, and `makeCurrent`, which asks for
+the new context to be made current on this thread right away.
+
+Three fields are required — `width`, `height` and `title`.  Everything else,
+from the OpenGL version to the number of samples, has a sensible default.  The
+@ref window_creation_desc section of the window guide covers the whole
+descriptor; @ref LUMwindowdesc lists every field.
+
+@code
+if (!window)
+{
+    lumTerminate();
+    return EXIT_FAILURE;
+}
+@endcode
+
+Window creation can fail — most often because the requested OpenGL version is
+not available — and when it does it returns `NULL` after calling your error
+callback.
+
+@subsection first_window_key Reacting to the keyboard
+
+@code
+static void key_callback(LUMwindow* window,
+                         int key, int scancode, int action, int mods)
+{
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
+}
+@endcode
+
+Input in Lumina arrives through callbacks you write and register, here with
+@ref lumSetKeyCallback.  This one watches for _Escape_ and sets the window's
+close flag, which is exactly what clicking the close button does.  The
+@ref input_guide covers the rest: text, mouse, scrolling, gamepads and more.
+
+@subsection first_window_loader Loading the OpenGL functions
+
+@code
+gladLoadGL(lumGetProcAddress);
+lumSwapInterval(1);
+@endcode
+
+OpenGL functions beyond the oldest ones have to be looked up at run time.
+@ref lumGetProcAddress does the looking up and glad does the storing, so one
+call wires the two together.  This has to happen after a context is current,
+which `makeCurrent` already arranged.
+
+Passing `1` to @ref lumSwapInterval asks for buffer swaps to wait for the next
+vertical blank, which caps the loop at the monitor's refresh rate instead of
+letting it spin as fast as it can.
+
+@subsection first_window_loop The event loop
+
+@code
+while (!lumWindowShouldClose(window))
+{
+    int width, height;
+    lumGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glClearColor(0.18f, 0.12f, 0.30f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    lumSwapBuffers(window);
+    lumPollEvents();
+}
+@endcode
+
+@ref lumWindowShouldClose reports the close flag, so the loop ends when the user
+closes the window or presses _Escape_.
+
+Inside it, @ref lumGetFramebufferSize gives the size of the drawing area in
+pixels.  Ask for it every frame rather than remembering it: the window can be
+resized, and on a high-DPI display it is not the same as the size you asked for
+in screen coordinates.
+
+@ref lumSwapBuffers presents the frame you just drew, and @ref lumPollEvents
+processes everything that has arrived from the operating system since the last
+call, which is what makes your callbacks run.  Without it the window would never
+respond to anything.
+
+@subsection first_window_clean Shutting down
+
+@code
+lumDestroyWindow(window);
+lumTerminate();
+@endcode
+
+@ref lumTerminate destroys any remaining windows by itself, so the explicit call
+to @ref lumDestroyWindow is not strictly required here — but being explicit
+costs one line and keeps the shape of the program clear.
+
+
+@section first_window_build Building and running it
+
+Lumina has to be built before anything can link against it, and the two things
+are separate steps:
+
+- @ref compile_guide builds the library itself.  With CMake it is three
+  commands.
+- @ref build_guide links your program against it, from CMake, pkg-config, or by
+  hand.
+
+If you are building Lumina from this repository, the example above is already
+there.  Configure with examples enabled and the binary is built for you:
+
+@code{.sh}
+cmake -S . -B build
+cmake --build build --target minimal
+@endcode
+
+The program then lives under `build/examples`.  Run it and you get a small
+violet window that closes on _Escape_.
+
+@section first_window_next Where to go next
+
+- @ref quick_guide is the longer version of this page.  It builds up to a
+  rotating triangle and introduces more of the API along the way.
+- @ref intro_guide explains the rules the whole API follows: initialization,
+  error handling, versioning and thread safety.
+- @ref window_guide covers windows in full — the complete descriptor, full
+  screen, icons, resizing, attributes and all the window callbacks.
+- @ref input_guide covers everything the user can do: keyboard, text, mouse,
+  cursors, files dropped onto the window, joysticks and gamepads.
+- @ref vulkan_guide shows what changes when you render with Vulkan instead of
+  OpenGL.  It is mostly one field: `.context = LUM_OFF`.
+
+*/

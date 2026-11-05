@@ -25482,7 +25482,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 /// - 2019/06/23 (4.01.0) - Added nk_***_get_scroll and nk_***_set_scroll for groups, windows, and popups.
 /// - 2019/06/12 (4.00.3) - Fix panel background drawing bug.
 /// - 2018/10/31 (4.00.2) - Added NK_KEYSTATE_BASED_INPUT to "fix" state based backends
-///                        like GLFW without breaking key repeat behavior on event based.
+///                        like Lumina without breaking key repeat behavior on event based.
 /// - 2018/04/01 (4.00.1) - Fixed calling `nk_convert` multiple time per single frame.
 /// - 2018/04/01 (4.00.0) - BREAKING CHANGE: nk_draw_list_clear no longer tries to
 ///                        clear provided buffers. So make sure to either free
@@ -25539,7 +25539,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 /// - 2017/05/09 (1.38.2) - Fixed vertical scrollbar drawing with not enough space.
 /// - 2017/05/09 (1.38.1) - Fixed scaler dragging behavior if window size hits minimum size.
 /// - 2017/05/06 (1.38.0) - Added platform double-click support.
-/// - 2017/04/20 (1.37.1) - Fixed key repeat found inside glfw demo backends.
+/// - 2017/04/20 (1.37.1) - Fixed key repeat found inside lumina demo backends.
 /// - 2017/04/20 (1.37.0) - Extended properties with selection and clipboard support.
 /// - 2017/04/20 (1.36.2) - Fixed #405 overlapping rows with zero padding and spacing.
 /// - 2017/04/09 (1.36.1) - Fixed #403 with another widget float error.

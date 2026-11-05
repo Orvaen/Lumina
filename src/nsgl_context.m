@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// Lumina macOS - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <math.h>
 
-static void makeContextCurrentNSGL(_GLFWwindow* window)
+static void makeContextCurrentNSGL(_LUMwindow* window)
 {
     @autoreleasepool {
 
@@ -40,12 +40,12 @@ static void makeContextCurrentNSGL(_GLFWwindow* window)
     else
         [NSOpenGLContext clearCurrentContext];
 
-    _glfwPlatformSetTls(&_glfw.contextSlot, window);
+    _lumPlatformSetTls(&_lum.contextSlot, window);
 
     } // autoreleasepool
 }
 
-static void swapBuffersNSGL(_GLFWwindow* window)
+static void swapBuffersNSGL(_LUMwindow* window)
 {
     @autoreleasepool {
 
@@ -60,8 +60,8 @@ static void swapBuffersNSGL(_GLFWwindow* window)
         if (interval > 0)
         {
             const double framerate = 60.0;
-            const uint64_t frequency = _glfwPlatformGetTimerFrequency();
-            const uint64_t value = _glfwPlatformGetTimerValue();
+            const uint64_t frequency = _lumPlatformGetTimerFrequency();
+            const uint64_t value = _lumPlatformGetTimerValue();
 
             const double elapsed = value / (double) frequency;
             const double period = 1.0 / framerate;
@@ -80,7 +80,7 @@ static void swapIntervalNSGL(int interval)
 {
     @autoreleasepool {
 
-    _GLFWwindow* window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    _LUMwindow* window = _lumPlatformGetTls(&_lum.contextSlot);
     if (window)
     {
         [window->context.nsgl.object setValues:&interval
@@ -93,16 +93,16 @@ static void swapIntervalNSGL(int interval)
 static int extensionSupportedNSGL(const char* extension)
 {
     // There are no NSGL extensions
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
-static GLFWglproc getProcAddressNSGL(const char* procname)
+static LUMglproc getProcAddressNSGL(const char* procname)
 {
     CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault,
                                                        procname,
                                                        kCFStringEncodingASCII);
 
-    GLFWglproc symbol = CFBundleGetFunctionPointerForName(_glfw.nsgl.framework,
+    LUMglproc symbol = CFBundleGetFunctionPointerForName(_lum.nsgl.framework,
                                                           symbolName);
 
     CFRelease(symbolName);
@@ -110,7 +110,7 @@ static GLFWglproc getProcAddressNSGL(const char* procname)
     return symbol;
 }
 
-static void destroyContextNSGL(_GLFWwindow* window)
+static void destroyContextNSGL(_LUMwindow* window)
 {
     @autoreleasepool {
 
@@ -125,54 +125,54 @@ static void destroyContextNSGL(_GLFWwindow* window)
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Initialize OpenGL support
 //
-GLFWbool _glfwInitNSGL(void)
+LUMbool _lumInitNSGL(void)
 {
-    if (_glfw.nsgl.framework)
-        return GLFW_TRUE;
+    if (_lum.nsgl.framework)
+        return LUM_TRUE;
 
-    _glfw.nsgl.framework =
+    _lum.nsgl.framework =
         CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
-    if (_glfw.nsgl.framework == NULL)
+    if (_lum.nsgl.framework == NULL)
     {
-        _glfwInputError(GLFW_API_UNAVAILABLE,
+        _lumInputError(LUM_API_UNAVAILABLE,
                         "NSGL: Failed to locate OpenGL framework");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 // Terminate OpenGL support
 //
-void _glfwTerminateNSGL(void)
+void _lumTerminateNSGL(void)
 {
 }
 
 // Create the OpenGL context
 //
-GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
-                                const _GLFWctxconfig* ctxconfig,
-                                const _GLFWfbconfig* fbconfig)
+LUMbool _lumCreateContextNSGL(_LUMwindow* window,
+                                const _LUMctxconfig* ctxconfig,
+                                const _LUMfbconfig* fbconfig)
 {
-    if (ctxconfig->client == GLFW_OPENGL_ES_API)
+    if (ctxconfig->client == LUM_OPENGL_ES_API)
     {
-        _glfwInputError(GLFW_API_UNAVAILABLE,
+        _lumInputError(LUM_API_UNAVAILABLE,
                         "NSGL: OpenGL ES is not available on macOS");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     if (ctxconfig->major > 2)
     {
         if (ctxconfig->major == 3 && ctxconfig->minor < 2)
         {
-            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+            _lumInputError(LUM_VERSION_UNAVAILABLE,
                             "NSGL: The targeted version of macOS does not support OpenGL 3.0 or 3.1 but may support 3.2 and above");
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
     }
 
@@ -225,13 +225,13 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
 
     if (ctxconfig->major <= 2)
     {
-        if (fbconfig->auxBuffers != GLFW_DONT_CARE)
+        if (fbconfig->auxBuffers != LUM_DONT_CARE)
             setAttrib(NSOpenGLPFAAuxBuffers, fbconfig->auxBuffers);
 
-        if (fbconfig->accumRedBits != GLFW_DONT_CARE &&
-            fbconfig->accumGreenBits != GLFW_DONT_CARE &&
-            fbconfig->accumBlueBits != GLFW_DONT_CARE &&
-            fbconfig->accumAlphaBits != GLFW_DONT_CARE)
+        if (fbconfig->accumRedBits != LUM_DONT_CARE &&
+            fbconfig->accumGreenBits != LUM_DONT_CARE &&
+            fbconfig->accumBlueBits != LUM_DONT_CARE &&
+            fbconfig->accumAlphaBits != LUM_DONT_CARE)
         {
             const int accumBits = fbconfig->accumRedBits +
                                   fbconfig->accumGreenBits +
@@ -242,9 +242,9 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
         }
     }
 
-    if (fbconfig->redBits != GLFW_DONT_CARE &&
-        fbconfig->greenBits != GLFW_DONT_CARE &&
-        fbconfig->blueBits != GLFW_DONT_CARE)
+    if (fbconfig->redBits != LUM_DONT_CARE &&
+        fbconfig->greenBits != LUM_DONT_CARE &&
+        fbconfig->blueBits != LUM_DONT_CARE)
     {
         int colorBits = fbconfig->redBits +
                         fbconfig->greenBits +
@@ -259,21 +259,21 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
         setAttrib(NSOpenGLPFAColorSize, colorBits);
     }
 
-    if (fbconfig->alphaBits != GLFW_DONT_CARE)
+    if (fbconfig->alphaBits != LUM_DONT_CARE)
         setAttrib(NSOpenGLPFAAlphaSize, fbconfig->alphaBits);
 
-    if (fbconfig->depthBits != GLFW_DONT_CARE)
+    if (fbconfig->depthBits != LUM_DONT_CARE)
         setAttrib(NSOpenGLPFADepthSize, fbconfig->depthBits);
 
-    if (fbconfig->stencilBits != GLFW_DONT_CARE)
+    if (fbconfig->stencilBits != LUM_DONT_CARE)
         setAttrib(NSOpenGLPFAStencilSize, fbconfig->stencilBits);
 
     if (fbconfig->stereo)
     {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101200
-        _glfwInputError(GLFW_FORMAT_UNAVAILABLE,
+        _lumInputError(LUM_FORMAT_UNAVAILABLE,
                         "NSGL: Stereo rendering is deprecated");
-        return GLFW_FALSE;
+        return LUM_FALSE;
 #else
         addAttrib(NSOpenGLPFAStereo);
 #endif
@@ -282,7 +282,7 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
     if (fbconfig->doublebuffer)
         addAttrib(NSOpenGLPFADoubleBuffer);
 
-    if (fbconfig->samples != GLFW_DONT_CARE)
+    if (fbconfig->samples != LUM_DONT_CARE)
     {
         if (fbconfig->samples == 0)
         {
@@ -307,9 +307,9 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
         [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
     if (window->context.nsgl.pixelFormat == nil)
     {
-        _glfwInputError(GLFW_FORMAT_UNAVAILABLE,
+        _lumInputError(LUM_FORMAT_UNAVAILABLE,
                         "NSGL: Failed to find a suitable pixel format");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     NSOpenGLContext* share = nil;
@@ -322,9 +322,9 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
                                    shareContext:share];
     if (window->context.nsgl.object == nil)
     {
-        _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+        _lumInputError(LUM_VERSION_UNAVAILABLE,
                         "NSGL: Failed to create OpenGL context");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     if (fbconfig->transparent)
@@ -345,29 +345,29 @@ GLFWbool _glfwCreateContextNSGL(_GLFWwindow* window,
     window->context.getProcAddress = getProcAddressNSGL;
     window->context.destroy = destroyContextNSGL;
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW native API                       //////
+//////                        Lumina native API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI id glfwGetNSGLContext(GLFWwindow* handle)
+LUMAPI id lumGetNSGLContext(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(nil);
+    _LUMwindow* window = (_LUMwindow*) handle;
+    _LUM_REQUIRE_INIT_OR_RETURN(nil);
 
-    if (_glfw.platform.platformID != GLFW_PLATFORM_COCOA)
+    if (_lum.platform.platformID != LUM_PLATFORM_COCOA)
     {
-        _glfwInputError(GLFW_PLATFORM_UNAVAILABLE,
+        _lumInputError(LUM_PLATFORM_UNAVAILABLE,
                         "NSGL: Platform not initialized");
         return nil;
     }
 
-    if (window->context.source != GLFW_NATIVE_CONTEXT_API)
+    if (window->context.source != LUM_NATIVE_CONTEXT_API)
     {
-        _glfwInputError(GLFW_NO_WINDOW_CONTEXT, NULL);
+        _lumInputError(LUM_NO_WINDOW_CONTEXT, NULL);
         return nil;
     }
 

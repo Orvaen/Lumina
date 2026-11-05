@@ -25,7 +25,7 @@
 //
 // This test came about as the result of bug #1262773
 //
-// It closes and re-opens the GLFW window every five seconds, alternating
+// It closes and re-opens the Lumina window every five seconds, alternating
 // between windowed and full screen mode
 //
 // It also times and logs opening and closing actions and attempts to separate
@@ -35,8 +35,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <time.h>
 #include <stdio.h>
@@ -73,65 +73,65 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void window_close_callback(GLFWwindow* window)
+static void window_close_callback(LUMwindow* window)
 {
     printf("Close callback triggered\n");
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_Q:
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case LUM_KEY_Q:
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
     }
 }
 
-static void close_window(GLFWwindow* window)
+static void close_window(LUMwindow* window)
 {
-    double base = glfwGetTime();
-    glfwDestroyWindow(window);
-    printf("Closing window took %0.3f seconds\n", glfwGetTime() - base);
+    double base = lumGetTime();
+    lumDestroyWindow(window);
+    printf("Closing window took %0.3f seconds\n", lumGetTime() - base);
 }
 
 int main(int argc, char** argv)
 {
     int count = 0;
     double base;
-    GLFWwindow* window;
+    LUMwindow* window;
 
     srand((unsigned int) time(NULL));
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
 
     for (;;)
     {
         int width, height;
-        GLFWmonitor* monitor = NULL;
+        LUMmonitor* monitor = NULL;
         GLuint vertex_shader, fragment_shader, program, vertex_buffer;
         GLint mvp_location, vpos_location;
 
         if (count & 1)
         {
             int monitorCount;
-            GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+            LUMmonitor** monitors = lumGetMonitors(&monitorCount);
             monitor = monitors[rand() % monitorCount];
         }
 
         if (monitor)
         {
-            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            const LUMvidmode* mode = lumGetVideoMode(monitor);
             width = mode->width;
             height = mode->height;
         }
@@ -141,33 +141,33 @@ int main(int argc, char** argv)
             height = 480;
         }
 
-        base = glfwGetTime();
+        base = lumGetTime();
 
-        window = glfwCreateWindow(width, height, "Window Re-opener", monitor, NULL);
+        window = lumCreateWindow(width, height, "Window Re-opener", monitor, NULL);
         if (!window)
         {
-            glfwTerminate();
+            lumTerminate();
             exit(EXIT_FAILURE);
         }
 
         if (monitor)
         {
             printf("Opening full screen window on monitor %s took %0.3f seconds\n",
-                   glfwGetMonitorName(monitor),
-                   glfwGetTime() - base);
+                   lumGetMonitorName(monitor),
+                   lumGetTime() - base);
         }
         else
         {
             printf("Opening regular window took %0.3f seconds\n",
-                   glfwGetTime() - base);
+                   lumGetTime() - base);
         }
 
-        glfwSetWindowCloseCallback(window, window_close_callback);
-        glfwSetKeyCallback(window, key_callback);
+        lumSetWindowCloseCallback(window, window_close_callback);
+        lumSetKeyCallback(window, key_callback);
 
-        glfwMakeContextCurrent(window);
-        gladLoadGL(glfwGetProcAddress);
-        glfwSwapInterval(1);
+        lumMakeContextCurrent(window);
+        gladLoadGL(lumGetProcAddress);
+        lumSwapInterval(1);
 
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
@@ -193,15 +193,15 @@ int main(int argc, char** argv)
         glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                               sizeof(vertices[0]), (void*) 0);
 
-        glfwSetTime(0.0);
+        lumSetTime(0.0);
 
-        while (glfwGetTime() < 5.0)
+        while (lumGetTime() < 5.0)
         {
             float ratio;
             int width, height;
             mat4x4 m, p, mvp;
 
-            glfwGetFramebufferSize(window, &width, &height);
+            lumGetFramebufferSize(window, &width, &height);
             ratio = width / (float) height;
 
             glViewport(0, 0, width, height);
@@ -210,22 +210,22 @@ int main(int argc, char** argv)
             mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 0.f, 1.f);
 
             mat4x4_identity(m);
-            mat4x4_rotate_Z(m, m, (float) glfwGetTime());
+            mat4x4_rotate_Z(m, m, (float) lumGetTime());
             mat4x4_mul(mvp, p, m);
 
             glUseProgram(program);
             glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+            lumSwapBuffers(window);
+            lumPollEvents();
 
-            if (glfwWindowShouldClose(window))
+            if (lumWindowShouldClose(window))
             {
                 close_window(window);
                 printf("User closed window\n");
 
-                glfwTerminate();
+                lumTerminate();
                 exit(EXIT_SUCCESS);
             }
         }
@@ -236,6 +236,6 @@ int main(int argc, char** argv)
         count++;
     }
 
-    glfwTerminate();
+    lumTerminate();
 }
 

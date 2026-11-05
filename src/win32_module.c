@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2021 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -29,21 +29,21 @@
 #include "internal.h"
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void* _glfwPlatformLoadModule(const char* path)
+void* _lumPlatformLoadModule(const char* path)
 {
     return LoadLibraryA(path);
 }
 
-void _glfwPlatformFreeModule(void* module)
+void _lumPlatformFreeModule(void* module)
 {
     FreeLibrary((HMODULE) module);
 }
 
-GLFWproc _glfwPlatformGetModuleSymbol(void* module, const char* name)
+LUMproc _lumPlatformGetModuleSymbol(void* module, const char* name)
 {
-    return (GLFWproc) GetProcAddress((HMODULE) module, name);
+    return (LUMproc) GetProcAddress((HMODULE) module, name);
 }
 

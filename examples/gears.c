@@ -10,7 +10,7 @@
  *
  *
  * Marcus Geelnard:
- *   - Conversion to GLFW
+ *   - Conversion to Lumina
  *   - Time based rendering (frame rate independent)
  *   - Slightly modified camera that should work better for stereo viewing
  *
@@ -33,8 +33,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 /**
 
@@ -207,35 +207,35 @@ static void draw(void)
 /* update animation parameters */
 static void animate(void)
 {
-  angle = 100.f * (float) glfwGetTime();
+  angle = 100.f * (float) lumGetTime();
 }
 
 
 /* change view angle, exit upon ESC */
-void key( GLFWwindow* window, int k, int s, int action, int mods )
+void key( LUMwindow* window, int k, int s, int action, int mods )
 {
-  if( action != GLFW_PRESS ) return;
+  if( action != LUM_PRESS ) return;
 
   switch (k) {
-  case GLFW_KEY_Z:
-    if( mods & GLFW_MOD_SHIFT )
+  case LUM_KEY_Z:
+    if( mods & LUM_MOD_SHIFT )
       view_rotz -= 5.0;
     else
       view_rotz += 5.0;
     break;
-  case GLFW_KEY_ESCAPE:
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  case LUM_KEY_ESCAPE:
+    lumSetWindowShouldClose(window, LUM_TRUE);
     break;
-  case GLFW_KEY_UP:
+  case LUM_KEY_UP:
     view_rotx += 5.0;
     break;
-  case GLFW_KEY_DOWN:
+  case LUM_KEY_DOWN:
     view_rotx -= 5.0;
     break;
-  case GLFW_KEY_LEFT:
+  case LUM_KEY_LEFT:
     view_roty += 5.0;
     break;
-  case GLFW_KEY_RIGHT:
+  case LUM_KEY_RIGHT:
     view_roty -= 5.0;
     break;
   default:
@@ -245,7 +245,7 @@ void key( GLFWwindow* window, int k, int s, int action, int mods )
 
 
 /* new window size */
-void reshape( GLFWwindow* window, int width, int height )
+void reshape( LUMwindow* window, int width, int height )
 {
   GLfloat h = (GLfloat) height / (GLfloat) width;
   GLfloat xmax, znear, zfar;
@@ -304,42 +304,42 @@ static void init(void)
 /* program entry */
 int main(int argc, char *argv[])
 {
-    GLFWwindow* window;
+    LUMwindow* window;
     int width, height;
 
-    if( !glfwInit() )
+    if( !lumInit() )
     {
-        fprintf( stderr, "Failed to initialize GLFW\n" );
+        fprintf( stderr, "Failed to initialize Lumina\n" );
         exit( EXIT_FAILURE );
     }
 
-    glfwWindowHint(GLFW_DEPTH_BITS, 16);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+    lumWindowHint(LUM_DEPTH_BITS, 16);
+    lumWindowHint(LUM_TRANSPARENT_FRAMEBUFFER, LUM_TRUE);
 
-    window = glfwCreateWindow( 300, 300, "Gears", NULL, NULL );
+    window = lumCreateWindow( 300, 300, "Gears", NULL, NULL );
     if (!window)
     {
-        fprintf( stderr, "Failed to open GLFW window\n" );
-        glfwTerminate();
+        fprintf( stderr, "Failed to open Lumina window\n" );
+        lumTerminate();
         exit( EXIT_FAILURE );
     }
 
     // Set callback functions
-    glfwSetFramebufferSizeCallback(window, reshape);
-    glfwSetKeyCallback(window, key);
+    lumSetFramebufferSizeCallback(window, reshape);
+    lumSetKeyCallback(window, key);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval( 1 );
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval( 1 );
 
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     reshape(window, width, height);
 
     // Parse command-line options
     init();
 
     // Main loop
-    while( !glfwWindowShouldClose(window) )
+    while( !lumWindowShouldClose(window) )
     {
         // Draw gears
         draw();
@@ -348,12 +348,12 @@ int main(int argc, char *argv[])
         animate();
 
         // Swap buffers
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
     }
 
-    // Terminate GLFW
-    glfwTerminate();
+    // Terminate Lumina
+    lumTerminate();
 
     // Exit program
     exit( EXIT_SUCCESS );

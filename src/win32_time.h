@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -27,12 +27,12 @@
 
 #include <windows.h>
 
-#define GLFW_WIN32_LIBRARY_TIMER_STATE  _GLFWtimerWin32   win32;
+#define LUM_WIN32_LIBRARY_TIMER_STATE  _LUMtimerWin32   win32;
 
 // Win32-specific global timer data
 //
-typedef struct _GLFWtimerWin32
+typedef struct _LUMtimerWin32
 {
     uint64_t            frequency;
-} _GLFWtimerWin32;
+} _LUMtimerWin32;
 

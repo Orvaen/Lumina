@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -37,39 +37,39 @@
 #include <string.h>
 
 // Internal key state used for sticky keys
-#define _GLFW_STICK 3
+#define _LUM_STICK 3
 
 // Internal constants for gamepad mapping source types
-#define _GLFW_JOYSTICK_AXIS     1
-#define _GLFW_JOYSTICK_BUTTON   2
-#define _GLFW_JOYSTICK_HATBIT   3
+#define _LUM_JOYSTICK_AXIS     1
+#define _LUM_JOYSTICK_BUTTON   2
+#define _LUM_JOYSTICK_HATBIT   3
 
 // Initializes the platform joystick API if it has not been already
 //
-static GLFWbool initJoysticks(void)
+static LUMbool initJoysticks(void)
 {
-    if (!_glfw.joysticksInitialized)
+    if (!_lum.joysticksInitialized)
     {
-        if (!_glfw.platform.initJoysticks())
+        if (!_lum.platform.initJoysticks())
         {
-            _glfw.platform.terminateJoysticks();
-            return GLFW_FALSE;
+            _lum.platform.terminateJoysticks();
+            return LUM_FALSE;
         }
     }
 
-    return _glfw.joysticksInitialized = GLFW_TRUE;
+    return _lum.joysticksInitialized = LUM_TRUE;
 }
 
 // Finds a mapping based on joystick GUID
 //
-static _GLFWmapping* findMapping(const char* guid)
+static _LUMmapping* findMapping(const char* guid)
 {
     int i;
 
-    for (i = 0;  i < _glfw.mappingCount;  i++)
+    for (i = 0;  i < _lum.mappingCount;  i++)
     {
-        if (strcmp(_glfw.mappings[i].guid, guid) == 0)
-            return _glfw.mappings + i;
+        if (strcmp(_lum.mappings[i].guid, guid) == 0)
+            return _lum.mappings + i;
     }
 
     return NULL;
@@ -77,35 +77,35 @@ static _GLFWmapping* findMapping(const char* guid)
 
 // Checks whether a gamepad mapping element is present in the hardware
 //
-static GLFWbool isValidElementForJoystick(const _GLFWmapelement* e,
-                                          const _GLFWjoystick* js)
+static LUMbool isValidElementForJoystick(const _LUMmapelement* e,
+                                          const _LUMjoystick* js)
 {
-    if (e->type == _GLFW_JOYSTICK_HATBIT && (e->index >> 4) >= js->hatCount)
-        return GLFW_FALSE;
-    else if (e->type == _GLFW_JOYSTICK_BUTTON && e->index >= js->buttonCount)
-        return GLFW_FALSE;
-    else if (e->type == _GLFW_JOYSTICK_AXIS && e->index >= js->axisCount)
-        return GLFW_FALSE;
+    if (e->type == _LUM_JOYSTICK_HATBIT && (e->index >> 4) >= js->hatCount)
+        return LUM_FALSE;
+    else if (e->type == _LUM_JOYSTICK_BUTTON && e->index >= js->buttonCount)
+        return LUM_FALSE;
+    else if (e->type == _LUM_JOYSTICK_AXIS && e->index >= js->axisCount)
+        return LUM_FALSE;
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 // Finds a mapping based on joystick GUID and verifies element indices
 //
-static _GLFWmapping* findValidMapping(const _GLFWjoystick* js)
+static _LUMmapping* findValidMapping(const _LUMjoystick* js)
 {
-    _GLFWmapping* mapping = findMapping(js->guid);
+    _LUMmapping* mapping = findMapping(js->guid);
     if (mapping)
     {
         int i;
 
-        for (i = 0;  i <= GLFW_GAMEPAD_BUTTON_LAST;  i++)
+        for (i = 0;  i <= LUM_GAMEPAD_BUTTON_LAST;  i++)
         {
             if (!isValidElementForJoystick(mapping->buttons + i, js))
                 return NULL;
         }
 
-        for (i = 0;  i <= GLFW_GAMEPAD_AXIS_LAST;  i++)
+        for (i = 0;  i <= LUM_GAMEPAD_AXIS_LAST;  i++)
         {
             if (!isValidElementForJoystick(mapping->axes + i, js))
                 return NULL;
@@ -117,45 +117,45 @@ static _GLFWmapping* findValidMapping(const _GLFWjoystick* js)
 
 // Parses an SDL_GameControllerDB line and adds it to the mapping list
 //
-static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
+static LUMbool parseMapping(_LUMmapping* mapping, const char* string)
 {
     const char* c = string;
     size_t i, length;
     struct
     {
         const char* name;
-        _GLFWmapelement* element;
+        _LUMmapelement* element;
     } fields[] =
     {
         { "platform",      NULL },
-        { "a",             mapping->buttons + GLFW_GAMEPAD_BUTTON_A },
-        { "b",             mapping->buttons + GLFW_GAMEPAD_BUTTON_B },
-        { "x",             mapping->buttons + GLFW_GAMEPAD_BUTTON_X },
-        { "y",             mapping->buttons + GLFW_GAMEPAD_BUTTON_Y },
-        { "back",          mapping->buttons + GLFW_GAMEPAD_BUTTON_BACK },
-        { "start",         mapping->buttons + GLFW_GAMEPAD_BUTTON_START },
-        { "guide",         mapping->buttons + GLFW_GAMEPAD_BUTTON_GUIDE },
-        { "leftshoulder",  mapping->buttons + GLFW_GAMEPAD_BUTTON_LEFT_BUMPER },
-        { "rightshoulder", mapping->buttons + GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER },
-        { "leftstick",     mapping->buttons + GLFW_GAMEPAD_BUTTON_LEFT_THUMB },
-        { "rightstick",    mapping->buttons + GLFW_GAMEPAD_BUTTON_RIGHT_THUMB },
-        { "dpup",          mapping->buttons + GLFW_GAMEPAD_BUTTON_DPAD_UP },
-        { "dpright",       mapping->buttons + GLFW_GAMEPAD_BUTTON_DPAD_RIGHT },
-        { "dpdown",        mapping->buttons + GLFW_GAMEPAD_BUTTON_DPAD_DOWN },
-        { "dpleft",        mapping->buttons + GLFW_GAMEPAD_BUTTON_DPAD_LEFT },
-        { "lefttrigger",   mapping->axes + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER },
-        { "righttrigger",  mapping->axes + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER },
-        { "leftx",         mapping->axes + GLFW_GAMEPAD_AXIS_LEFT_X },
-        { "lefty",         mapping->axes + GLFW_GAMEPAD_AXIS_LEFT_Y },
-        { "rightx",        mapping->axes + GLFW_GAMEPAD_AXIS_RIGHT_X },
-        { "righty",        mapping->axes + GLFW_GAMEPAD_AXIS_RIGHT_Y }
+        { "a",             mapping->buttons + LUM_GAMEPAD_BUTTON_A },
+        { "b",             mapping->buttons + LUM_GAMEPAD_BUTTON_B },
+        { "x",             mapping->buttons + LUM_GAMEPAD_BUTTON_X },
+        { "y",             mapping->buttons + LUM_GAMEPAD_BUTTON_Y },
+        { "back",          mapping->buttons + LUM_GAMEPAD_BUTTON_BACK },
+        { "start",         mapping->buttons + LUM_GAMEPAD_BUTTON_START },
+        { "guide",         mapping->buttons + LUM_GAMEPAD_BUTTON_GUIDE },
+        { "leftshoulder",  mapping->buttons + LUM_GAMEPAD_BUTTON_LEFT_BUMPER },
+        { "rightshoulder", mapping->buttons + LUM_GAMEPAD_BUTTON_RIGHT_BUMPER },
+        { "leftstick",     mapping->buttons + LUM_GAMEPAD_BUTTON_LEFT_THUMB },
+        { "rightstick",    mapping->buttons + LUM_GAMEPAD_BUTTON_RIGHT_THUMB },
+        { "dpup",          mapping->buttons + LUM_GAMEPAD_BUTTON_DPAD_UP },
+        { "dpright",       mapping->buttons + LUM_GAMEPAD_BUTTON_DPAD_RIGHT },
+        { "dpdown",        mapping->buttons + LUM_GAMEPAD_BUTTON_DPAD_DOWN },
+        { "dpleft",        mapping->buttons + LUM_GAMEPAD_BUTTON_DPAD_LEFT },
+        { "lefttrigger",   mapping->axes + LUM_GAMEPAD_AXIS_LEFT_TRIGGER },
+        { "righttrigger",  mapping->axes + LUM_GAMEPAD_AXIS_RIGHT_TRIGGER },
+        { "leftx",         mapping->axes + LUM_GAMEPAD_AXIS_LEFT_X },
+        { "lefty",         mapping->axes + LUM_GAMEPAD_AXIS_LEFT_Y },
+        { "rightx",        mapping->axes + LUM_GAMEPAD_AXIS_RIGHT_X },
+        { "righty",        mapping->axes + LUM_GAMEPAD_AXIS_RIGHT_Y }
     };
 
     length = strcspn(c, ",");
     if (length != 32 || c[length] != ',')
     {
-        _glfwInputError(GLFW_INVALID_VALUE, NULL);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_VALUE, NULL);
+        return LUM_FALSE;
     }
 
     memcpy(mapping->guid, c, length);
@@ -164,8 +164,8 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
     length = strcspn(c, ",");
     if (length >= sizeof(mapping->name) || c[length] != ',')
     {
-        _glfwInputError(GLFW_INVALID_VALUE, NULL);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_VALUE, NULL);
+        return LUM_FALSE;
     }
 
     memcpy(mapping->name, c, length);
@@ -175,7 +175,7 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
     {
         // TODO: Implement output modifiers
         if (*c == '+' || *c == '-')
-            return GLFW_FALSE;
+            return LUM_FALSE;
 
         for (i = 0;  i < sizeof(fields) / sizeof(fields[0]);  i++)
         {
@@ -187,7 +187,7 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
 
             if (fields[i].element)
             {
-                _GLFWmapelement* e = fields[i].element;
+                _LUMmapelement* e = fields[i].element;
                 int8_t minimum = -1;
                 int8_t maximum = 1;
 
@@ -203,15 +203,15 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
                 }
 
                 if (*c == 'a')
-                    e->type = _GLFW_JOYSTICK_AXIS;
+                    e->type = _LUM_JOYSTICK_AXIS;
                 else if (*c == 'b')
-                    e->type = _GLFW_JOYSTICK_BUTTON;
+                    e->type = _LUM_JOYSTICK_BUTTON;
                 else if (*c == 'h')
-                    e->type = _GLFW_JOYSTICK_HATBIT;
+                    e->type = _LUM_JOYSTICK_HATBIT;
                 else
                     break;
 
-                if (e->type == _GLFW_JOYSTICK_HATBIT)
+                if (e->type == _LUM_JOYSTICK_HATBIT)
                 {
                     const unsigned long hat = strtoul(c + 1, (char**) &c, 10);
                     const unsigned long bit = strtoul(c + 1, (char**) &c, 10);
@@ -220,7 +220,7 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
                 else
                     e->index = (uint8_t) strtoul(c + 1, (char**) &c, 10);
 
-                if (e->type == _GLFW_JOYSTICK_AXIS)
+                if (e->type == _LUM_JOYSTICK_AXIS)
                 {
                     e->axisScale = 2 / (maximum - minimum);
                     e->axisOffset = -(maximum + minimum);
@@ -234,10 +234,10 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
             }
             else
             {
-                const char* name = _glfw.platform.getMappingName();
+                const char* name = _lum.platform.getMappingName();
                 length = strlen(name);
                 if (strncmp(c, name, length) != 0)
-                    return GLFW_FALSE;
+                    return LUM_FALSE;
             }
 
             break;
@@ -253,97 +253,97 @@ static GLFWbool parseMapping(_GLFWmapping* mapping, const char* string)
             mapping->guid[i] += 'a' - 'A';
     }
 
-    _glfw.platform.updateGamepadGUID(mapping->guid);
-    return GLFW_TRUE;
+    _lum.platform.updateGamepadGUID(mapping->guid);
+    return LUM_TRUE;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                         GLFW event API                       //////
+//////                         Lumina event API                       //////
 //////////////////////////////////////////////////////////////////////////
 
 // Notifies shared code of a physical key event
 //
-void _glfwInputKey(_GLFWwindow* window, int key, int scancode, int action, int mods)
+void _lumInputKey(_LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key >= 0 && key <= GLFW_KEY_LAST)
+    if (key >= 0 && key <= LUM_KEY_LAST)
     {
-        GLFWbool repeated = GLFW_FALSE;
+        LUMbool repeated = LUM_FALSE;
 
-        if (action == GLFW_RELEASE && window->keys[key] == GLFW_RELEASE)
+        if (action == LUM_RELEASE && window->keys[key] == LUM_RELEASE)
             return;
 
-        if (action == GLFW_PRESS && window->keys[key] == GLFW_PRESS)
-            repeated = GLFW_TRUE;
+        if (action == LUM_PRESS && window->keys[key] == LUM_PRESS)
+            repeated = LUM_TRUE;
 
-        if (action == GLFW_RELEASE && window->stickyKeys)
-            window->keys[key] = _GLFW_STICK;
+        if (action == LUM_RELEASE && window->stickyKeys)
+            window->keys[key] = _LUM_STICK;
         else
             window->keys[key] = (char) action;
 
         if (repeated)
-            action = GLFW_REPEAT;
+            action = LUM_REPEAT;
     }
 
     if (!window->lockKeyMods)
-        mods &= ~(GLFW_MOD_CAPS_LOCK | GLFW_MOD_NUM_LOCK);
+        mods &= ~(LUM_MOD_CAPS_LOCK | LUM_MOD_NUM_LOCK);
 
     if (window->callbacks.key)
-        window->callbacks.key((GLFWwindow*) window, key, scancode, action, mods);
+        window->callbacks.key((LUMwindow*) window, key, scancode, action, mods);
 }
 
 // Notifies shared code of a Unicode codepoint input event
 // The 'plain' parameter determines whether to emit a regular character event
 //
-void _glfwInputChar(_GLFWwindow* window, uint32_t codepoint, int mods, GLFWbool plain)
+void _lumInputChar(_LUMwindow* window, uint32_t codepoint, int mods, LUMbool plain)
 {
     if (codepoint < 32 || (codepoint > 126 && codepoint < 160))
         return;
 
     if (!window->lockKeyMods)
-        mods &= ~(GLFW_MOD_CAPS_LOCK | GLFW_MOD_NUM_LOCK);
+        mods &= ~(LUM_MOD_CAPS_LOCK | LUM_MOD_NUM_LOCK);
 
     if (window->callbacks.charmods)
-        window->callbacks.charmods((GLFWwindow*) window, codepoint, mods);
+        window->callbacks.charmods((LUMwindow*) window, codepoint, mods);
 
     if (plain)
     {
         if (window->callbacks.character)
-            window->callbacks.character((GLFWwindow*) window, codepoint);
+            window->callbacks.character((LUMwindow*) window, codepoint);
     }
 }
 
 // Notifies shared code of a scroll event
 //
-void _glfwInputScroll(_GLFWwindow* window, double xoffset, double yoffset)
+void _lumInputScroll(_LUMwindow* window, double xoffset, double yoffset)
 {
     if (window->callbacks.scroll)
-        window->callbacks.scroll((GLFWwindow*) window, xoffset, yoffset);
+        window->callbacks.scroll((LUMwindow*) window, xoffset, yoffset);
 }
 
 // Notifies shared code of a mouse button click event
 //
-void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
+void _lumInputMouseClick(_LUMwindow* window, int button, int action, int mods)
 {
-    if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST)
+    if (button < 0 || button > LUM_MOUSE_BUTTON_LAST)
         return;
 
     if (!window->lockKeyMods)
-        mods &= ~(GLFW_MOD_CAPS_LOCK | GLFW_MOD_NUM_LOCK);
+        mods &= ~(LUM_MOD_CAPS_LOCK | LUM_MOD_NUM_LOCK);
 
-    if (action == GLFW_RELEASE && window->stickyMouseButtons)
-        window->mouseButtons[button] = _GLFW_STICK;
+    if (action == LUM_RELEASE && window->stickyMouseButtons)
+        window->mouseButtons[button] = _LUM_STICK;
     else
         window->mouseButtons[button] = (char) action;
 
     if (window->callbacks.mouseButton)
-        window->callbacks.mouseButton((GLFWwindow*) window, button, action, mods);
+        window->callbacks.mouseButton((LUMwindow*) window, button, action, mods);
 }
 
 // Notifies shared code of a cursor motion event
 // The position is specified in content area relative screen coordinates
 //
-void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos)
+void _lumInputCursorPos(_LUMwindow* window, double xpos, double ypos)
 {
     if (window->virtualCursorPosX == xpos && window->virtualCursorPosY == ypos)
         return;
@@ -352,108 +352,108 @@ void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos)
     window->virtualCursorPosY = ypos;
 
     if (window->callbacks.cursorPos)
-        window->callbacks.cursorPos((GLFWwindow*) window, xpos, ypos);
+        window->callbacks.cursorPos((LUMwindow*) window, xpos, ypos);
 }
 
 // Notifies shared code of a cursor enter/leave event
 //
-void _glfwInputCursorEnter(_GLFWwindow* window, GLFWbool entered)
+void _lumInputCursorEnter(_LUMwindow* window, LUMbool entered)
 {
     if (window->callbacks.cursorEnter)
-        window->callbacks.cursorEnter((GLFWwindow*) window, entered);
+        window->callbacks.cursorEnter((LUMwindow*) window, entered);
 }
 
 // Notifies shared code of files or directories dropped on a window
 //
-void _glfwInputDrop(_GLFWwindow* window, int count, const char** paths)
+void _lumInputDrop(_LUMwindow* window, int count, const char** paths)
 {
     if (window->callbacks.drop)
-        window->callbacks.drop((GLFWwindow*) window, count, paths);
+        window->callbacks.drop((LUMwindow*) window, count, paths);
 }
 
 // Notifies shared code of a joystick connection or disconnection
 //
-void _glfwInputJoystick(_GLFWjoystick* js, int event)
+void _lumInputJoystick(_LUMjoystick* js, int event)
 {
-    const int jid = (int) (js - _glfw.joysticks);
+    const int jid = (int) (js - _lum.joysticks);
 
-    if (_glfw.callbacks.joystick)
-        _glfw.callbacks.joystick(jid, event);
+    if (_lum.callbacks.joystick)
+        _lum.callbacks.joystick(jid, event);
 }
 
 // Notifies shared code of the new value of a joystick axis
 //
-void _glfwInputJoystickAxis(_GLFWjoystick* js, int axis, float value)
+void _lumInputJoystickAxis(_LUMjoystick* js, int axis, float value)
 {
     js->axes[axis] = value;
 }
 
 // Notifies shared code of the new value of a joystick button
 //
-void _glfwInputJoystickButton(_GLFWjoystick* js, int button, char value)
+void _lumInputJoystickButton(_LUMjoystick* js, int button, char value)
 {
     js->buttons[button] = value;
 }
 
 // Notifies shared code of the new value of a joystick hat
 //
-void _glfwInputJoystickHat(_GLFWjoystick* js, int hat, char value)
+void _lumInputJoystickHat(_LUMjoystick* js, int hat, char value)
 {
     const int base = js->buttonCount + hat * 4;
 
-    js->buttons[base + 0] = (value & 0x01) ? GLFW_PRESS : GLFW_RELEASE;
-    js->buttons[base + 1] = (value & 0x02) ? GLFW_PRESS : GLFW_RELEASE;
-    js->buttons[base + 2] = (value & 0x04) ? GLFW_PRESS : GLFW_RELEASE;
-    js->buttons[base + 3] = (value & 0x08) ? GLFW_PRESS : GLFW_RELEASE;
+    js->buttons[base + 0] = (value & 0x01) ? LUM_PRESS : LUM_RELEASE;
+    js->buttons[base + 1] = (value & 0x02) ? LUM_PRESS : LUM_RELEASE;
+    js->buttons[base + 2] = (value & 0x04) ? LUM_PRESS : LUM_RELEASE;
+    js->buttons[base + 3] = (value & 0x08) ? LUM_PRESS : LUM_RELEASE;
 
     js->hats[hat] = value;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Adds the built-in set of gamepad mappings
 //
-void _glfwInitGamepadMappings(void)
+void _lumInitGamepadMappings(void)
 {
     size_t i;
-    const size_t count = sizeof(_glfwDefaultMappings) / sizeof(char*);
-    _glfw.mappings = _glfw_calloc(count, sizeof(_GLFWmapping));
+    const size_t count = sizeof(_lumDefaultMappings) / sizeof(char*);
+    _lum.mappings = _lum_calloc(count, sizeof(_LUMmapping));
 
     for (i = 0;  i < count;  i++)
     {
-        if (parseMapping(&_glfw.mappings[_glfw.mappingCount], _glfwDefaultMappings[i]))
-            _glfw.mappingCount++;
+        if (parseMapping(&_lum.mappings[_lum.mappingCount], _lumDefaultMappings[i]))
+            _lum.mappingCount++;
     }
 }
 
 // Returns an available joystick object with arrays and name allocated
 //
-_GLFWjoystick* _glfwAllocJoystick(const char* name,
+_LUMjoystick* _lumAllocJoystick(const char* name,
                                   const char* guid,
                                   int axisCount,
                                   int buttonCount,
                                   int hatCount)
 {
     int jid;
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    for (jid = 0;  jid <= GLFW_JOYSTICK_LAST;  jid++)
+    for (jid = 0;  jid <= LUM_JOYSTICK_LAST;  jid++)
     {
-        if (!_glfw.joysticks[jid].present)
+        if (!_lum.joysticks[jid].present)
             break;
     }
 
-    if (jid > GLFW_JOYSTICK_LAST)
+    if (jid > LUM_JOYSTICK_LAST)
         return NULL;
 
-    js = _glfw.joysticks + jid;
-    js->present     = GLFW_TRUE;
-    js->axes        = _glfw_calloc(axisCount, sizeof(float));
-    js->buttons     = _glfw_calloc(buttonCount + (size_t) hatCount * 4, 1);
-    js->hats        = _glfw_calloc(hatCount, 1);
+    js = _lum.joysticks + jid;
+    js->present     = LUM_TRUE;
+    js->axes        = _lum_calloc(axisCount, sizeof(float));
+    js->buttons     = _lum_calloc(buttonCount + (size_t) hatCount * 4, 1);
+    js->hats        = _lum_calloc(hatCount, 1);
     js->axisCount   = axisCount;
     js->buttonCount = buttonCount;
     js->hatCount    = hatCount;
@@ -467,70 +467,70 @@ _GLFWjoystick* _glfwAllocJoystick(const char* name,
 
 // Frees arrays and name and flags the joystick object as unused
 //
-void _glfwFreeJoystick(_GLFWjoystick* js)
+void _lumFreeJoystick(_LUMjoystick* js)
 {
-    _glfw_free(js->axes);
-    _glfw_free(js->buttons);
-    _glfw_free(js->hats);
-    memset(js, 0, sizeof(_GLFWjoystick));
+    _lum_free(js->axes);
+    _lum_free(js->buttons);
+    _lum_free(js->hats);
+    memset(js, 0, sizeof(_LUMjoystick));
 }
 
 // Center the cursor in the content area of the specified window
 //
-void _glfwCenterCursorInContentArea(_GLFWwindow* window)
+void _lumCenterCursorInContentArea(_LUMwindow* window)
 {
     int width, height;
 
-    _glfw.platform.getWindowSize(window, &width, &height);
-    _glfw.platform.setCursorPos(window, width / 2.0, height / 2.0);
+    _lum.platform.getWindowSize(window, &width, &height);
+    _lum.platform.setCursorPos(window, width / 2.0, height / 2.0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW public API                       //////
+//////                        Lumina public API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI int glfwGetInputMode(GLFWwindow* handle, int mode)
+LUMAPI int lumGetInputMode(LUMwindow* handle, int mode)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
 
     switch (mode)
     {
-        case GLFW_CURSOR:
+        case LUM_CURSOR:
             return window->cursorMode;
-        case GLFW_STICKY_KEYS:
+        case LUM_STICKY_KEYS:
             return window->stickyKeys;
-        case GLFW_STICKY_MOUSE_BUTTONS:
+        case LUM_STICKY_MOUSE_BUTTONS:
             return window->stickyMouseButtons;
-        case GLFW_LOCK_KEY_MODS:
+        case LUM_LOCK_KEY_MODS:
             return window->lockKeyMods;
-        case GLFW_RAW_MOUSE_MOTION:
+        case LUM_RAW_MOUSE_MOTION:
             return window->rawMouseMotion;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid input mode 0x%08X", mode);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid input mode 0x%08X", mode);
     return 0;
 }
 
-GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
+LUMAPI void lumSetInputMode(LUMwindow* handle, int mode, int value)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     switch (mode)
     {
-        case GLFW_CURSOR:
+        case LUM_CURSOR:
         {
-            if (value != GLFW_CURSOR_NORMAL &&
-                value != GLFW_CURSOR_HIDDEN &&
-                value != GLFW_CURSOR_DISABLED)
+            if (value != LUM_CURSOR_NORMAL &&
+                value != LUM_CURSOR_HIDDEN &&
+                value != LUM_CURSOR_DISABLED)
             {
-                _glfwInputError(GLFW_INVALID_ENUM,
+                _lumInputError(LUM_INVALID_ENUM,
                                 "Invalid cursor mode 0x%08X",
                                 value);
                 return;
@@ -541,16 +541,16 @@ GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
 
             window->cursorMode = value;
 
-            _glfw.platform.getCursorPos(window,
+            _lum.platform.getCursorPos(window,
                                         &window->virtualCursorPosX,
                                         &window->virtualCursorPosY);
-            _glfw.platform.setCursorMode(window, value);
+            _lum.platform.setCursorMode(window, value);
             return;
         }
 
-        case GLFW_STICKY_KEYS:
+        case LUM_STICKY_KEYS:
         {
-            value = value ? GLFW_TRUE : GLFW_FALSE;
+            value = value ? LUM_TRUE : LUM_FALSE;
             if (window->stickyKeys == value)
                 return;
 
@@ -559,10 +559,10 @@ GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
                 int i;
 
                 // Release all sticky keys
-                for (i = 0;  i <= GLFW_KEY_LAST;  i++)
+                for (i = 0;  i <= LUM_KEY_LAST;  i++)
                 {
-                    if (window->keys[i] == _GLFW_STICK)
-                        window->keys[i] = GLFW_RELEASE;
+                    if (window->keys[i] == _LUM_STICK)
+                        window->keys[i] = LUM_RELEASE;
                 }
             }
 
@@ -570,9 +570,9 @@ GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
             return;
         }
 
-        case GLFW_STICKY_MOUSE_BUTTONS:
+        case LUM_STICKY_MOUSE_BUTTONS:
         {
-            value = value ? GLFW_TRUE : GLFW_FALSE;
+            value = value ? LUM_TRUE : LUM_FALSE;
             if (window->stickyMouseButtons == value)
                 return;
 
@@ -581,10 +581,10 @@ GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
                 int i;
 
                 // Release all sticky mouse buttons
-                for (i = 0;  i <= GLFW_MOUSE_BUTTON_LAST;  i++)
+                for (i = 0;  i <= LUM_MOUSE_BUTTON_LAST;  i++)
                 {
-                    if (window->mouseButtons[i] == _GLFW_STICK)
-                        window->mouseButtons[i] = GLFW_RELEASE;
+                    if (window->mouseButtons[i] == _LUM_STICK)
+                        window->mouseButtons[i] = LUM_RELEASE;
                 }
             }
 
@@ -592,121 +592,121 @@ GLFWAPI void glfwSetInputMode(GLFWwindow* handle, int mode, int value)
             return;
         }
 
-        case GLFW_LOCK_KEY_MODS:
+        case LUM_LOCK_KEY_MODS:
         {
-            window->lockKeyMods = value ? GLFW_TRUE : GLFW_FALSE;
+            window->lockKeyMods = value ? LUM_TRUE : LUM_FALSE;
             return;
         }
 
-        case GLFW_RAW_MOUSE_MOTION:
+        case LUM_RAW_MOUSE_MOTION:
         {
-            if (!_glfw.platform.rawMouseMotionSupported())
+            if (!_lum.platform.rawMouseMotionSupported())
             {
-                _glfwInputError(GLFW_PLATFORM_ERROR,
+                _lumInputError(LUM_PLATFORM_ERROR,
                                 "Raw mouse motion is not supported on this system");
                 return;
             }
 
-            value = value ? GLFW_TRUE : GLFW_FALSE;
+            value = value ? LUM_TRUE : LUM_FALSE;
             if (window->rawMouseMotion == value)
                 return;
 
             window->rawMouseMotion = value;
-            _glfw.platform.setRawMouseMotion(window, value);
+            _lum.platform.setRawMouseMotion(window, value);
             return;
         }
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM, "Invalid input mode 0x%08X", mode);
+    _lumInputError(LUM_INVALID_ENUM, "Invalid input mode 0x%08X", mode);
 }
 
-GLFWAPI int glfwRawMouseMotionSupported(void)
+LUMAPI int lumRawMouseMotionSupported(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
-    return _glfw.platform.rawMouseMotionSupported();
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
+    return _lum.platform.rawMouseMotionSupported();
 }
 
-GLFWAPI const char* glfwGetKeyName(int key, int scancode)
+LUMAPI const char* lumGetKeyName(int key, int scancode)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (key != GLFW_KEY_UNKNOWN)
+    if (key != LUM_KEY_UNKNOWN)
     {
-        if (key != GLFW_KEY_KP_EQUAL &&
-            (key < GLFW_KEY_KP_0 || key > GLFW_KEY_KP_ADD) &&
-            (key < GLFW_KEY_APOSTROPHE || key > GLFW_KEY_WORLD_2))
+        if (key != LUM_KEY_KP_EQUAL &&
+            (key < LUM_KEY_KP_0 || key > LUM_KEY_KP_ADD) &&
+            (key < LUM_KEY_APOSTROPHE || key > LUM_KEY_WORLD_2))
         {
             return NULL;
         }
 
-        scancode = _glfw.platform.getKeyScancode(key);
+        scancode = _lum.platform.getKeyScancode(key);
     }
 
-    return _glfw.platform.getScancodeName(scancode);
+    return _lum.platform.getScancodeName(scancode);
 }
 
-GLFWAPI int glfwGetKeyScancode(int key)
+LUMAPI int lumGetKeyScancode(int key)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(-1);
+    _LUM_REQUIRE_INIT_OR_RETURN(-1);
 
-    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST)
+    if (key < LUM_KEY_SPACE || key > LUM_KEY_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid key %i", key);
-        return GLFW_RELEASE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid key %i", key);
+        return LUM_RELEASE;
     }
 
-    return _glfw.platform.getKeyScancode(key);
+    return _lum.platform.getKeyScancode(key);
 }
 
-GLFWAPI int glfwGetKey(GLFWwindow* handle, int key)
+LUMAPI int lumGetKey(LUMwindow* handle, int key)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_RELEASE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_RELEASE);
 
-    if (key < GLFW_KEY_SPACE || key > GLFW_KEY_LAST)
+    if (key < LUM_KEY_SPACE || key > LUM_KEY_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid key %i", key);
-        return GLFW_RELEASE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid key %i", key);
+        return LUM_RELEASE;
     }
 
-    if (window->keys[key] == _GLFW_STICK)
+    if (window->keys[key] == _LUM_STICK)
     {
         // Sticky mode: release key now
-        window->keys[key] = GLFW_RELEASE;
-        return GLFW_PRESS;
+        window->keys[key] = LUM_RELEASE;
+        return LUM_PRESS;
     }
 
     return (int) window->keys[key];
 }
 
-GLFWAPI int glfwGetMouseButton(GLFWwindow* handle, int button)
+LUMAPI int lumGetMouseButton(LUMwindow* handle, int button)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_RELEASE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_RELEASE);
 
-    if (button < GLFW_MOUSE_BUTTON_1 || button > GLFW_MOUSE_BUTTON_LAST)
+    if (button < LUM_MOUSE_BUTTON_1 || button > LUM_MOUSE_BUTTON_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid mouse button %i", button);
-        return GLFW_RELEASE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid mouse button %i", button);
+        return LUM_RELEASE;
     }
 
-    if (window->mouseButtons[button] == _GLFW_STICK)
+    if (window->mouseButtons[button] == _LUM_STICK)
     {
         // Sticky mode: release mouse button now
-        window->mouseButtons[button] = GLFW_RELEASE;
-        return GLFW_PRESS;
+        window->mouseButtons[button] = LUM_RELEASE;
+        return LUM_PRESS;
     }
 
     return (int) window->mouseButtons[button];
 }
 
-GLFWAPI void glfwGetCursorPos(GLFWwindow* handle, double* xpos, double* ypos)
+LUMAPI void lumGetCursorPos(LUMwindow* handle, double* xpos, double* ypos)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
     if (xpos)
@@ -714,9 +714,9 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* handle, double* xpos, double* ypos)
     if (ypos)
         *ypos = 0;
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    if (window->cursorMode == GLFW_CURSOR_DISABLED)
+    if (window->cursorMode == LUM_CURSOR_DISABLED)
     {
         if (xpos)
             *xpos = window->virtualCursorPosX;
@@ -724,29 +724,29 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* handle, double* xpos, double* ypos)
             *ypos = window->virtualCursorPosY;
     }
     else
-        _glfw.platform.getCursorPos(window, xpos, ypos);
+        _lum.platform.getCursorPos(window, xpos, ypos);
 }
 
-GLFWAPI void glfwSetCursorPos(GLFWwindow* handle, double xpos, double ypos)
+LUMAPI void lumSetCursorPos(LUMwindow* handle, double xpos, double ypos)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (xpos != xpos || xpos < -DBL_MAX || xpos > DBL_MAX ||
         ypos != ypos || ypos < -DBL_MAX || ypos > DBL_MAX)
     {
-        _glfwInputError(GLFW_INVALID_VALUE,
+        _lumInputError(LUM_INVALID_VALUE,
                         "Invalid cursor position %f %f",
                         xpos, ypos);
         return;
     }
 
-    if (!_glfw.platform.windowFocused(window))
+    if (!_lum.platform.windowFocused(window))
         return;
 
-    if (window->cursorMode == GLFW_CURSOR_DISABLED)
+    if (window->cursorMode == LUM_CURSOR_DISABLED)
     {
         // Only update the accumulated position if the cursor is disabled
         window->virtualCursorPosX = xpos;
@@ -755,90 +755,90 @@ GLFWAPI void glfwSetCursorPos(GLFWwindow* handle, double xpos, double ypos)
     else
     {
         // Update system cursor position
-        _glfw.platform.setCursorPos(window, xpos, ypos);
+        _lum.platform.setCursorPos(window, xpos, ypos);
     }
 }
 
-GLFWAPI GLFWcursor* glfwCreateCursor(const GLFWimage* image, int xhot, int yhot)
+LUMAPI LUMcursor* lumCreateCursor(const LUMimage* image, int xhot, int yhot)
 {
-    _GLFWcursor* cursor;
+    _LUMcursor* cursor;
 
     assert(image != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    cursor = _glfw_calloc(1, sizeof(_GLFWcursor));
-    cursor->next = _glfw.cursorListHead;
-    _glfw.cursorListHead = cursor;
+    cursor = _lum_calloc(1, sizeof(_LUMcursor));
+    cursor->next = _lum.cursorListHead;
+    _lum.cursorListHead = cursor;
 
-    if (!_glfw.platform.createCursor(cursor, image, xhot, yhot))
+    if (!_lum.platform.createCursor(cursor, image, xhot, yhot))
     {
-        glfwDestroyCursor((GLFWcursor*) cursor);
+        lumDestroyCursor((LUMcursor*) cursor);
         return NULL;
     }
 
-    return (GLFWcursor*) cursor;
+    return (LUMcursor*) cursor;
 }
 
-GLFWAPI GLFWcursor* glfwCreateStandardCursor(int shape)
+LUMAPI LUMcursor* lumCreateStandardCursor(int shape)
 {
-    _GLFWcursor* cursor;
+    _LUMcursor* cursor;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (shape != GLFW_ARROW_CURSOR &&
-        shape != GLFW_IBEAM_CURSOR &&
-        shape != GLFW_CROSSHAIR_CURSOR &&
-        shape != GLFW_POINTING_HAND_CURSOR &&
-        shape != GLFW_RESIZE_EW_CURSOR &&
-        shape != GLFW_RESIZE_NS_CURSOR &&
-        shape != GLFW_RESIZE_NWSE_CURSOR &&
-        shape != GLFW_RESIZE_NESW_CURSOR &&
-        shape != GLFW_RESIZE_ALL_CURSOR &&
-        shape != GLFW_NOT_ALLOWED_CURSOR)
+    if (shape != LUM_ARROW_CURSOR &&
+        shape != LUM_IBEAM_CURSOR &&
+        shape != LUM_CROSSHAIR_CURSOR &&
+        shape != LUM_POINTING_HAND_CURSOR &&
+        shape != LUM_RESIZE_EW_CURSOR &&
+        shape != LUM_RESIZE_NS_CURSOR &&
+        shape != LUM_RESIZE_NWSE_CURSOR &&
+        shape != LUM_RESIZE_NESW_CURSOR &&
+        shape != LUM_RESIZE_ALL_CURSOR &&
+        shape != LUM_NOT_ALLOWED_CURSOR)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid standard cursor 0x%08X", shape);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid standard cursor 0x%08X", shape);
         return NULL;
     }
 
-    cursor = _glfw_calloc(1, sizeof(_GLFWcursor));
-    cursor->next = _glfw.cursorListHead;
-    _glfw.cursorListHead = cursor;
+    cursor = _lum_calloc(1, sizeof(_LUMcursor));
+    cursor->next = _lum.cursorListHead;
+    _lum.cursorListHead = cursor;
 
-    if (!_glfw.platform.createStandardCursor(cursor, shape))
+    if (!_lum.platform.createStandardCursor(cursor, shape))
     {
-        glfwDestroyCursor((GLFWcursor*) cursor);
+        lumDestroyCursor((LUMcursor*) cursor);
         return NULL;
     }
 
-    return (GLFWcursor*) cursor;
+    return (LUMcursor*) cursor;
 }
 
-GLFWAPI void glfwDestroyCursor(GLFWcursor* handle)
+LUMAPI void lumDestroyCursor(LUMcursor* handle)
 {
-    _GLFWcursor* cursor = (_GLFWcursor*) handle;
+    _LUMcursor* cursor = (_LUMcursor*) handle;
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (cursor == NULL)
         return;
 
     // Make sure the cursor is not being used by any window
     {
-        _GLFWwindow* window;
+        _LUMwindow* window;
 
-        for (window = _glfw.windowListHead;  window;  window = window->next)
+        for (window = _lum.windowListHead;  window;  window = window->next)
         {
             if (window->cursor == cursor)
-                glfwSetCursor((GLFWwindow*) window, NULL);
+                lumSetCursor((LUMwindow*) window, NULL);
         }
     }
 
-    _glfw.platform.destroyCursor(cursor);
+    _lum.platform.destroyCursor(cursor);
 
     // Unlink cursor from global linked list
     {
-        _GLFWcursor** prev = &_glfw.cursorListHead;
+        _LUMcursor** prev = &_lum.cursorListHead;
 
         while (*prev != cursor)
             prev = &((*prev)->next);
@@ -846,192 +846,192 @@ GLFWAPI void glfwDestroyCursor(GLFWcursor* handle)
         *prev = cursor->next;
     }
 
-    _glfw_free(cursor);
+    _lum_free(cursor);
 }
 
-GLFWAPI void glfwSetCursor(GLFWwindow* windowHandle, GLFWcursor* cursorHandle)
+LUMAPI void lumSetCursor(LUMwindow* windowHandle, LUMcursor* cursorHandle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) windowHandle;
-    _GLFWcursor* cursor = (_GLFWcursor*) cursorHandle;
+    _LUMwindow* window = (_LUMwindow*) windowHandle;
+    _LUMcursor* cursor = (_LUMcursor*) cursorHandle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     window->cursor = cursor;
 
-    _glfw.platform.setCursor(window, cursor);
+    _lum.platform.setCursor(window, cursor);
 }
 
-GLFWAPI GLFWkeyfun glfwSetKeyCallback(GLFWwindow* handle, GLFWkeyfun cbfun)
+LUMAPI LUMkeyfun lumSetKeyCallback(LUMwindow* handle, LUMkeyfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWkeyfun, window->callbacks.key, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMkeyfun, window->callbacks.key, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWcharfun glfwSetCharCallback(GLFWwindow* handle, GLFWcharfun cbfun)
+LUMAPI LUMcharfun lumSetCharCallback(LUMwindow* handle, LUMcharfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWcharfun, window->callbacks.character, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMcharfun, window->callbacks.character, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWcharmodsfun glfwSetCharModsCallback(GLFWwindow* handle, GLFWcharmodsfun cbfun)
+LUMAPI LUMcharmodsfun lumSetCharModsCallback(LUMwindow* handle, LUMcharmodsfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWcharmodsfun, window->callbacks.charmods, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMcharmodsfun, window->callbacks.charmods, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* handle,
-                                                      GLFWmousebuttonfun cbfun)
+LUMAPI LUMmousebuttonfun lumSetMouseButtonCallback(LUMwindow* handle,
+                                                      LUMmousebuttonfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWmousebuttonfun, window->callbacks.mouseButton, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMmousebuttonfun, window->callbacks.mouseButton, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* handle,
-                                                  GLFWcursorposfun cbfun)
+LUMAPI LUMcursorposfun lumSetCursorPosCallback(LUMwindow* handle,
+                                                  LUMcursorposfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWcursorposfun, window->callbacks.cursorPos, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMcursorposfun, window->callbacks.cursorPos, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* handle,
-                                                      GLFWcursorenterfun cbfun)
+LUMAPI LUMcursorenterfun lumSetCursorEnterCallback(LUMwindow* handle,
+                                                      LUMcursorenterfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWcursorenterfun, window->callbacks.cursorEnter, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMcursorenterfun, window->callbacks.cursorEnter, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* handle,
-                                            GLFWscrollfun cbfun)
+LUMAPI LUMscrollfun lumSetScrollCallback(LUMwindow* handle,
+                                            LUMscrollfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWscrollfun, window->callbacks.scroll, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMscrollfun, window->callbacks.scroll, cbfun);
     return cbfun;
 }
 
-GLFWAPI GLFWdropfun glfwSetDropCallback(GLFWwindow* handle, GLFWdropfun cbfun)
+LUMAPI LUMdropfun lumSetDropCallback(LUMwindow* handle, LUMdropfun cbfun)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP(GLFWdropfun, window->callbacks.drop, cbfun);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_SWAP(LUMdropfun, window->callbacks.drop, cbfun);
     return cbfun;
 }
 
-GLFWAPI int glfwJoystickPresent(int jid)
+LUMAPI int lumJoystickPresent(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        return LUM_FALSE;
     }
 
     if (!initJoysticks())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    return _glfw.platform.pollJoystick(js, _GLFW_POLL_PRESENCE);
+    return _lum.platform.pollJoystick(js, _LUM_POLL_PRESENCE);
 }
 
-GLFWAPI const float* glfwGetJoystickAxes(int jid, int* count)
+LUMAPI const float* lumGetJoystickAxes(int jid, int* count)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
     assert(count != NULL);
 
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_AXES))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_AXES))
         return NULL;
 
     *count = js->axisCount;
     return js->axes;
 }
 
-GLFWAPI const unsigned char* glfwGetJoystickButtons(int jid, int* count)
+LUMAPI const unsigned char* lumGetJoystickButtons(int jid, int* count)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
     assert(count != NULL);
 
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_BUTTONS))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_BUTTONS))
         return NULL;
 
-    if (_glfw.hints.init.hatButtons)
+    if (_lum.hints.init.hatButtons)
         *count = js->buttonCount + js->hatCount * 4;
     else
         *count = js->buttonCount;
@@ -1039,145 +1039,145 @@ GLFWAPI const unsigned char* glfwGetJoystickButtons(int jid, int* count)
     return js->buttons;
 }
 
-GLFWAPI const unsigned char* glfwGetJoystickHats(int jid, int* count)
+LUMAPI const unsigned char* lumGetJoystickHats(int jid, int* count)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
     assert(count != NULL);
 
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_BUTTONS))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_BUTTONS))
         return NULL;
 
     *count = js->hatCount;
     return js->hats;
 }
 
-GLFWAPI const char* glfwGetJoystickName(int jid)
+LUMAPI const char* lumGetJoystickName(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_PRESENCE))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_PRESENCE))
         return NULL;
 
     return js->name;
 }
 
-GLFWAPI const char* glfwGetJoystickGUID(int jid)
+LUMAPI const char* lumGetJoystickGUID(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_PRESENCE))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_PRESENCE))
         return NULL;
 
     return js->guid;
 }
 
-GLFWAPI void glfwSetJoystickUserPointer(int jid, void* pointer)
+LUMAPI void lumSetJoystickUserPointer(int jid, void* pointer)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return;
 
     js->userPointer = pointer;
 }
 
-GLFWAPI void* glfwGetJoystickUserPointer(int jid)
+LUMAPI void* lumGetJoystickUserPointer(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
     return js->userPointer;
 }
 
-GLFWAPI GLFWjoystickfun glfwSetJoystickCallback(GLFWjoystickfun cbfun)
+LUMAPI LUMjoystickfun lumSetJoystickCallback(LUMjoystickfun cbfun)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
     if (!initJoysticks())
         return NULL;
 
-    _GLFW_SWAP(GLFWjoystickfun, _glfw.callbacks.joystick, cbfun);
+    _LUM_SWAP(LUMjoystickfun, _lum.callbacks.joystick, cbfun);
     return cbfun;
 }
 
-GLFWAPI int glfwUpdateGamepadMappings(const char* string)
+LUMAPI int lumUpdateGamepadMappings(const char* string)
 {
     int jid;
     const char* c = string;
 
     assert(string != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
 
     while (*c)
     {
@@ -1190,23 +1190,23 @@ GLFWAPI int glfwUpdateGamepadMappings(const char* string)
             const size_t length = strcspn(c, "\r\n");
             if (length < sizeof(line))
             {
-                _GLFWmapping mapping = {{0}};
+                _LUMmapping mapping = {{0}};
 
                 memcpy(line, c, length);
                 line[length] = '\0';
 
                 if (parseMapping(&mapping, line))
                 {
-                    _GLFWmapping* previous = findMapping(mapping.guid);
+                    _LUMmapping* previous = findMapping(mapping.guid);
                     if (previous)
                         *previous = mapping;
                     else
                     {
-                        _glfw.mappingCount++;
-                        _glfw.mappings =
-                            _glfw_realloc(_glfw.mappings,
-                                          sizeof(_GLFWmapping) * _glfw.mappingCount);
-                        _glfw.mappings[_glfw.mappingCount - 1] = mapping;
+                        _lum.mappingCount++;
+                        _lum.mappings =
+                            _lum_realloc(_lum.mappings,
+                                          sizeof(_LUMmapping) * _lum.mappingCount);
+                        _lum.mappings[_lum.mappingCount - 1] = mapping;
                     }
                 }
             }
@@ -1220,67 +1220,67 @@ GLFWAPI int glfwUpdateGamepadMappings(const char* string)
         }
     }
 
-    for (jid = 0;  jid <= GLFW_JOYSTICK_LAST;  jid++)
+    for (jid = 0;  jid <= LUM_JOYSTICK_LAST;  jid++)
     {
-        _GLFWjoystick* js = _glfw.joysticks + jid;
+        _LUMjoystick* js = _lum.joysticks + jid;
         if (js->present)
             js->mapping = findValidMapping(js);
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-GLFWAPI int glfwJoystickIsGamepad(int jid)
+LUMAPI int lumJoystickIsGamepad(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        return LUM_FALSE;
     }
 
     if (!initJoysticks())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_PRESENCE))
-        return GLFW_FALSE;
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_PRESENCE))
+        return LUM_FALSE;
 
     return js->mapping != NULL;
 }
 
-GLFWAPI const char* glfwGetGamepadName(int jid)
+LUMAPI const char* lumGetGamepadName(int jid)
 {
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
         return NULL;
     }
 
     if (!initJoysticks())
         return NULL;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
         return NULL;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_PRESENCE))
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_PRESENCE))
         return NULL;
 
     if (!js->mapping)
@@ -1289,42 +1289,42 @@ GLFWAPI const char* glfwGetGamepadName(int jid)
     return js->mapping->name;
 }
 
-GLFWAPI int glfwGetGamepadState(int jid, GLFWgamepadstate* state)
+LUMAPI int lumGetGamepadState(int jid, LUMgamepadstate* state)
 {
     int i;
-    _GLFWjoystick* js;
+    _LUMjoystick* js;
 
-    assert(jid >= GLFW_JOYSTICK_1);
-    assert(jid <= GLFW_JOYSTICK_LAST);
+    assert(jid >= LUM_JOYSTICK_1);
+    assert(jid <= LUM_JOYSTICK_LAST);
     assert(state != NULL);
 
-    memset(state, 0, sizeof(GLFWgamepadstate));
+    memset(state, 0, sizeof(LUMgamepadstate));
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
 
-    if (jid < 0 || jid > GLFW_JOYSTICK_LAST)
+    if (jid < 0 || jid > LUM_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid joystick ID %i", jid);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid joystick ID %i", jid);
+        return LUM_FALSE;
     }
 
     if (!initJoysticks())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    js = _glfw.joysticks + jid;
+    js = _lum.joysticks + jid;
     if (!js->present)
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    if (!_glfw.platform.pollJoystick(js, _GLFW_POLL_ALL))
-        return GLFW_FALSE;
+    if (!_lum.platform.pollJoystick(js, _LUM_POLL_ALL))
+        return LUM_FALSE;
 
     if (!js->mapping)
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    for (i = 0;  i <= GLFW_GAMEPAD_BUTTON_LAST;  i++)
+    for (i = 0;  i <= LUM_GAMEPAD_BUTTON_LAST;  i++)
     {
-        const _GLFWmapelement* e = js->mapping->buttons + i;
-        if (e->type == _GLFW_JOYSTICK_AXIS)
+        const _LUMmapelement* e = js->mapping->buttons + i;
+        if (e->type == _LUM_JOYSTICK_AXIS)
         {
             const float value = js->axes[e->index] * e->axisScale + e->axisOffset;
             // HACK: This should be baked into the value transform
@@ -1332,34 +1332,34 @@ GLFWAPI int glfwGetGamepadState(int jid, GLFWgamepadstate* state)
             if (e->axisOffset < 0 || (e->axisOffset == 0 && e->axisScale > 0))
             {
                 if (value >= 0.f)
-                    state->buttons[i] = GLFW_PRESS;
+                    state->buttons[i] = LUM_PRESS;
             }
             else
             {
                 if (value <= 0.f)
-                    state->buttons[i] = GLFW_PRESS;
+                    state->buttons[i] = LUM_PRESS;
             }
         }
-        else if (e->type == _GLFW_JOYSTICK_HATBIT)
+        else if (e->type == _LUM_JOYSTICK_HATBIT)
         {
             const unsigned int hat = e->index >> 4;
             const unsigned int bit = e->index & 0xf;
             if (js->hats[hat] & bit)
-                state->buttons[i] = GLFW_PRESS;
+                state->buttons[i] = LUM_PRESS;
         }
-        else if (e->type == _GLFW_JOYSTICK_BUTTON)
+        else if (e->type == _LUM_JOYSTICK_BUTTON)
             state->buttons[i] = js->buttons[e->index];
     }
 
-    for (i = 0;  i <= GLFW_GAMEPAD_AXIS_LAST;  i++)
+    for (i = 0;  i <= LUM_GAMEPAD_AXIS_LAST;  i++)
     {
-        const _GLFWmapelement* e = js->mapping->axes + i;
-        if (e->type == _GLFW_JOYSTICK_AXIS)
+        const _LUMmapelement* e = js->mapping->axes + i;
+        if (e->type == _LUM_JOYSTICK_AXIS)
         {
             const float value = js->axes[e->index] * e->axisScale + e->axisOffset;
-            state->axes[i] = _glfw_fminf(_glfw_fmaxf(value, -1.f), 1.f);
+            state->axes[i] = _lum_fminf(_lum_fmaxf(value, -1.f), 1.f);
         }
-        else if (e->type == _GLFW_JOYSTICK_HATBIT)
+        else if (e->type == _LUM_JOYSTICK_HATBIT)
         {
             const unsigned int hat = e->index >> 4;
             const unsigned int bit = e->index & 0xf;
@@ -1368,56 +1368,56 @@ GLFWAPI int glfwGetGamepadState(int jid, GLFWgamepadstate* state)
             else
                 state->axes[i] = -1.f;
         }
-        else if (e->type == _GLFW_JOYSTICK_BUTTON)
+        else if (e->type == _LUM_JOYSTICK_BUTTON)
             state->axes[i] = js->buttons[e->index] * 2.f - 1.f;
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-GLFWAPI void glfwSetClipboardString(GLFWwindow* handle, const char* string)
+LUMAPI void lumSetClipboardString(LUMwindow* handle, const char* string)
 {
     assert(string != NULL);
 
-    _GLFW_REQUIRE_INIT();
-    _glfw.platform.setClipboardString(string);
+    _LUM_REQUIRE_INIT();
+    _lum.platform.setClipboardString(string);
 }
 
-GLFWAPI const char* glfwGetClipboardString(GLFWwindow* handle)
+LUMAPI const char* lumGetClipboardString(LUMwindow* handle)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return _glfw.platform.getClipboardString();
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    return _lum.platform.getClipboardString();
 }
 
-GLFWAPI double glfwGetTime(void)
+LUMAPI double lumGetTime(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(0.0);
-    return (double) (_glfwPlatformGetTimerValue() - _glfw.timer.offset) /
-        _glfwPlatformGetTimerFrequency();
+    _LUM_REQUIRE_INIT_OR_RETURN(0.0);
+    return (double) (_lumPlatformGetTimerValue() - _lum.timer.offset) /
+        _lumPlatformGetTimerFrequency();
 }
 
-GLFWAPI void glfwSetTime(double time)
+LUMAPI void lumSetTime(double time)
 {
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
     if (time != time || time < 0.0 || time > 18446744073.0)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid time %f", time);
+        _lumInputError(LUM_INVALID_VALUE, "Invalid time %f", time);
         return;
     }
 
-    _glfw.timer.offset = _glfwPlatformGetTimerValue() -
-        (uint64_t) (time * _glfwPlatformGetTimerFrequency());
+    _lum.timer.offset = _lumPlatformGetTimerValue() -
+        (uint64_t) (time * _lumPlatformGetTimerFrequency());
 }
 
-GLFWAPI uint64_t glfwGetTimerValue(void)
+LUMAPI uint64_t lumGetTimerValue(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
-    return _glfwPlatformGetTimerValue();
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
+    return _lumPlatformGetTimerValue();
 }
 
-GLFWAPI uint64_t glfwGetTimerFrequency(void)
+LUMAPI uint64_t lumGetTimerFrequency(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
-    return _glfwPlatformGetTimerFrequency();
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
+    return _lumPlatformGetTimerFrequency();
 }

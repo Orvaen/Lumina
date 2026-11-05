@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -33,66 +33,66 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwPlatformCreateTls(_GLFWtls* tls)
+LUMbool _lumPlatformCreateTls(_LUMtls* tls)
 {
-    assert(tls->win32.allocated == GLFW_FALSE);
+    assert(tls->win32.allocated == LUM_FALSE);
 
     tls->win32.index = TlsAlloc();
     if (tls->win32.index == TLS_OUT_OF_INDEXES)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Win32: Failed to allocate TLS index");
-        return GLFW_FALSE;
+        _lumInputError(LUM_PLATFORM_ERROR, "Win32: Failed to allocate TLS index");
+        return LUM_FALSE;
     }
 
-    tls->win32.allocated = GLFW_TRUE;
-    return GLFW_TRUE;
+    tls->win32.allocated = LUM_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwPlatformDestroyTls(_GLFWtls* tls)
+void _lumPlatformDestroyTls(_LUMtls* tls)
 {
     if (tls->win32.allocated)
         TlsFree(tls->win32.index);
-    memset(tls, 0, sizeof(_GLFWtls));
+    memset(tls, 0, sizeof(_LUMtls));
 }
 
-void* _glfwPlatformGetTls(_GLFWtls* tls)
+void* _lumPlatformGetTls(_LUMtls* tls)
 {
-    assert(tls->win32.allocated == GLFW_TRUE);
+    assert(tls->win32.allocated == LUM_TRUE);
     return TlsGetValue(tls->win32.index);
 }
 
-void _glfwPlatformSetTls(_GLFWtls* tls, void* value)
+void _lumPlatformSetTls(_LUMtls* tls, void* value)
 {
-    assert(tls->win32.allocated == GLFW_TRUE);
+    assert(tls->win32.allocated == LUM_TRUE);
     TlsSetValue(tls->win32.index, value);
 }
 
-GLFWbool _glfwPlatformCreateMutex(_GLFWmutex* mutex)
+LUMbool _lumPlatformCreateMutex(_LUMmutex* mutex)
 {
-    assert(mutex->win32.allocated == GLFW_FALSE);
+    assert(mutex->win32.allocated == LUM_FALSE);
     InitializeCriticalSection(&mutex->win32.section);
-    return mutex->win32.allocated = GLFW_TRUE;
+    return mutex->win32.allocated = LUM_TRUE;
 }
 
-void _glfwPlatformDestroyMutex(_GLFWmutex* mutex)
+void _lumPlatformDestroyMutex(_LUMmutex* mutex)
 {
     if (mutex->win32.allocated)
         DeleteCriticalSection(&mutex->win32.section);
-    memset(mutex, 0, sizeof(_GLFWmutex));
+    memset(mutex, 0, sizeof(_LUMmutex));
 }
 
-void _glfwPlatformLockMutex(_GLFWmutex* mutex)
+void _lumPlatformLockMutex(_LUMmutex* mutex)
 {
-    assert(mutex->win32.allocated == GLFW_TRUE);
+    assert(mutex->win32.allocated == LUM_TRUE);
     EnterCriticalSection(&mutex->win32.section);
 }
 
-void _glfwPlatformUnlockMutex(_GLFWmutex* mutex)
+void _lumPlatformUnlockMutex(_LUMmutex* mutex)
 {
-    assert(mutex->win32.allocated == GLFW_TRUE);
+    assert(mutex->win32.allocated == LUM_TRUE);
     LeaveCriticalSection(&mutex->win32.section);
 }
 

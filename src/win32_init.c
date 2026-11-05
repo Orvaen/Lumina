@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -31,14 +31,14 @@
 
 #include <stdlib.h>
 
-static const GUID _glfw_GUID_DEVINTERFACE_HID =
+static const GUID _lum_GUID_DEVINTERFACE_HID =
     {0x4d1e55b2,0xf16f,0x11cf,{0x88,0xcb,0x00,0x11,0x11,0x00,0x00,0x30}};
 
-#define GUID_DEVINTERFACE_HID _glfw_GUID_DEVINTERFACE_HID
+#define GUID_DEVINTERFACE_HID _lum_GUID_DEVINTERFACE_HID
 
-#if defined(_GLFW_USE_HYBRID_HPG) || defined(_GLFW_USE_OPTIMUS_HPG)
+#if defined(_LUM_USE_HYBRID_HPG) || defined(_LUM_USE_OPTIMUS_HPG)
 
-#if defined(_GLFW_BUILD_DLL)
+#if defined(_LUM_BUILD_DLL)
  #pragma message("These symbols must be exported by the executable and have no effect in a DLL")
 #endif
 
@@ -54,49 +54,49 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 //
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
-#endif // _GLFW_USE_HYBRID_HPG
+#endif // _LUM_USE_HYBRID_HPG
 
-#if defined(_GLFW_BUILD_DLL)
+#if defined(_LUM_BUILD_DLL)
 
-// GLFW DLL entry point
+// Lumina DLL entry point
 //
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     return TRUE;
 }
 
-#endif // _GLFW_BUILD_DLL
+#endif // _LUM_BUILD_DLL
 
 // Load necessary libraries (DLLs)
 //
-static GLFWbool loadLibraries(void)
+static LUMbool loadLibraries(void)
 {
-    _glfw.win32.user32.instance = _glfwPlatformLoadModule("user32.dll");
-    if (!_glfw.win32.user32.instance)
+    _lum.win32.user32.instance = _lumPlatformLoadModule("user32.dll");
+    if (!_lum.win32.user32.instance)
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to load user32.dll");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    _glfw.win32.user32.SetProcessDPIAware_ = (PFN_SetProcessDPIAware)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "SetProcessDPIAware");
-    _glfw.win32.user32.ChangeWindowMessageFilterEx_ = (PFN_ChangeWindowMessageFilterEx)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "ChangeWindowMessageFilterEx");
-    _glfw.win32.user32.EnableNonClientDpiScaling_ = (PFN_EnableNonClientDpiScaling)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "EnableNonClientDpiScaling");
-    _glfw.win32.user32.SetProcessDpiAwarenessContext_ = (PFN_SetProcessDpiAwarenessContext)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "SetProcessDpiAwarenessContext");
-    _glfw.win32.user32.GetDpiForWindow_ = (PFN_GetDpiForWindow)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "GetDpiForWindow");
-    _glfw.win32.user32.AdjustWindowRectExForDpi_ = (PFN_AdjustWindowRectExForDpi)
-        _glfwPlatformGetModuleSymbol(_glfw.win32.user32.instance, "AdjustWindowRectExForDpi");
+    _lum.win32.user32.SetProcessDPIAware_ = (PFN_SetProcessDPIAware)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "SetProcessDPIAware");
+    _lum.win32.user32.ChangeWindowMessageFilterEx_ = (PFN_ChangeWindowMessageFilterEx)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "ChangeWindowMessageFilterEx");
+    _lum.win32.user32.EnableNonClientDpiScaling_ = (PFN_EnableNonClientDpiScaling)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "EnableNonClientDpiScaling");
+    _lum.win32.user32.SetProcessDpiAwarenessContext_ = (PFN_SetProcessDpiAwarenessContext)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "SetProcessDpiAwarenessContext");
+    _lum.win32.user32.GetDpiForWindow_ = (PFN_GetDpiForWindow)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "GetDpiForWindow");
+    _lum.win32.user32.AdjustWindowRectExForDpi_ = (PFN_AdjustWindowRectExForDpi)
+        _lumPlatformGetModuleSymbol(_lum.win32.user32.instance, "AdjustWindowRectExForDpi");
 
-    _glfw.win32.dinput8.instance = _glfwPlatformLoadModule("dinput8.dll");
-    if (_glfw.win32.dinput8.instance)
+    _lum.win32.dinput8.instance = _lumPlatformLoadModule("dinput8.dll");
+    if (_lum.win32.dinput8.instance)
     {
-        _glfw.win32.dinput8.Create = (PFN_DirectInput8Create)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.dinput8.instance, "DirectInput8Create");
+        _lum.win32.dinput8.Create = (PFN_DirectInput8Create)
+            _lumPlatformGetModuleSymbol(_lum.win32.dinput8.instance, "DirectInput8Create");
     }
 
     {
@@ -113,72 +113,72 @@ static GLFWbool loadLibraries(void)
 
         for (i = 0;  names[i];  i++)
         {
-            _glfw.win32.xinput.instance = _glfwPlatformLoadModule(names[i]);
-            if (_glfw.win32.xinput.instance)
+            _lum.win32.xinput.instance = _lumPlatformLoadModule(names[i]);
+            if (_lum.win32.xinput.instance)
             {
-                _glfw.win32.xinput.GetCapabilities = (PFN_XInputGetCapabilities)
-                    _glfwPlatformGetModuleSymbol(_glfw.win32.xinput.instance, "XInputGetCapabilities");
-                _glfw.win32.xinput.GetState = (PFN_XInputGetState)
-                    _glfwPlatformGetModuleSymbol(_glfw.win32.xinput.instance, "XInputGetState");
+                _lum.win32.xinput.GetCapabilities = (PFN_XInputGetCapabilities)
+                    _lumPlatformGetModuleSymbol(_lum.win32.xinput.instance, "XInputGetCapabilities");
+                _lum.win32.xinput.GetState = (PFN_XInputGetState)
+                    _lumPlatformGetModuleSymbol(_lum.win32.xinput.instance, "XInputGetState");
 
                 break;
             }
         }
     }
 
-    _glfw.win32.dwmapi.instance = _glfwPlatformLoadModule("dwmapi.dll");
-    if (_glfw.win32.dwmapi.instance)
+    _lum.win32.dwmapi.instance = _lumPlatformLoadModule("dwmapi.dll");
+    if (_lum.win32.dwmapi.instance)
     {
-        _glfw.win32.dwmapi.IsCompositionEnabled = (PFN_DwmIsCompositionEnabled)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.dwmapi.instance, "DwmIsCompositionEnabled");
-        _glfw.win32.dwmapi.Flush = (PFN_DwmFlush)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.dwmapi.instance, "DwmFlush");
-        _glfw.win32.dwmapi.EnableBlurBehindWindow = (PFN_DwmEnableBlurBehindWindow)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.dwmapi.instance, "DwmEnableBlurBehindWindow");
-        _glfw.win32.dwmapi.GetColorizationColor = (PFN_DwmGetColorizationColor)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.dwmapi.instance, "DwmGetColorizationColor");
+        _lum.win32.dwmapi.IsCompositionEnabled = (PFN_DwmIsCompositionEnabled)
+            _lumPlatformGetModuleSymbol(_lum.win32.dwmapi.instance, "DwmIsCompositionEnabled");
+        _lum.win32.dwmapi.Flush = (PFN_DwmFlush)
+            _lumPlatformGetModuleSymbol(_lum.win32.dwmapi.instance, "DwmFlush");
+        _lum.win32.dwmapi.EnableBlurBehindWindow = (PFN_DwmEnableBlurBehindWindow)
+            _lumPlatformGetModuleSymbol(_lum.win32.dwmapi.instance, "DwmEnableBlurBehindWindow");
+        _lum.win32.dwmapi.GetColorizationColor = (PFN_DwmGetColorizationColor)
+            _lumPlatformGetModuleSymbol(_lum.win32.dwmapi.instance, "DwmGetColorizationColor");
     }
 
-    _glfw.win32.shcore.instance = _glfwPlatformLoadModule("shcore.dll");
-    if (_glfw.win32.shcore.instance)
+    _lum.win32.shcore.instance = _lumPlatformLoadModule("shcore.dll");
+    if (_lum.win32.shcore.instance)
     {
-        _glfw.win32.shcore.SetProcessDpiAwareness_ = (PFN_SetProcessDpiAwareness)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.shcore.instance, "SetProcessDpiAwareness");
-        _glfw.win32.shcore.GetDpiForMonitor_ = (PFN_GetDpiForMonitor)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.shcore.instance, "GetDpiForMonitor");
+        _lum.win32.shcore.SetProcessDpiAwareness_ = (PFN_SetProcessDpiAwareness)
+            _lumPlatformGetModuleSymbol(_lum.win32.shcore.instance, "SetProcessDpiAwareness");
+        _lum.win32.shcore.GetDpiForMonitor_ = (PFN_GetDpiForMonitor)
+            _lumPlatformGetModuleSymbol(_lum.win32.shcore.instance, "GetDpiForMonitor");
     }
 
-    _glfw.win32.ntdll.instance = _glfwPlatformLoadModule("ntdll.dll");
-    if (_glfw.win32.ntdll.instance)
+    _lum.win32.ntdll.instance = _lumPlatformLoadModule("ntdll.dll");
+    if (_lum.win32.ntdll.instance)
     {
-        _glfw.win32.ntdll.RtlVerifyVersionInfo_ = (PFN_RtlVerifyVersionInfo)
-            _glfwPlatformGetModuleSymbol(_glfw.win32.ntdll.instance, "RtlVerifyVersionInfo");
+        _lum.win32.ntdll.RtlVerifyVersionInfo_ = (PFN_RtlVerifyVersionInfo)
+            _lumPlatformGetModuleSymbol(_lum.win32.ntdll.instance, "RtlVerifyVersionInfo");
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 // Unload used libraries (DLLs)
 //
 static void freeLibraries(void)
 {
-    if (_glfw.win32.xinput.instance)
-        _glfwPlatformFreeModule(_glfw.win32.xinput.instance);
+    if (_lum.win32.xinput.instance)
+        _lumPlatformFreeModule(_lum.win32.xinput.instance);
 
-    if (_glfw.win32.dinput8.instance)
-        _glfwPlatformFreeModule(_glfw.win32.dinput8.instance);
+    if (_lum.win32.dinput8.instance)
+        _lumPlatformFreeModule(_lum.win32.dinput8.instance);
 
-    if (_glfw.win32.user32.instance)
-        _glfwPlatformFreeModule(_glfw.win32.user32.instance);
+    if (_lum.win32.user32.instance)
+        _lumPlatformFreeModule(_lum.win32.user32.instance);
 
-    if (_glfw.win32.dwmapi.instance)
-        _glfwPlatformFreeModule(_glfw.win32.dwmapi.instance);
+    if (_lum.win32.dwmapi.instance)
+        _lumPlatformFreeModule(_lum.win32.dwmapi.instance);
 
-    if (_glfw.win32.shcore.instance)
-        _glfwPlatformFreeModule(_glfw.win32.shcore.instance);
+    if (_lum.win32.shcore.instance)
+        _lumPlatformFreeModule(_lum.win32.shcore.instance);
 
-    if (_glfw.win32.ntdll.instance)
-        _glfwPlatformFreeModule(_glfw.win32.ntdll.instance);
+    if (_lum.win32.ntdll.instance)
+        _lumPlatformFreeModule(_lum.win32.ntdll.instance);
 }
 
 // Create key code translation tables
@@ -187,165 +187,165 @@ static void createKeyTables(void)
 {
     int scancode;
 
-    memset(_glfw.win32.keycodes, -1, sizeof(_glfw.win32.keycodes));
-    memset(_glfw.win32.scancodes, -1, sizeof(_glfw.win32.scancodes));
+    memset(_lum.win32.keycodes, -1, sizeof(_lum.win32.keycodes));
+    memset(_lum.win32.scancodes, -1, sizeof(_lum.win32.scancodes));
 
-    _glfw.win32.keycodes[0x00B] = GLFW_KEY_0;
-    _glfw.win32.keycodes[0x002] = GLFW_KEY_1;
-    _glfw.win32.keycodes[0x003] = GLFW_KEY_2;
-    _glfw.win32.keycodes[0x004] = GLFW_KEY_3;
-    _glfw.win32.keycodes[0x005] = GLFW_KEY_4;
-    _glfw.win32.keycodes[0x006] = GLFW_KEY_5;
-    _glfw.win32.keycodes[0x007] = GLFW_KEY_6;
-    _glfw.win32.keycodes[0x008] = GLFW_KEY_7;
-    _glfw.win32.keycodes[0x009] = GLFW_KEY_8;
-    _glfw.win32.keycodes[0x00A] = GLFW_KEY_9;
-    _glfw.win32.keycodes[0x01E] = GLFW_KEY_A;
-    _glfw.win32.keycodes[0x030] = GLFW_KEY_B;
-    _glfw.win32.keycodes[0x02E] = GLFW_KEY_C;
-    _glfw.win32.keycodes[0x020] = GLFW_KEY_D;
-    _glfw.win32.keycodes[0x012] = GLFW_KEY_E;
-    _glfw.win32.keycodes[0x021] = GLFW_KEY_F;
-    _glfw.win32.keycodes[0x022] = GLFW_KEY_G;
-    _glfw.win32.keycodes[0x023] = GLFW_KEY_H;
-    _glfw.win32.keycodes[0x017] = GLFW_KEY_I;
-    _glfw.win32.keycodes[0x024] = GLFW_KEY_J;
-    _glfw.win32.keycodes[0x025] = GLFW_KEY_K;
-    _glfw.win32.keycodes[0x026] = GLFW_KEY_L;
-    _glfw.win32.keycodes[0x032] = GLFW_KEY_M;
-    _glfw.win32.keycodes[0x031] = GLFW_KEY_N;
-    _glfw.win32.keycodes[0x018] = GLFW_KEY_O;
-    _glfw.win32.keycodes[0x019] = GLFW_KEY_P;
-    _glfw.win32.keycodes[0x010] = GLFW_KEY_Q;
-    _glfw.win32.keycodes[0x013] = GLFW_KEY_R;
-    _glfw.win32.keycodes[0x01F] = GLFW_KEY_S;
-    _glfw.win32.keycodes[0x014] = GLFW_KEY_T;
-    _glfw.win32.keycodes[0x016] = GLFW_KEY_U;
-    _glfw.win32.keycodes[0x02F] = GLFW_KEY_V;
-    _glfw.win32.keycodes[0x011] = GLFW_KEY_W;
-    _glfw.win32.keycodes[0x02D] = GLFW_KEY_X;
-    _glfw.win32.keycodes[0x015] = GLFW_KEY_Y;
-    _glfw.win32.keycodes[0x02C] = GLFW_KEY_Z;
+    _lum.win32.keycodes[0x00B] = LUM_KEY_0;
+    _lum.win32.keycodes[0x002] = LUM_KEY_1;
+    _lum.win32.keycodes[0x003] = LUM_KEY_2;
+    _lum.win32.keycodes[0x004] = LUM_KEY_3;
+    _lum.win32.keycodes[0x005] = LUM_KEY_4;
+    _lum.win32.keycodes[0x006] = LUM_KEY_5;
+    _lum.win32.keycodes[0x007] = LUM_KEY_6;
+    _lum.win32.keycodes[0x008] = LUM_KEY_7;
+    _lum.win32.keycodes[0x009] = LUM_KEY_8;
+    _lum.win32.keycodes[0x00A] = LUM_KEY_9;
+    _lum.win32.keycodes[0x01E] = LUM_KEY_A;
+    _lum.win32.keycodes[0x030] = LUM_KEY_B;
+    _lum.win32.keycodes[0x02E] = LUM_KEY_C;
+    _lum.win32.keycodes[0x020] = LUM_KEY_D;
+    _lum.win32.keycodes[0x012] = LUM_KEY_E;
+    _lum.win32.keycodes[0x021] = LUM_KEY_F;
+    _lum.win32.keycodes[0x022] = LUM_KEY_G;
+    _lum.win32.keycodes[0x023] = LUM_KEY_H;
+    _lum.win32.keycodes[0x017] = LUM_KEY_I;
+    _lum.win32.keycodes[0x024] = LUM_KEY_J;
+    _lum.win32.keycodes[0x025] = LUM_KEY_K;
+    _lum.win32.keycodes[0x026] = LUM_KEY_L;
+    _lum.win32.keycodes[0x032] = LUM_KEY_M;
+    _lum.win32.keycodes[0x031] = LUM_KEY_N;
+    _lum.win32.keycodes[0x018] = LUM_KEY_O;
+    _lum.win32.keycodes[0x019] = LUM_KEY_P;
+    _lum.win32.keycodes[0x010] = LUM_KEY_Q;
+    _lum.win32.keycodes[0x013] = LUM_KEY_R;
+    _lum.win32.keycodes[0x01F] = LUM_KEY_S;
+    _lum.win32.keycodes[0x014] = LUM_KEY_T;
+    _lum.win32.keycodes[0x016] = LUM_KEY_U;
+    _lum.win32.keycodes[0x02F] = LUM_KEY_V;
+    _lum.win32.keycodes[0x011] = LUM_KEY_W;
+    _lum.win32.keycodes[0x02D] = LUM_KEY_X;
+    _lum.win32.keycodes[0x015] = LUM_KEY_Y;
+    _lum.win32.keycodes[0x02C] = LUM_KEY_Z;
 
-    _glfw.win32.keycodes[0x028] = GLFW_KEY_APOSTROPHE;
-    _glfw.win32.keycodes[0x02B] = GLFW_KEY_BACKSLASH;
-    _glfw.win32.keycodes[0x033] = GLFW_KEY_COMMA;
-    _glfw.win32.keycodes[0x00D] = GLFW_KEY_EQUAL;
-    _glfw.win32.keycodes[0x029] = GLFW_KEY_GRAVE_ACCENT;
-    _glfw.win32.keycodes[0x01A] = GLFW_KEY_LEFT_BRACKET;
-    _glfw.win32.keycodes[0x00C] = GLFW_KEY_MINUS;
-    _glfw.win32.keycodes[0x034] = GLFW_KEY_PERIOD;
-    _glfw.win32.keycodes[0x01B] = GLFW_KEY_RIGHT_BRACKET;
-    _glfw.win32.keycodes[0x027] = GLFW_KEY_SEMICOLON;
-    _glfw.win32.keycodes[0x035] = GLFW_KEY_SLASH;
-    _glfw.win32.keycodes[0x056] = GLFW_KEY_WORLD_2;
+    _lum.win32.keycodes[0x028] = LUM_KEY_APOSTROPHE;
+    _lum.win32.keycodes[0x02B] = LUM_KEY_BACKSLASH;
+    _lum.win32.keycodes[0x033] = LUM_KEY_COMMA;
+    _lum.win32.keycodes[0x00D] = LUM_KEY_EQUAL;
+    _lum.win32.keycodes[0x029] = LUM_KEY_GRAVE_ACCENT;
+    _lum.win32.keycodes[0x01A] = LUM_KEY_LEFT_BRACKET;
+    _lum.win32.keycodes[0x00C] = LUM_KEY_MINUS;
+    _lum.win32.keycodes[0x034] = LUM_KEY_PERIOD;
+    _lum.win32.keycodes[0x01B] = LUM_KEY_RIGHT_BRACKET;
+    _lum.win32.keycodes[0x027] = LUM_KEY_SEMICOLON;
+    _lum.win32.keycodes[0x035] = LUM_KEY_SLASH;
+    _lum.win32.keycodes[0x056] = LUM_KEY_WORLD_2;
 
-    _glfw.win32.keycodes[0x00E] = GLFW_KEY_BACKSPACE;
-    _glfw.win32.keycodes[0x153] = GLFW_KEY_DELETE;
-    _glfw.win32.keycodes[0x14F] = GLFW_KEY_END;
-    _glfw.win32.keycodes[0x01C] = GLFW_KEY_ENTER;
-    _glfw.win32.keycodes[0x001] = GLFW_KEY_ESCAPE;
-    _glfw.win32.keycodes[0x147] = GLFW_KEY_HOME;
-    _glfw.win32.keycodes[0x152] = GLFW_KEY_INSERT;
-    _glfw.win32.keycodes[0x15D] = GLFW_KEY_MENU;
-    _glfw.win32.keycodes[0x151] = GLFW_KEY_PAGE_DOWN;
-    _glfw.win32.keycodes[0x149] = GLFW_KEY_PAGE_UP;
-    _glfw.win32.keycodes[0x045] = GLFW_KEY_PAUSE;
-    _glfw.win32.keycodes[0x146] = GLFW_KEY_PAUSE;
-    _glfw.win32.keycodes[0x039] = GLFW_KEY_SPACE;
-    _glfw.win32.keycodes[0x00F] = GLFW_KEY_TAB;
-    _glfw.win32.keycodes[0x03A] = GLFW_KEY_CAPS_LOCK;
-    _glfw.win32.keycodes[0x145] = GLFW_KEY_NUM_LOCK;
-    _glfw.win32.keycodes[0x046] = GLFW_KEY_SCROLL_LOCK;
-    _glfw.win32.keycodes[0x03B] = GLFW_KEY_F1;
-    _glfw.win32.keycodes[0x03C] = GLFW_KEY_F2;
-    _glfw.win32.keycodes[0x03D] = GLFW_KEY_F3;
-    _glfw.win32.keycodes[0x03E] = GLFW_KEY_F4;
-    _glfw.win32.keycodes[0x03F] = GLFW_KEY_F5;
-    _glfw.win32.keycodes[0x040] = GLFW_KEY_F6;
-    _glfw.win32.keycodes[0x041] = GLFW_KEY_F7;
-    _glfw.win32.keycodes[0x042] = GLFW_KEY_F8;
-    _glfw.win32.keycodes[0x043] = GLFW_KEY_F9;
-    _glfw.win32.keycodes[0x044] = GLFW_KEY_F10;
-    _glfw.win32.keycodes[0x057] = GLFW_KEY_F11;
-    _glfw.win32.keycodes[0x058] = GLFW_KEY_F12;
-    _glfw.win32.keycodes[0x064] = GLFW_KEY_F13;
-    _glfw.win32.keycodes[0x065] = GLFW_KEY_F14;
-    _glfw.win32.keycodes[0x066] = GLFW_KEY_F15;
-    _glfw.win32.keycodes[0x067] = GLFW_KEY_F16;
-    _glfw.win32.keycodes[0x068] = GLFW_KEY_F17;
-    _glfw.win32.keycodes[0x069] = GLFW_KEY_F18;
-    _glfw.win32.keycodes[0x06A] = GLFW_KEY_F19;
-    _glfw.win32.keycodes[0x06B] = GLFW_KEY_F20;
-    _glfw.win32.keycodes[0x06C] = GLFW_KEY_F21;
-    _glfw.win32.keycodes[0x06D] = GLFW_KEY_F22;
-    _glfw.win32.keycodes[0x06E] = GLFW_KEY_F23;
-    _glfw.win32.keycodes[0x076] = GLFW_KEY_F24;
-    _glfw.win32.keycodes[0x038] = GLFW_KEY_LEFT_ALT;
-    _glfw.win32.keycodes[0x01D] = GLFW_KEY_LEFT_CONTROL;
-    _glfw.win32.keycodes[0x02A] = GLFW_KEY_LEFT_SHIFT;
-    _glfw.win32.keycodes[0x15B] = GLFW_KEY_LEFT_SUPER;
-    _glfw.win32.keycodes[0x137] = GLFW_KEY_PRINT_SCREEN;
-    _glfw.win32.keycodes[0x138] = GLFW_KEY_RIGHT_ALT;
-    _glfw.win32.keycodes[0x11D] = GLFW_KEY_RIGHT_CONTROL;
-    _glfw.win32.keycodes[0x036] = GLFW_KEY_RIGHT_SHIFT;
-    _glfw.win32.keycodes[0x15C] = GLFW_KEY_RIGHT_SUPER;
-    _glfw.win32.keycodes[0x150] = GLFW_KEY_DOWN;
-    _glfw.win32.keycodes[0x14B] = GLFW_KEY_LEFT;
-    _glfw.win32.keycodes[0x14D] = GLFW_KEY_RIGHT;
-    _glfw.win32.keycodes[0x148] = GLFW_KEY_UP;
+    _lum.win32.keycodes[0x00E] = LUM_KEY_BACKSPACE;
+    _lum.win32.keycodes[0x153] = LUM_KEY_DELETE;
+    _lum.win32.keycodes[0x14F] = LUM_KEY_END;
+    _lum.win32.keycodes[0x01C] = LUM_KEY_ENTER;
+    _lum.win32.keycodes[0x001] = LUM_KEY_ESCAPE;
+    _lum.win32.keycodes[0x147] = LUM_KEY_HOME;
+    _lum.win32.keycodes[0x152] = LUM_KEY_INSERT;
+    _lum.win32.keycodes[0x15D] = LUM_KEY_MENU;
+    _lum.win32.keycodes[0x151] = LUM_KEY_PAGE_DOWN;
+    _lum.win32.keycodes[0x149] = LUM_KEY_PAGE_UP;
+    _lum.win32.keycodes[0x045] = LUM_KEY_PAUSE;
+    _lum.win32.keycodes[0x146] = LUM_KEY_PAUSE;
+    _lum.win32.keycodes[0x039] = LUM_KEY_SPACE;
+    _lum.win32.keycodes[0x00F] = LUM_KEY_TAB;
+    _lum.win32.keycodes[0x03A] = LUM_KEY_CAPS_LOCK;
+    _lum.win32.keycodes[0x145] = LUM_KEY_NUM_LOCK;
+    _lum.win32.keycodes[0x046] = LUM_KEY_SCROLL_LOCK;
+    _lum.win32.keycodes[0x03B] = LUM_KEY_F1;
+    _lum.win32.keycodes[0x03C] = LUM_KEY_F2;
+    _lum.win32.keycodes[0x03D] = LUM_KEY_F3;
+    _lum.win32.keycodes[0x03E] = LUM_KEY_F4;
+    _lum.win32.keycodes[0x03F] = LUM_KEY_F5;
+    _lum.win32.keycodes[0x040] = LUM_KEY_F6;
+    _lum.win32.keycodes[0x041] = LUM_KEY_F7;
+    _lum.win32.keycodes[0x042] = LUM_KEY_F8;
+    _lum.win32.keycodes[0x043] = LUM_KEY_F9;
+    _lum.win32.keycodes[0x044] = LUM_KEY_F10;
+    _lum.win32.keycodes[0x057] = LUM_KEY_F11;
+    _lum.win32.keycodes[0x058] = LUM_KEY_F12;
+    _lum.win32.keycodes[0x064] = LUM_KEY_F13;
+    _lum.win32.keycodes[0x065] = LUM_KEY_F14;
+    _lum.win32.keycodes[0x066] = LUM_KEY_F15;
+    _lum.win32.keycodes[0x067] = LUM_KEY_F16;
+    _lum.win32.keycodes[0x068] = LUM_KEY_F17;
+    _lum.win32.keycodes[0x069] = LUM_KEY_F18;
+    _lum.win32.keycodes[0x06A] = LUM_KEY_F19;
+    _lum.win32.keycodes[0x06B] = LUM_KEY_F20;
+    _lum.win32.keycodes[0x06C] = LUM_KEY_F21;
+    _lum.win32.keycodes[0x06D] = LUM_KEY_F22;
+    _lum.win32.keycodes[0x06E] = LUM_KEY_F23;
+    _lum.win32.keycodes[0x076] = LUM_KEY_F24;
+    _lum.win32.keycodes[0x038] = LUM_KEY_LEFT_ALT;
+    _lum.win32.keycodes[0x01D] = LUM_KEY_LEFT_CONTROL;
+    _lum.win32.keycodes[0x02A] = LUM_KEY_LEFT_SHIFT;
+    _lum.win32.keycodes[0x15B] = LUM_KEY_LEFT_SUPER;
+    _lum.win32.keycodes[0x137] = LUM_KEY_PRINT_SCREEN;
+    _lum.win32.keycodes[0x138] = LUM_KEY_RIGHT_ALT;
+    _lum.win32.keycodes[0x11D] = LUM_KEY_RIGHT_CONTROL;
+    _lum.win32.keycodes[0x036] = LUM_KEY_RIGHT_SHIFT;
+    _lum.win32.keycodes[0x15C] = LUM_KEY_RIGHT_SUPER;
+    _lum.win32.keycodes[0x150] = LUM_KEY_DOWN;
+    _lum.win32.keycodes[0x14B] = LUM_KEY_LEFT;
+    _lum.win32.keycodes[0x14D] = LUM_KEY_RIGHT;
+    _lum.win32.keycodes[0x148] = LUM_KEY_UP;
 
-    _glfw.win32.keycodes[0x052] = GLFW_KEY_KP_0;
-    _glfw.win32.keycodes[0x04F] = GLFW_KEY_KP_1;
-    _glfw.win32.keycodes[0x050] = GLFW_KEY_KP_2;
-    _glfw.win32.keycodes[0x051] = GLFW_KEY_KP_3;
-    _glfw.win32.keycodes[0x04B] = GLFW_KEY_KP_4;
-    _glfw.win32.keycodes[0x04C] = GLFW_KEY_KP_5;
-    _glfw.win32.keycodes[0x04D] = GLFW_KEY_KP_6;
-    _glfw.win32.keycodes[0x047] = GLFW_KEY_KP_7;
-    _glfw.win32.keycodes[0x048] = GLFW_KEY_KP_8;
-    _glfw.win32.keycodes[0x049] = GLFW_KEY_KP_9;
-    _glfw.win32.keycodes[0x04E] = GLFW_KEY_KP_ADD;
-    _glfw.win32.keycodes[0x053] = GLFW_KEY_KP_DECIMAL;
-    _glfw.win32.keycodes[0x135] = GLFW_KEY_KP_DIVIDE;
-    _glfw.win32.keycodes[0x11C] = GLFW_KEY_KP_ENTER;
-    _glfw.win32.keycodes[0x059] = GLFW_KEY_KP_EQUAL;
-    _glfw.win32.keycodes[0x037] = GLFW_KEY_KP_MULTIPLY;
-    _glfw.win32.keycodes[0x04A] = GLFW_KEY_KP_SUBTRACT;
+    _lum.win32.keycodes[0x052] = LUM_KEY_KP_0;
+    _lum.win32.keycodes[0x04F] = LUM_KEY_KP_1;
+    _lum.win32.keycodes[0x050] = LUM_KEY_KP_2;
+    _lum.win32.keycodes[0x051] = LUM_KEY_KP_3;
+    _lum.win32.keycodes[0x04B] = LUM_KEY_KP_4;
+    _lum.win32.keycodes[0x04C] = LUM_KEY_KP_5;
+    _lum.win32.keycodes[0x04D] = LUM_KEY_KP_6;
+    _lum.win32.keycodes[0x047] = LUM_KEY_KP_7;
+    _lum.win32.keycodes[0x048] = LUM_KEY_KP_8;
+    _lum.win32.keycodes[0x049] = LUM_KEY_KP_9;
+    _lum.win32.keycodes[0x04E] = LUM_KEY_KP_ADD;
+    _lum.win32.keycodes[0x053] = LUM_KEY_KP_DECIMAL;
+    _lum.win32.keycodes[0x135] = LUM_KEY_KP_DIVIDE;
+    _lum.win32.keycodes[0x11C] = LUM_KEY_KP_ENTER;
+    _lum.win32.keycodes[0x059] = LUM_KEY_KP_EQUAL;
+    _lum.win32.keycodes[0x037] = LUM_KEY_KP_MULTIPLY;
+    _lum.win32.keycodes[0x04A] = LUM_KEY_KP_SUBTRACT;
 
     for (scancode = 0;  scancode < 512;  scancode++)
     {
-        if (_glfw.win32.keycodes[scancode] > 0)
-            _glfw.win32.scancodes[_glfw.win32.keycodes[scancode]] = scancode;
+        if (_lum.win32.keycodes[scancode] > 0)
+            _lum.win32.scancodes[_lum.win32.keycodes[scancode]] = scancode;
     }
 }
 
 // Creates a dummy window for behind-the-scenes work
 //
-static GLFWbool createHelperWindow(void)
+static LUMbool createHelperWindow(void)
 {
     MSG msg;
 
-    _glfw.win32.helperWindowHandle =
+    _lum.win32.helperWindowHandle =
         CreateWindowExW(WS_EX_OVERLAPPEDWINDOW,
-                        _GLFW_WNDCLASSNAME,
-                        L"GLFW message window",
+                        _LUM_WNDCLASSNAME,
+                        L"Lumina message window",
                         WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                         0, 0, 1, 1,
                         NULL, NULL,
                         GetModuleHandleW(NULL),
                         NULL);
 
-    if (!_glfw.win32.helperWindowHandle)
+    if (!_lum.win32.helperWindowHandle)
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to create helper window");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     // HACK: The command to the first ShowWindow call is ignored if the parent
     //       process passed along a STARTUPINFO, so clear that with a no-op call
-    ShowWindow(_glfw.win32.helperWindowHandle, SW_HIDE);
+    ShowWindow(_lum.win32.helperWindowHandle, SW_HIDE);
 
     // Register for HID device notifications
     {
@@ -355,29 +355,29 @@ static GLFWbool createHelperWindow(void)
         dbi.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
         dbi.dbcc_classguid = GUID_DEVINTERFACE_HID;
 
-        _glfw.win32.deviceNotificationHandle =
-            RegisterDeviceNotificationW(_glfw.win32.helperWindowHandle,
+        _lum.win32.deviceNotificationHandle =
+            RegisterDeviceNotificationW(_lum.win32.helperWindowHandle,
                                         (DEV_BROADCAST_HDR*) &dbi,
                                         DEVICE_NOTIFY_WINDOW_HANDLE);
     }
 
-    while (PeekMessageW(&msg, _glfw.win32.helperWindowHandle, 0, 0, PM_REMOVE))
+    while (PeekMessageW(&msg, _lum.win32.helperWindowHandle, 0, 0, PM_REMOVE))
     {
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
 
-   return GLFW_TRUE;
+   return LUM_TRUE;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Returns a wide string version of the specified UTF-8 string
 //
-WCHAR* _glfwCreateWideStringFromUTF8Win32(const char* source)
+WCHAR* _lumCreateWideStringFromUTF8Win32(const char* source)
 {
     WCHAR* target;
     int count;
@@ -385,18 +385,18 @@ WCHAR* _glfwCreateWideStringFromUTF8Win32(const char* source)
     count = MultiByteToWideChar(CP_UTF8, 0, source, -1, NULL, 0);
     if (!count)
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to convert string from UTF-8");
         return NULL;
     }
 
-    target = _glfw_calloc(count, sizeof(WCHAR));
+    target = _lum_calloc(count, sizeof(WCHAR));
 
     if (!MultiByteToWideChar(CP_UTF8, 0, source, -1, target, count))
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to convert string from UTF-8");
-        _glfw_free(target);
+        _lum_free(target);
         return NULL;
     }
 
@@ -405,7 +405,7 @@ WCHAR* _glfwCreateWideStringFromUTF8Win32(const char* source)
 
 // Returns a UTF-8 string version of the specified wide string
 //
-char* _glfwCreateUTF8FromWideStringWin32(const WCHAR* source)
+char* _lumCreateUTF8FromWideStringWin32(const WCHAR* source)
 {
     char* target;
     int size;
@@ -413,18 +413,18 @@ char* _glfwCreateUTF8FromWideStringWin32(const WCHAR* source)
     size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
     if (!size)
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to convert string to UTF-8");
         return NULL;
     }
 
-    target = _glfw_calloc(size, 1);
+    target = _lum_calloc(size, 1);
 
     if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL))
     {
-        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+        _lumInputErrorWin32(LUM_PLATFORM_ERROR,
                              "Win32: Failed to convert string to UTF-8");
-        _glfw_free(target);
+        _lum_free(target);
         return NULL;
     }
 
@@ -433,10 +433,10 @@ char* _glfwCreateUTF8FromWideStringWin32(const WCHAR* source)
 
 // Reports the specified error, appending information about the last Win32 error
 //
-void _glfwInputErrorWin32(int error, const char* description)
+void _lumInputErrorWin32(int error, const char* description)
 {
-    WCHAR buffer[_GLFW_MESSAGE_SIZE] = L"";
-    char message[_GLFW_MESSAGE_SIZE] = "";
+    WCHAR buffer[_LUM_MESSAGE_SIZE] = L"";
+    char message[_LUM_MESSAGE_SIZE] = "";
 
     FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM |
                        FORMAT_MESSAGE_IGNORE_INSERTS |
@@ -449,29 +449,29 @@ void _glfwInputErrorWin32(int error, const char* description)
                    NULL);
     WideCharToMultiByte(CP_UTF8, 0, buffer, -1, message, sizeof(message), NULL, NULL);
 
-    _glfwInputError(error, "%s: %s", description, message);
+    _lumInputError(error, "%s: %s", description, message);
 }
 
 // Updates key names according to the current keyboard layout
 //
-void _glfwUpdateKeyNamesWin32(void)
+void _lumUpdateKeyNamesWin32(void)
 {
     int key;
     BYTE state[256] = {0};
 
-    memset(_glfw.win32.keynames, 0, sizeof(_glfw.win32.keynames));
+    memset(_lum.win32.keynames, 0, sizeof(_lum.win32.keynames));
 
-    for (key = GLFW_KEY_SPACE;  key <= GLFW_KEY_LAST;  key++)
+    for (key = LUM_KEY_SPACE;  key <= LUM_KEY_LAST;  key++)
     {
         UINT vk;
         int scancode, length;
         WCHAR chars[16];
 
-        scancode = _glfw.win32.scancodes[key];
+        scancode = _lum.win32.scancodes[key];
         if (scancode == -1)
             continue;
 
-        if (key >= GLFW_KEY_KP_0 && key <= GLFW_KEY_KP_ADD)
+        if (key >= LUM_KEY_KP_0 && key <= LUM_KEY_KP_ADD)
         {
             const UINT vks[] = {
                 VK_NUMPAD0,  VK_NUMPAD1,  VK_NUMPAD2, VK_NUMPAD3,
@@ -480,7 +480,7 @@ void _glfwUpdateKeyNamesWin32(void)
                 VK_MULTIPLY, VK_SUBTRACT, VK_ADD
             };
 
-            vk = vks[key - GLFW_KEY_KP_0];
+            vk = vks[key - LUM_KEY_KP_0];
         }
         else
             vk = MapVirtualKey(scancode, MAPVK_VSC_TO_VK);
@@ -500,15 +500,15 @@ void _glfwUpdateKeyNamesWin32(void)
             continue;
 
         WideCharToMultiByte(CP_UTF8, 0, chars, 1,
-                            _glfw.win32.keynames[key],
-                            sizeof(_glfw.win32.keynames[key]),
+                            _lum.win32.keynames[key],
+                            sizeof(_lum.win32.keynames[key]),
                             NULL, NULL);
     }
 }
 
 // Replacement for IsWindowsVersionOrGreater as MinGW lacks versionhelpers.h
 //
-BOOL _glfwIsWindowsVersionOrGreaterWin32(WORD major, WORD minor, WORD sp)
+BOOL _lumIsWindowsVersionOrGreaterWin32(WORD major, WORD minor, WORD sp)
 {
     OSVERSIONINFOEXW osvi = { sizeof(osvi), major, minor, 0, 0, {0}, sp };
     DWORD mask = VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR;
@@ -523,7 +523,7 @@ BOOL _glfwIsWindowsVersionOrGreaterWin32(WORD major, WORD minor, WORD sp)
 
 // Checks whether we are on at least the specified build of Windows 10
 //
-BOOL _glfwIsWindows10BuildOrGreaterWin32(WORD build)
+BOOL _lumIsWindows10BuildOrGreaterWin32(WORD build)
 {
     OSVERSIONINFOEXW osvi = { sizeof(osvi), 10, 0, build };
     DWORD mask = VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER;
@@ -536,129 +536,129 @@ BOOL _glfwIsWindows10BuildOrGreaterWin32(WORD build)
     return RtlVerifyVersionInfo(&osvi, mask, cond) == 0;
 }
 
-GLFWbool _glfwConnectWin32(int platformID, _GLFWplatform* platform)
+LUMbool _lumConnectWin32(int platformID, _LUMplatform* platform)
 {
-    const _GLFWplatform win32 =
+    const _LUMplatform win32 =
     {
-        GLFW_PLATFORM_WIN32,
-        _glfwInitWin32,
-        _glfwTerminateWin32,
-        _glfwGetCursorPosWin32,
-        _glfwSetCursorPosWin32,
-        _glfwSetCursorModeWin32,
-        _glfwSetRawMouseMotionWin32,
-        _glfwRawMouseMotionSupportedWin32,
-        _glfwCreateCursorWin32,
-        _glfwCreateStandardCursorWin32,
-        _glfwDestroyCursorWin32,
-        _glfwSetCursorWin32,
-        _glfwGetScancodeNameWin32,
-        _glfwGetKeyScancodeWin32,
-        _glfwSetClipboardStringWin32,
-        _glfwGetClipboardStringWin32,
-        _glfwInitJoysticksWin32,
-        _glfwTerminateJoysticksWin32,
-        _glfwPollJoystickWin32,
-        _glfwGetMappingNameWin32,
-        _glfwUpdateGamepadGUIDWin32,
-        _glfwFreeMonitorWin32,
-        _glfwGetMonitorPosWin32,
-        _glfwGetMonitorContentScaleWin32,
-        _glfwGetMonitorWorkareaWin32,
-        _glfwGetVideoModesWin32,
-        _glfwGetVideoModeWin32,
-        _glfwGetGammaRampWin32,
-        _glfwSetGammaRampWin32,
-        _glfwCreateWindowWin32,
-        _glfwDestroyWindowWin32,
-        _glfwSetWindowTitleWin32,
-        _glfwSetWindowIconWin32,
-        _glfwGetWindowPosWin32,
-        _glfwSetWindowPosWin32,
-        _glfwGetWindowSizeWin32,
-        _glfwSetWindowSizeWin32,
-        _glfwSetWindowSizeLimitsWin32,
-        _glfwSetWindowAspectRatioWin32,
-        _glfwGetFramebufferSizeWin32,
-        _glfwGetWindowFrameSizeWin32,
-        _glfwGetWindowContentScaleWin32,
-        _glfwIconifyWindowWin32,
-        _glfwRestoreWindowWin32,
-        _glfwMaximizeWindowWin32,
-        _glfwShowWindowWin32,
-        _glfwHideWindowWin32,
-        _glfwRequestWindowAttentionWin32,
-        _glfwFocusWindowWin32,
-        _glfwSetWindowMonitorWin32,
-        _glfwWindowFocusedWin32,
-        _glfwWindowIconifiedWin32,
-        _glfwWindowVisibleWin32,
-        _glfwWindowMaximizedWin32,
-        _glfwWindowHoveredWin32,
-        _glfwFramebufferTransparentWin32,
-        _glfwGetWindowOpacityWin32,
-        _glfwSetWindowResizableWin32,
-        _glfwSetWindowDecoratedWin32,
-        _glfwSetWindowFloatingWin32,
-        _glfwSetWindowOpacityWin32,
-        _glfwSetWindowMousePassthroughWin32,
-        _glfwPollEventsWin32,
-        _glfwWaitEventsWin32,
-        _glfwWaitEventsTimeoutWin32,
-        _glfwPostEmptyEventWin32,
-        _glfwSetWindowTitlebarWin32,
-        _glfwGetEGLPlatformWin32,
-        _glfwGetEGLNativeDisplayWin32,
-        _glfwGetEGLNativeWindowWin32,
-        _glfwGetRequiredInstanceExtensionsWin32,
-        _glfwGetPhysicalDevicePresentationSupportWin32,
-        _glfwCreateWindowSurfaceWin32,
+        LUM_PLATFORM_WIN32,
+        _lumInitWin32,
+        _lumTerminateWin32,
+        _lumGetCursorPosWin32,
+        _lumSetCursorPosWin32,
+        _lumSetCursorModeWin32,
+        _lumSetRawMouseMotionWin32,
+        _lumRawMouseMotionSupportedWin32,
+        _lumCreateCursorWin32,
+        _lumCreateStandardCursorWin32,
+        _lumDestroyCursorWin32,
+        _lumSetCursorWin32,
+        _lumGetScancodeNameWin32,
+        _lumGetKeyScancodeWin32,
+        _lumSetClipboardStringWin32,
+        _lumGetClipboardStringWin32,
+        _lumInitJoysticksWin32,
+        _lumTerminateJoysticksWin32,
+        _lumPollJoystickWin32,
+        _lumGetMappingNameWin32,
+        _lumUpdateGamepadGUIDWin32,
+        _lumFreeMonitorWin32,
+        _lumGetMonitorPosWin32,
+        _lumGetMonitorContentScaleWin32,
+        _lumGetMonitorWorkareaWin32,
+        _lumGetVideoModesWin32,
+        _lumGetVideoModeWin32,
+        _lumGetGammaRampWin32,
+        _lumSetGammaRampWin32,
+        _lumCreateWindowWin32,
+        _lumDestroyWindowWin32,
+        _lumSetWindowTitleWin32,
+        _lumSetWindowIconWin32,
+        _lumGetWindowPosWin32,
+        _lumSetWindowPosWin32,
+        _lumGetWindowSizeWin32,
+        _lumSetWindowSizeWin32,
+        _lumSetWindowSizeLimitsWin32,
+        _lumSetWindowAspectRatioWin32,
+        _lumGetFramebufferSizeWin32,
+        _lumGetWindowFrameSizeWin32,
+        _lumGetWindowContentScaleWin32,
+        _lumIconifyWindowWin32,
+        _lumRestoreWindowWin32,
+        _lumMaximizeWindowWin32,
+        _lumShowWindowWin32,
+        _lumHideWindowWin32,
+        _lumRequestWindowAttentionWin32,
+        _lumFocusWindowWin32,
+        _lumSetWindowMonitorWin32,
+        _lumWindowFocusedWin32,
+        _lumWindowIconifiedWin32,
+        _lumWindowVisibleWin32,
+        _lumWindowMaximizedWin32,
+        _lumWindowHoveredWin32,
+        _lumFramebufferTransparentWin32,
+        _lumGetWindowOpacityWin32,
+        _lumSetWindowResizableWin32,
+        _lumSetWindowDecoratedWin32,
+        _lumSetWindowFloatingWin32,
+        _lumSetWindowOpacityWin32,
+        _lumSetWindowMousePassthroughWin32,
+        _lumPollEventsWin32,
+        _lumWaitEventsWin32,
+        _lumWaitEventsTimeoutWin32,
+        _lumPostEmptyEventWin32,
+        _lumSetWindowTitlebarWin32,
+        _lumGetEGLPlatformWin32,
+        _lumGetEGLNativeDisplayWin32,
+        _lumGetEGLNativeWindowWin32,
+        _lumGetRequiredInstanceExtensionsWin32,
+        _lumGetPhysicalDevicePresentationSupportWin32,
+        _lumCreateWindowSurfaceWin32,
     };
 
     *platform = win32;
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-int _glfwInitWin32(void)
+int _lumInitWin32(void)
 {
     if (!loadLibraries())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
     createKeyTables();
-    _glfwUpdateKeyNamesWin32();
+    _lumUpdateKeyNamesWin32();
 
-    if (_glfwIsWindows10CreatorsUpdateOrGreaterWin32())
+    if (_lumIsWindows10CreatorsUpdateOrGreaterWin32())
         SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     else if (IsWindows8Point1OrGreater())
         SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
     else if (IsWindowsVistaOrGreater())
         SetProcessDPIAware();
 
-    if (!_glfwRegisterWindowClassWin32())
-        return GLFW_FALSE;
+    if (!_lumRegisterWindowClassWin32())
+        return LUM_FALSE;
 
     if (!createHelperWindow())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    _glfwPollMonitorsWin32();
-    return GLFW_TRUE;
+    _lumPollMonitorsWin32();
+    return LUM_TRUE;
 }
 
-void _glfwTerminateWin32(void)
+void _lumTerminateWin32(void)
 {
-    if (_glfw.win32.deviceNotificationHandle)
-        UnregisterDeviceNotification(_glfw.win32.deviceNotificationHandle);
+    if (_lum.win32.deviceNotificationHandle)
+        UnregisterDeviceNotification(_lum.win32.deviceNotificationHandle);
 
-    if (_glfw.win32.helperWindowHandle)
-        DestroyWindow(_glfw.win32.helperWindowHandle);
+    if (_lum.win32.helperWindowHandle)
+        DestroyWindow(_lum.win32.helperWindowHandle);
 
-    _glfwUnregisterWindowClassWin32();
+    _lumUnregisterWindowClassWin32();
 
-    _glfw_free(_glfw.win32.clipboardString);
-    _glfw_free(_glfw.win32.rawInput);
+    _lum_free(_lum.win32.clipboardString);
+    _lum_free(_lum.win32.rawInput);
 
-    _glfwTerminateWGL();
-    _glfwTerminateEGL();
+    _lumTerminateWGL();
+    _lumTerminateEGL();
 
     freeLibraries();
 }

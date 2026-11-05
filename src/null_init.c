@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2016 Google Inc.
 // Copyright (c) 2016-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -33,102 +33,102 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwConnectNull(int platformID, _GLFWplatform* platform)
+LUMbool _lumConnectNull(int platformID, _LUMplatform* platform)
 {
-    const _GLFWplatform null =
+    const _LUMplatform null =
     {
-        GLFW_PLATFORM_NULL,
-        _glfwInitNull,
-        _glfwTerminateNull,
-        _glfwGetCursorPosNull,
-        _glfwSetCursorPosNull,
-        _glfwSetCursorModeNull,
-        _glfwSetRawMouseMotionNull,
-        _glfwRawMouseMotionSupportedNull,
-        _glfwCreateCursorNull,
-        _glfwCreateStandardCursorNull,
-        _glfwDestroyCursorNull,
-        _glfwSetCursorNull,
-        _glfwGetScancodeNameNull,
-        _glfwGetKeyScancodeNull,
-        _glfwSetClipboardStringNull,
-        _glfwGetClipboardStringNull,
-        _glfwInitJoysticksNull,
-        _glfwTerminateJoysticksNull,
-        _glfwPollJoystickNull,
-        _glfwGetMappingNameNull,
-        _glfwUpdateGamepadGUIDNull,
-        _glfwFreeMonitorNull,
-        _glfwGetMonitorPosNull,
-        _glfwGetMonitorContentScaleNull,
-        _glfwGetMonitorWorkareaNull,
-        _glfwGetVideoModesNull,
-        _glfwGetVideoModeNull,
-        _glfwGetGammaRampNull,
-        _glfwSetGammaRampNull,
-        _glfwCreateWindowNull,
-        _glfwDestroyWindowNull,
-        _glfwSetWindowTitleNull,
-        _glfwSetWindowIconNull,
-        _glfwGetWindowPosNull,
-        _glfwSetWindowPosNull,
-        _glfwGetWindowSizeNull,
-        _glfwSetWindowSizeNull,
-        _glfwSetWindowSizeLimitsNull,
-        _glfwSetWindowAspectRatioNull,
-        _glfwGetFramebufferSizeNull,
-        _glfwGetWindowFrameSizeNull,
-        _glfwGetWindowContentScaleNull,
-        _glfwIconifyWindowNull,
-        _glfwRestoreWindowNull,
-        _glfwMaximizeWindowNull,
-        _glfwShowWindowNull,
-        _glfwHideWindowNull,
-        _glfwRequestWindowAttentionNull,
-        _glfwFocusWindowNull,
-        _glfwSetWindowMonitorNull,
-        _glfwWindowFocusedNull,
-        _glfwWindowIconifiedNull,
-        _glfwWindowVisibleNull,
-        _glfwWindowMaximizedNull,
-        _glfwWindowHoveredNull,
-        _glfwFramebufferTransparentNull,
-        _glfwGetWindowOpacityNull,
-        _glfwSetWindowResizableNull,
-        _glfwSetWindowDecoratedNull,
-        _glfwSetWindowFloatingNull,
-        _glfwSetWindowOpacityNull,
-        _glfwSetWindowMousePassthroughNull,
-        _glfwPollEventsNull,
-        _glfwWaitEventsNull,
-        _glfwWaitEventsTimeoutNull,
-        _glfwPostEmptyEventNull,
-        _glfwSetWindowTitlebarNull,
-        _glfwGetEGLPlatformNull,
-        _glfwGetEGLNativeDisplayNull,
-        _glfwGetEGLNativeWindowNull,
-        _glfwGetRequiredInstanceExtensionsNull,
-        _glfwGetPhysicalDevicePresentationSupportNull,
-        _glfwCreateWindowSurfaceNull,
+        LUM_PLATFORM_NULL,
+        _lumInitNull,
+        _lumTerminateNull,
+        _lumGetCursorPosNull,
+        _lumSetCursorPosNull,
+        _lumSetCursorModeNull,
+        _lumSetRawMouseMotionNull,
+        _lumRawMouseMotionSupportedNull,
+        _lumCreateCursorNull,
+        _lumCreateStandardCursorNull,
+        _lumDestroyCursorNull,
+        _lumSetCursorNull,
+        _lumGetScancodeNameNull,
+        _lumGetKeyScancodeNull,
+        _lumSetClipboardStringNull,
+        _lumGetClipboardStringNull,
+        _lumInitJoysticksNull,
+        _lumTerminateJoysticksNull,
+        _lumPollJoystickNull,
+        _lumGetMappingNameNull,
+        _lumUpdateGamepadGUIDNull,
+        _lumFreeMonitorNull,
+        _lumGetMonitorPosNull,
+        _lumGetMonitorContentScaleNull,
+        _lumGetMonitorWorkareaNull,
+        _lumGetVideoModesNull,
+        _lumGetVideoModeNull,
+        _lumGetGammaRampNull,
+        _lumSetGammaRampNull,
+        _lumCreateWindowNull,
+        _lumDestroyWindowNull,
+        _lumSetWindowTitleNull,
+        _lumSetWindowIconNull,
+        _lumGetWindowPosNull,
+        _lumSetWindowPosNull,
+        _lumGetWindowSizeNull,
+        _lumSetWindowSizeNull,
+        _lumSetWindowSizeLimitsNull,
+        _lumSetWindowAspectRatioNull,
+        _lumGetFramebufferSizeNull,
+        _lumGetWindowFrameSizeNull,
+        _lumGetWindowContentScaleNull,
+        _lumIconifyWindowNull,
+        _lumRestoreWindowNull,
+        _lumMaximizeWindowNull,
+        _lumShowWindowNull,
+        _lumHideWindowNull,
+        _lumRequestWindowAttentionNull,
+        _lumFocusWindowNull,
+        _lumSetWindowMonitorNull,
+        _lumWindowFocusedNull,
+        _lumWindowIconifiedNull,
+        _lumWindowVisibleNull,
+        _lumWindowMaximizedNull,
+        _lumWindowHoveredNull,
+        _lumFramebufferTransparentNull,
+        _lumGetWindowOpacityNull,
+        _lumSetWindowResizableNull,
+        _lumSetWindowDecoratedNull,
+        _lumSetWindowFloatingNull,
+        _lumSetWindowOpacityNull,
+        _lumSetWindowMousePassthroughNull,
+        _lumPollEventsNull,
+        _lumWaitEventsNull,
+        _lumWaitEventsTimeoutNull,
+        _lumPostEmptyEventNull,
+        _lumSetWindowTitlebarNull,
+        _lumGetEGLPlatformNull,
+        _lumGetEGLNativeDisplayNull,
+        _lumGetEGLNativeWindowNull,
+        _lumGetRequiredInstanceExtensionsNull,
+        _lumGetPhysicalDevicePresentationSupportNull,
+        _lumCreateWindowSurfaceNull,
     };
 
     *platform = null;
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-int _glfwInitNull(void)
+int _lumInitNull(void)
 {
-    _glfwPollMonitorsNull();
-    return GLFW_TRUE;
+    _lumPollMonitorsNull();
+    return LUM_TRUE;
 }
 
-void _glfwTerminateNull(void)
+void _lumTerminateNull(void)
 {
-    free(_glfw.null.clipboardString);
-    _glfwTerminateOSMesa();
-    _glfwTerminateEGL();
+    free(_lum.null.clipboardString);
+    _lumTerminateOSMesa();
+    _lumTerminateEGL();
 }
 

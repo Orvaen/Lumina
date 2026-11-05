@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
@@ -37,7 +37,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Checks whether the desired context attributes are valid
@@ -46,39 +46,39 @@
 // exists and whether all relevant options have supported and non-conflicting
 // values
 //
-GLFWbool _glfwIsValidContextConfig(const _GLFWctxconfig* ctxconfig)
+LUMbool _lumIsValidContextConfig(const _LUMctxconfig* ctxconfig)
 {
     if (ctxconfig->share)
     {
-        if (ctxconfig->client == GLFW_NO_API ||
-            ctxconfig->share->context.client == GLFW_NO_API)
+        if (ctxconfig->client == LUM_NO_API ||
+            ctxconfig->share->context.client == LUM_NO_API)
         {
-            _glfwInputError(GLFW_NO_WINDOW_CONTEXT, NULL);
-            return GLFW_FALSE;
+            _lumInputError(LUM_NO_WINDOW_CONTEXT, NULL);
+            return LUM_FALSE;
         }
     }
 
-    if (ctxconfig->source != GLFW_NATIVE_CONTEXT_API &&
-        ctxconfig->source != GLFW_EGL_CONTEXT_API &&
-        ctxconfig->source != GLFW_OSMESA_CONTEXT_API)
+    if (ctxconfig->source != LUM_NATIVE_CONTEXT_API &&
+        ctxconfig->source != LUM_EGL_CONTEXT_API &&
+        ctxconfig->source != LUM_OSMESA_CONTEXT_API)
     {
-        _glfwInputError(GLFW_INVALID_ENUM,
+        _lumInputError(LUM_INVALID_ENUM,
                         "Invalid context creation API 0x%08X",
                         ctxconfig->source);
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    if (ctxconfig->client != GLFW_NO_API &&
-        ctxconfig->client != GLFW_OPENGL_API &&
-        ctxconfig->client != GLFW_OPENGL_ES_API)
+    if (ctxconfig->client != LUM_NO_API &&
+        ctxconfig->client != LUM_OPENGL_API &&
+        ctxconfig->client != LUM_OPENGL_ES_API)
     {
-        _glfwInputError(GLFW_INVALID_ENUM,
+        _lumInputError(LUM_INVALID_ENUM,
                         "Invalid client API 0x%08X",
                         ctxconfig->client);
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    if (ctxconfig->client == GLFW_OPENGL_API)
+    if (ctxconfig->client == LUM_OPENGL_API)
     {
         if ((ctxconfig->major < 1 || ctxconfig->minor < 0) ||
             (ctxconfig->major == 1 && ctxconfig->minor > 5) ||
@@ -91,21 +91,21 @@ GLFWbool _glfwIsValidContextConfig(const _GLFWctxconfig* ctxconfig)
             // OpenGL 3.x series ended with version 3.3
             // For now, let everything else through
 
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Invalid OpenGL version %i.%i",
                             ctxconfig->major, ctxconfig->minor);
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
 
         if (ctxconfig->profile)
         {
-            if (ctxconfig->profile != GLFW_OPENGL_CORE_PROFILE &&
-                ctxconfig->profile != GLFW_OPENGL_COMPAT_PROFILE)
+            if (ctxconfig->profile != LUM_OPENGL_CORE_PROFILE &&
+                ctxconfig->profile != LUM_OPENGL_COMPAT_PROFILE)
             {
-                _glfwInputError(GLFW_INVALID_ENUM,
+                _lumInputError(LUM_INVALID_ENUM,
                                 "Invalid OpenGL profile 0x%08X",
                                 ctxconfig->profile);
-                return GLFW_FALSE;
+                return LUM_FALSE;
             }
 
             if (ctxconfig->major <= 2 ||
@@ -114,21 +114,21 @@ GLFWbool _glfwIsValidContextConfig(const _GLFWctxconfig* ctxconfig)
                 // Desktop OpenGL context profiles are only defined for version 3.2
                 // and above
 
-                _glfwInputError(GLFW_INVALID_VALUE,
+                _lumInputError(LUM_INVALID_VALUE,
                                 "Context profiles are only defined for OpenGL version 3.2 and above");
-                return GLFW_FALSE;
+                return LUM_FALSE;
             }
         }
 
         if (ctxconfig->forward && ctxconfig->major <= 2)
         {
             // Forward-compatible contexts are only defined for OpenGL version 3.0 and above
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Forward-compatibility is only defined for OpenGL version 3.0 and above");
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
     }
-    else if (ctxconfig->client == GLFW_OPENGL_ES_API)
+    else if (ctxconfig->client == LUM_OPENGL_ES_API)
     {
         if (ctxconfig->major < 1 || ctxconfig->minor < 0 ||
             (ctxconfig->major == 1 && ctxconfig->minor > 1) ||
@@ -139,52 +139,52 @@ GLFWbool _glfwIsValidContextConfig(const _GLFWctxconfig* ctxconfig)
             // OpenGL ES 2.x series ended with version 2.0
             // For now, let everything else through
 
-            _glfwInputError(GLFW_INVALID_VALUE,
+            _lumInputError(LUM_INVALID_VALUE,
                             "Invalid OpenGL ES version %i.%i",
                             ctxconfig->major, ctxconfig->minor);
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
     }
 
     if (ctxconfig->robustness)
     {
-        if (ctxconfig->robustness != GLFW_NO_RESET_NOTIFICATION &&
-            ctxconfig->robustness != GLFW_LOSE_CONTEXT_ON_RESET)
+        if (ctxconfig->robustness != LUM_NO_RESET_NOTIFICATION &&
+            ctxconfig->robustness != LUM_LOSE_CONTEXT_ON_RESET)
         {
-            _glfwInputError(GLFW_INVALID_ENUM,
+            _lumInputError(LUM_INVALID_ENUM,
                             "Invalid context robustness mode 0x%08X",
                             ctxconfig->robustness);
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
     }
 
     if (ctxconfig->release)
     {
-        if (ctxconfig->release != GLFW_RELEASE_BEHAVIOR_NONE &&
-            ctxconfig->release != GLFW_RELEASE_BEHAVIOR_FLUSH)
+        if (ctxconfig->release != LUM_RELEASE_BEHAVIOR_NONE &&
+            ctxconfig->release != LUM_RELEASE_BEHAVIOR_FLUSH)
         {
-            _glfwInputError(GLFW_INVALID_ENUM,
+            _lumInputError(LUM_INVALID_ENUM,
                             "Invalid context release behavior 0x%08X",
                             ctxconfig->release);
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 // Chooses the framebuffer config that best matches the desired one
 //
-const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
-                                         const _GLFWfbconfig* alternatives,
+const _LUMfbconfig* _lumChooseFBConfig(const _LUMfbconfig* desired,
+                                         const _LUMfbconfig* alternatives,
                                          unsigned int count)
 {
     unsigned int i;
     unsigned int missing, leastMissing = UINT_MAX;
     unsigned int colorDiff, leastColorDiff = UINT_MAX;
     unsigned int extraDiff, leastExtraDiff = UINT_MAX;
-    const _GLFWfbconfig* current;
-    const _GLFWfbconfig* closest = NULL;
+    const _LUMfbconfig* current;
+    const _LUMfbconfig* closest = NULL;
 
     for (i = 0;  i < count;  i++)
     {
@@ -234,19 +234,19 @@ const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
         {
             colorDiff = 0;
 
-            if (desired->redBits != GLFW_DONT_CARE)
+            if (desired->redBits != LUM_DONT_CARE)
             {
                 colorDiff += (desired->redBits - current->redBits) *
                              (desired->redBits - current->redBits);
             }
 
-            if (desired->greenBits != GLFW_DONT_CARE)
+            if (desired->greenBits != LUM_DONT_CARE)
             {
                 colorDiff += (desired->greenBits - current->greenBits) *
                              (desired->greenBits - current->greenBits);
             }
 
-            if (desired->blueBits != GLFW_DONT_CARE)
+            if (desired->blueBits != LUM_DONT_CARE)
             {
                 colorDiff += (desired->blueBits - current->blueBits) *
                              (desired->blueBits - current->blueBits);
@@ -257,49 +257,49 @@ const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
         {
             extraDiff = 0;
 
-            if (desired->alphaBits != GLFW_DONT_CARE)
+            if (desired->alphaBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->alphaBits - current->alphaBits) *
                              (desired->alphaBits - current->alphaBits);
             }
 
-            if (desired->depthBits != GLFW_DONT_CARE)
+            if (desired->depthBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->depthBits - current->depthBits) *
                              (desired->depthBits - current->depthBits);
             }
 
-            if (desired->stencilBits != GLFW_DONT_CARE)
+            if (desired->stencilBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->stencilBits - current->stencilBits) *
                              (desired->stencilBits - current->stencilBits);
             }
 
-            if (desired->accumRedBits != GLFW_DONT_CARE)
+            if (desired->accumRedBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->accumRedBits - current->accumRedBits) *
                              (desired->accumRedBits - current->accumRedBits);
             }
 
-            if (desired->accumGreenBits != GLFW_DONT_CARE)
+            if (desired->accumGreenBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->accumGreenBits - current->accumGreenBits) *
                              (desired->accumGreenBits - current->accumGreenBits);
             }
 
-            if (desired->accumBlueBits != GLFW_DONT_CARE)
+            if (desired->accumBlueBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->accumBlueBits - current->accumBlueBits) *
                              (desired->accumBlueBits - current->accumBlueBits);
             }
 
-            if (desired->accumAlphaBits != GLFW_DONT_CARE)
+            if (desired->accumAlphaBits != LUM_DONT_CARE)
             {
                 extraDiff += (desired->accumAlphaBits - current->accumAlphaBits) *
                              (desired->accumAlphaBits - current->accumAlphaBits);
             }
 
-            if (desired->samples != GLFW_DONT_CARE)
+            if (desired->samples != LUM_DONT_CARE)
             {
                 extraDiff += (desired->samples - current->samples) *
                              (desired->samples - current->samples);
@@ -337,11 +337,11 @@ const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
 
 // Retrieves the attributes of the current context
 //
-GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
-                                    const _GLFWctxconfig* ctxconfig)
+LUMbool _lumRefreshContextAttribs(_LUMwindow* window,
+                                    const _LUMctxconfig* ctxconfig)
 {
     int i;
-    _GLFWwindow* previous;
+    _LUMwindow* previous;
     const char* version;
     const char* prefixes[] =
     {
@@ -352,10 +352,10 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
     };
 
     window->context.source = ctxconfig->source;
-    window->context.client = GLFW_OPENGL_API;
+    window->context.client = LUM_OPENGL_API;
 
-    previous = _glfwPlatformGetTls(&_glfw.contextSlot);
-    glfwMakeContextCurrent((GLFWwindow*) window);
+    previous = _lumPlatformGetTls(&_lum.contextSlot);
+    lumMakeContextCurrent((LUMwindow*) window);
 
     window->context.GetIntegerv = (PFNGLGETINTEGERVPROC)
         window->context.getProcAddress("glGetIntegerv");
@@ -363,27 +363,27 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
         window->context.getProcAddress("glGetString");
     if (!window->context.GetIntegerv || !window->context.GetString)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Entry point retrieval is broken");
-        glfwMakeContextCurrent((GLFWwindow*) previous);
-        return GLFW_FALSE;
+        _lumInputError(LUM_PLATFORM_ERROR, "Entry point retrieval is broken");
+        lumMakeContextCurrent((LUMwindow*) previous);
+        return LUM_FALSE;
     }
 
     version = (const char*) window->context.GetString(GL_VERSION);
     if (!version)
     {
-        if (ctxconfig->client == GLFW_OPENGL_API)
+        if (ctxconfig->client == LUM_OPENGL_API)
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "OpenGL version string retrieval is broken");
         }
         else
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "OpenGL ES version string retrieval is broken");
         }
 
-        glfwMakeContextCurrent((GLFWwindow*) previous);
-        return GLFW_FALSE;
+        lumMakeContextCurrent((LUMwindow*) previous);
+        return LUM_FALSE;
     }
 
     for (i = 0;  prefixes[i];  i++)
@@ -393,7 +393,7 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
         if (strncmp(version, prefixes[i], length) == 0)
         {
             version += length;
-            window->context.client = GLFW_OPENGL_ES_API;
+            window->context.client = LUM_OPENGL_ES_API;
             break;
         }
     }
@@ -403,19 +403,19 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
                 &window->context.minor,
                 &window->context.revision))
     {
-        if (window->context.client == GLFW_OPENGL_API)
+        if (window->context.client == LUM_OPENGL_API)
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "No version found in OpenGL version string");
         }
         else
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "No version found in OpenGL ES version string");
         }
 
-        glfwMakeContextCurrent((GLFWwindow*) previous);
-        return GLFW_FALSE;
+        lumMakeContextCurrent((LUMwindow*) previous);
+        return LUM_FALSE;
     }
 
     if (window->context.major < ctxconfig->major ||
@@ -429,43 +429,43 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
         // For API consistency, we emulate the behavior of the
         // {GLX|WGL}_ARB_create_context extension and fail here
 
-        if (window->context.client == GLFW_OPENGL_API)
+        if (window->context.client == LUM_OPENGL_API)
         {
-            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+            _lumInputError(LUM_VERSION_UNAVAILABLE,
                             "Requested OpenGL version %i.%i, got version %i.%i",
                             ctxconfig->major, ctxconfig->minor,
                             window->context.major, window->context.minor);
         }
         else
         {
-            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+            _lumInputError(LUM_VERSION_UNAVAILABLE,
                             "Requested OpenGL ES version %i.%i, got version %i.%i",
                             ctxconfig->major, ctxconfig->minor,
                             window->context.major, window->context.minor);
         }
 
-        glfwMakeContextCurrent((GLFWwindow*) previous);
-        return GLFW_FALSE;
+        lumMakeContextCurrent((LUMwindow*) previous);
+        return LUM_FALSE;
     }
 
     if (window->context.major >= 3)
     {
         // OpenGL 3.0+ uses a different function for extension string retrieval
-        // We cache it here instead of in glfwExtensionSupported mostly to alert
+        // We cache it here instead of in lumExtensionSupported mostly to alert
         // users as early as possible that their build may be broken
 
         window->context.GetStringi = (PFNGLGETSTRINGIPROC)
             window->context.getProcAddress("glGetStringi");
         if (!window->context.GetStringi)
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "Entry point retrieval is broken");
-            glfwMakeContextCurrent((GLFWwindow*) previous);
-            return GLFW_FALSE;
+            lumMakeContextCurrent((LUMwindow*) previous);
+            return LUM_FALSE;
         }
     }
 
-    if (window->context.client == GLFW_OPENGL_API)
+    if (window->context.client == LUM_OPENGL_API)
     {
         // Read back context flags (OpenGL 3.0 and above)
         if (window->context.major >= 3)
@@ -474,21 +474,21 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
             window->context.GetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
             if (flags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)
-                window->context.forward = GLFW_TRUE;
+                window->context.forward = LUM_TRUE;
 
             if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-                window->context.debug = GLFW_TRUE;
-            else if (glfwExtensionSupported("GL_ARB_debug_output") &&
+                window->context.debug = LUM_TRUE;
+            else if (lumExtensionSupported("GL_ARB_debug_output") &&
                      ctxconfig->debug)
             {
                 // HACK: This is a workaround for older drivers (pre KHR_debug)
                 //       not setting the debug bit in the context flags for
                 //       debug contexts
-                window->context.debug = GLFW_TRUE;
+                window->context.debug = LUM_TRUE;
             }
 
             if (flags & GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR)
-                window->context.noerror = GLFW_TRUE;
+                window->context.noerror = LUM_TRUE;
         }
 
         // Read back OpenGL context profile (OpenGL 3.2 and above)
@@ -499,21 +499,21 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
             window->context.GetIntegerv(GL_CONTEXT_PROFILE_MASK, &mask);
 
             if (mask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)
-                window->context.profile = GLFW_OPENGL_COMPAT_PROFILE;
+                window->context.profile = LUM_OPENGL_COMPAT_PROFILE;
             else if (mask & GL_CONTEXT_CORE_PROFILE_BIT)
-                window->context.profile = GLFW_OPENGL_CORE_PROFILE;
-            else if (glfwExtensionSupported("GL_ARB_compatibility"))
+                window->context.profile = LUM_OPENGL_CORE_PROFILE;
+            else if (lumExtensionSupported("GL_ARB_compatibility"))
             {
                 // HACK: This is a workaround for the compatibility profile bit
                 //       not being set in the context flags if an OpenGL 3.2+
                 //       context was created without having requested a specific
                 //       version
-                window->context.profile = GLFW_OPENGL_COMPAT_PROFILE;
+                window->context.profile = LUM_OPENGL_COMPAT_PROFILE;
             }
         }
 
         // Read back robustness strategy
-        if (glfwExtensionSupported("GL_ARB_robustness"))
+        if (lumExtensionSupported("GL_ARB_robustness"))
         {
             // NOTE: We avoid using the context flags for detection, as they are
             //       only present from 3.0 while the extension applies from 1.1
@@ -523,15 +523,15 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
                                         &strategy);
 
             if (strategy == GL_LOSE_CONTEXT_ON_RESET_ARB)
-                window->context.robustness = GLFW_LOSE_CONTEXT_ON_RESET;
+                window->context.robustness = LUM_LOSE_CONTEXT_ON_RESET;
             else if (strategy == GL_NO_RESET_NOTIFICATION_ARB)
-                window->context.robustness = GLFW_NO_RESET_NOTIFICATION;
+                window->context.robustness = LUM_NO_RESET_NOTIFICATION;
         }
     }
     else
     {
         // Read back robustness strategy
-        if (glfwExtensionSupported("GL_EXT_robustness"))
+        if (lumExtensionSupported("GL_EXT_robustness"))
         {
             // NOTE: The values of these constants match those of the OpenGL ARB
             //       one, so we can reuse them here
@@ -541,21 +541,21 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
                                         &strategy);
 
             if (strategy == GL_LOSE_CONTEXT_ON_RESET_ARB)
-                window->context.robustness = GLFW_LOSE_CONTEXT_ON_RESET;
+                window->context.robustness = LUM_LOSE_CONTEXT_ON_RESET;
             else if (strategy == GL_NO_RESET_NOTIFICATION_ARB)
-                window->context.robustness = GLFW_NO_RESET_NOTIFICATION;
+                window->context.robustness = LUM_NO_RESET_NOTIFICATION;
         }
     }
 
-    if (glfwExtensionSupported("GL_KHR_context_flush_control"))
+    if (lumExtensionSupported("GL_KHR_context_flush_control"))
     {
         GLint behavior;
         window->context.GetIntegerv(GL_CONTEXT_RELEASE_BEHAVIOR, &behavior);
 
         if (behavior == GL_NONE)
-            window->context.release = GLFW_RELEASE_BEHAVIOR_NONE;
+            window->context.release = LUM_RELEASE_BEHAVIOR_NONE;
         else if (behavior == GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH)
-            window->context.release = GLFW_RELEASE_BEHAVIOR_FLUSH;
+            window->context.release = LUM_RELEASE_BEHAVIOR_FLUSH;
     }
 
     // Clearing the front buffer to black to avoid garbage pixels left over from
@@ -569,13 +569,13 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
             window->context.swapBuffers(window);
     }
 
-    glfwMakeContextCurrent((GLFWwindow*) previous);
-    return GLFW_TRUE;
+    lumMakeContextCurrent((LUMwindow*) previous);
+    return LUM_TRUE;
 }
 
 // Searches an extension string for the specified extension
 //
-GLFWbool _glfwStringInExtensionString(const char* string, const char* extensions)
+LUMbool _lumStringInExtensionString(const char* string, const char* extensions)
 {
     const char* start = extensions;
 
@@ -586,7 +586,7 @@ GLFWbool _glfwStringInExtensionString(const char* string, const char* extensions
 
         where = strstr(start, string);
         if (!where)
-            return GLFW_FALSE;
+            return LUM_FALSE;
 
         terminator = where + strlen(string);
         if (where == start || *(where - 1) == ' ')
@@ -598,24 +598,24 @@ GLFWbool _glfwStringInExtensionString(const char* string, const char* extensions
         start = terminator;
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW public API                       //////
+//////                        Lumina public API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI void glfwMakeContextCurrent(GLFWwindow* handle)
+LUMAPI void lumMakeContextCurrent(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFWwindow* previous = _glfwPlatformGetTls(&_glfw.contextSlot);
+    _LUMwindow* window = (_LUMwindow*) handle;
+    _LUMwindow* previous = _lumPlatformGetTls(&_lum.contextSlot);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    if (window && window->context.client == GLFW_NO_API)
+    if (window && window->context.client == LUM_NO_API)
     {
-        _glfwInputError(GLFW_NO_WINDOW_CONTEXT,
+        _lumInputError(LUM_NO_WINDOW_CONTEXT,
                         "Cannot make current with a window that has no OpenGL or OpenGL ES context");
         return;
     }
@@ -630,22 +630,22 @@ GLFWAPI void glfwMakeContextCurrent(GLFWwindow* handle)
         window->context.makeCurrent(window);
 }
 
-GLFWAPI GLFWwindow* glfwGetCurrentContext(void)
+LUMAPI LUMwindow* lumGetCurrentContext(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return _glfwPlatformGetTls(&_glfw.contextSlot);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
+    return _lumPlatformGetTls(&_lum.contextSlot);
 }
 
-GLFWAPI void glfwSwapBuffers(GLFWwindow* handle)
+LUMAPI void lumSwapBuffers(LUMwindow* handle)
 {
-    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _LUMwindow* window = (_LUMwindow*) handle;
     assert(window != NULL);
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    if (window->context.client == GLFW_NO_API)
+    if (window->context.client == LUM_NO_API)
     {
-        _glfwInputError(GLFW_NO_WINDOW_CONTEXT,
+        _lumInputError(LUM_NO_WINDOW_CONTEXT,
                         "Cannot swap buffers of a window that has no OpenGL or OpenGL ES context");
         return;
     }
@@ -653,16 +653,16 @@ GLFWAPI void glfwSwapBuffers(GLFWwindow* handle)
     window->context.swapBuffers(window);
 }
 
-GLFWAPI void glfwSwapInterval(int interval)
+LUMAPI void lumSwapInterval(int interval)
 {
-    _GLFWwindow* window;
+    _LUMwindow* window;
 
-    _GLFW_REQUIRE_INIT();
+    _LUM_REQUIRE_INIT();
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = _lumPlatformGetTls(&_lum.contextSlot);
     if (!window)
     {
-        _glfwInputError(GLFW_NO_CURRENT_CONTEXT,
+        _lumInputError(LUM_NO_CURRENT_CONTEXT,
                         "Cannot set swap interval without a current OpenGL or OpenGL ES context");
         return;
     }
@@ -670,25 +670,25 @@ GLFWAPI void glfwSwapInterval(int interval)
     window->context.swapInterval(interval);
 }
 
-GLFWAPI int glfwExtensionSupported(const char* extension)
+LUMAPI int lumExtensionSupported(const char* extension)
 {
-    _GLFWwindow* window;
+    _LUMwindow* window;
     assert(extension != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
+    _LUM_REQUIRE_INIT_OR_RETURN(LUM_FALSE);
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = _lumPlatformGetTls(&_lum.contextSlot);
     if (!window)
     {
-        _glfwInputError(GLFW_NO_CURRENT_CONTEXT,
+        _lumInputError(LUM_NO_CURRENT_CONTEXT,
                         "Cannot query extension without a current OpenGL or OpenGL ES context");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     if (*extension == '\0')
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Extension name cannot be an empty string");
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_VALUE, "Extension name cannot be an empty string");
+        return LUM_FALSE;
     }
 
     if (window->context.major >= 3)
@@ -706,13 +706,13 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
                 window->context.GetStringi(GL_EXTENSIONS, i);
             if (!en)
             {
-                _glfwInputError(GLFW_PLATFORM_ERROR,
+                _lumInputError(LUM_PLATFORM_ERROR,
                                 "Extension string retrieval is broken");
-                return GLFW_FALSE;
+                return LUM_FALSE;
             }
 
             if (strcmp(en, extension) == 0)
-                return GLFW_TRUE;
+                return LUM_TRUE;
         }
     }
     else
@@ -723,30 +723,30 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
             window->context.GetString(GL_EXTENSIONS);
         if (!extensions)
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _lumInputError(LUM_PLATFORM_ERROR,
                             "Extension string retrieval is broken");
-            return GLFW_FALSE;
+            return LUM_FALSE;
         }
 
-        if (_glfwStringInExtensionString(extension, extensions))
-            return GLFW_TRUE;
+        if (_lumStringInExtensionString(extension, extensions))
+            return LUM_TRUE;
     }
 
     // Check if extension is in the platform-specific string
     return window->context.extensionSupported(extension);
 }
 
-GLFWAPI GLFWglproc glfwGetProcAddress(const char* procname)
+LUMAPI LUMglproc lumGetProcAddress(const char* procname)
 {
-    _GLFWwindow* window;
+    _LUMwindow* window;
     assert(procname != NULL);
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _LUM_REQUIRE_INIT_OR_RETURN(NULL);
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = _lumPlatformGetTls(&_lum.contextSlot);
     if (!window)
     {
-        _glfwInputError(GLFW_NO_CURRENT_CONTEXT,
+        _lumInputError(LUM_NO_CURRENT_CONTEXT,
                         "Cannot query entry point without a current OpenGL or OpenGL ES context");
         return NULL;
     }

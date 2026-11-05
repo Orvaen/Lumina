@@ -2,7 +2,7 @@
  * Wave Simulation in OpenGL
  * (C) 2002 Jakob Thomsen
  * http://home.in.tum.de/~thomsen
- * Modified for GLFW by Sylvain Hellegouarch - sh@programmationworld.com
+ * Modified for Lumina by Sylvain Hellegouarch - sh@programmationworld.com
  * Modified for variable frame rate by Marcus Geelnard
  * 2003-Jan-31: Minor cleanups and speedups / MG
  * 2010-10-24: Formatting and cleanup - Camilla Löwy
@@ -19,8 +19,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <linmath.h>
 
@@ -147,7 +147,7 @@ void init_grid(void)
 // Draw scene
 //========================================================================
 
-void draw_scene(GLFWwindow* window)
+void draw_scene(LUMwindow* window)
 {
     // Clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -164,7 +164,7 @@ void draw_scene(GLFWwindow* window)
 
     glDrawElements(GL_QUADS, 4 * QUADNUM, GL_UNSIGNED_INT, quad);
 
-    glfwSwapBuffers(window);
+    lumSwapBuffers(window);
 }
 
 
@@ -273,37 +273,37 @@ static void error_callback(int error, const char* description)
 // Handle key strokes
 //========================================================================
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
-        case GLFW_KEY_SPACE:
+        case LUM_KEY_SPACE:
             init_grid();
             break;
-        case GLFW_KEY_LEFT:
+        case LUM_KEY_LEFT:
             alpha += 5;
             break;
-        case GLFW_KEY_RIGHT:
+        case LUM_KEY_RIGHT:
             alpha -= 5;
             break;
-        case GLFW_KEY_UP:
+        case LUM_KEY_UP:
             beta -= 5;
             break;
-        case GLFW_KEY_DOWN:
+        case LUM_KEY_DOWN:
             beta += 5;
             break;
-        case GLFW_KEY_PAGE_UP:
+        case LUM_KEY_PAGE_UP:
             zoom -= 0.25f;
             if (zoom < 0.f)
                 zoom = 0.f;
             break;
-        case GLFW_KEY_PAGE_DOWN:
+        case LUM_KEY_PAGE_DOWN:
             zoom += 0.25f;
             break;
         default:
@@ -316,18 +316,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 // Callback function for mouse button events
 //========================================================================
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+void mouse_button_callback(LUMwindow* window, int button, int action, int mods)
 {
-    if (button != GLFW_MOUSE_BUTTON_LEFT)
+    if (button != LUM_MOUSE_BUTTON_LEFT)
         return;
 
-    if (action == GLFW_PRESS)
+    if (action == LUM_PRESS)
     {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwGetCursorPos(window, &cursorX, &cursorY);
+        lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_DISABLED);
+        lumGetCursorPos(window, &cursorX, &cursorY);
     }
     else
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        lumSetInputMode(window, LUM_CURSOR, LUM_CURSOR_NORMAL);
 }
 
 
@@ -335,9 +335,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 // Callback function for cursor motion events
 //========================================================================
 
-void cursor_position_callback(GLFWwindow* window, double x, double y)
+void cursor_position_callback(LUMwindow* window, double x, double y)
 {
-    if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+    if (lumGetInputMode(window, LUM_CURSOR) == LUM_CURSOR_DISABLED)
     {
         alpha += (GLfloat) (x - cursorX) / 10.f;
         beta += (GLfloat) (y - cursorY) / 10.f;
@@ -352,7 +352,7 @@ void cursor_position_callback(GLFWwindow* window, double x, double y)
 // Callback function for scroll events
 //========================================================================
 
-void scroll_callback(GLFWwindow* window, double x, double y)
+void scroll_callback(LUMwindow* window, double x, double y)
 {
     zoom += (float) y / 4.f;
     if (zoom < 0)
@@ -364,7 +364,7 @@ void scroll_callback(GLFWwindow* window, double x, double y)
 // Callback function for framebuffer resize events
 //========================================================================
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(LUMwindow* window, int width, int height)
 {
     float ratio = 1.f;
     mat4x4 projection;
@@ -391,33 +391,33 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 int main(int argc, char* argv[])
 {
-    GLFWwindow* window;
+    LUMwindow* window;
     double t, dt_total, t_old;
     int width, height;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    window = glfwCreateWindow(640, 480, "Wave Simulation", NULL, NULL);
+    window = lumCreateWindow(640, 480, "Wave Simulation", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    lumSetKeyCallback(window, key_callback);
+    lumSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    lumSetMouseButtonCallback(window, mouse_button_callback);
+    lumSetCursorPosCallback(window, cursor_position_callback);
+    lumSetScrollCallback(window, scroll_callback);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
-    glfwGetFramebufferSize(window, &width, &height);
+    lumGetFramebufferSize(window, &width, &height);
     framebuffer_size_callback(window, width, height);
 
     // Initialize OpenGL
@@ -429,11 +429,11 @@ int main(int argc, char* argv[])
     adjust_grid();
 
     // Initialize timer
-    t_old = glfwGetTime() - 0.01;
+    t_old = lumGetTime() - 0.01;
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
-        t = glfwGetTime();
+        t = lumGetTime();
         dt_total = t - t_old;
         t_old = t;
 
@@ -454,10 +454,10 @@ int main(int argc, char* argv[])
         // Draw wave grid to OpenGL display
         draw_scene(window);
 
-        glfwPollEvents();
+        lumPollEvents();
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

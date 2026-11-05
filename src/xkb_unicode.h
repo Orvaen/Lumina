@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Linux - www.glfw.org
+// Lumina Linux - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -24,7 +24,7 @@
 //
 //========================================================================
 
-#define GLFW_INVALID_CODEPOINT 0xffffffffu
+#define LUM_INVALID_CODEPOINT 0xffffffffu
 
-uint32_t _glfwKeySym2Unicode(unsigned int keysym);
+uint32_t _lumKeySym2Unicode(unsigned int keysym);
 

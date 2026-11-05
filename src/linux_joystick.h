@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Linux - www.glfw.org
+// Lumina Linux - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -28,14 +28,14 @@
 #include <linux/limits.h>
 #include <regex.h>
 
-#define GLFW_LINUX_JOYSTICK_STATE         _GLFWjoystickLinux linjs;
-#define GLFW_LINUX_LIBRARY_JOYSTICK_STATE _GLFWlibraryLinux  linjs;
+#define LUM_LINUX_JOYSTICK_STATE         _LUMjoystickLinux linjs;
+#define LUM_LINUX_LIBRARY_JOYSTICK_STATE _LUMlibraryLinux  linjs;
 
-#define GLFW_BUILD_LINUX_MAPPINGS
+#define LUM_BUILD_LINUX_MAPPINGS
 
 // Linux-specific joystick data
 //
-typedef struct _GLFWjoystickLinux
+typedef struct _LUMjoystickLinux
 {
     int                     fd;
     char                    path[PATH_MAX];
@@ -43,23 +43,23 @@ typedef struct _GLFWjoystickLinux
     int                     absMap[ABS_CNT];
     struct input_absinfo    absInfo[ABS_CNT];
     int                     hats[4][2];
-} _GLFWjoystickLinux;
+} _LUMjoystickLinux;
 
 // Linux-specific joystick API data
 //
-typedef struct _GLFWlibraryLinux
+typedef struct _LUMlibraryLinux
 {
     int                     inotify;
     int                     watch;
     regex_t                 regex;
-    GLFWbool                dropped;
-} _GLFWlibraryLinux;
+    LUMbool                dropped;
+} _LUMlibraryLinux;
 
-void _glfwDetectJoystickConnectionLinux(void);
+void _lumDetectJoystickConnectionLinux(void);
 
-GLFWbool _glfwInitJoysticksLinux(void);
-void _glfwTerminateJoysticksLinux(void);
-int _glfwPollJoystickLinux(_GLFWjoystick* js, int mode);
-const char* _glfwGetMappingNameLinux(void);
-void _glfwUpdateGamepadGUIDLinux(char* guid);
+LUMbool _lumInitJoysticksLinux(void);
+void _lumTerminateJoysticksLinux(void);
+int _lumPollJoystickLinux(_LUMjoystick* js, int mode);
+const char* _lumGetMappingNameLinux(void);
+void _lumUpdateGamepadGUIDLinux(char* guid);
 

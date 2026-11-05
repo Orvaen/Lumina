@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2016 Google Inc.
 // Copyright (c) 2016-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -31,52 +31,52 @@
 
 #include <stdlib.h>
 
-static void applySizeLimits(_GLFWwindow* window, int* width, int* height)
+static void applySizeLimits(_LUMwindow* window, int* width, int* height)
 {
-    if (window->numer != GLFW_DONT_CARE && window->denom != GLFW_DONT_CARE)
+    if (window->numer != LUM_DONT_CARE && window->denom != LUM_DONT_CARE)
     {
         const float ratio = (float) window->numer / (float) window->denom;
         *height = (int) (*width / ratio);
     }
 
-    if (window->minwidth != GLFW_DONT_CARE && *width < window->minwidth)
+    if (window->minwidth != LUM_DONT_CARE && *width < window->minwidth)
         *width = window->minwidth;
-    else if (window->maxwidth != GLFW_DONT_CARE && *width > window->maxwidth)
+    else if (window->maxwidth != LUM_DONT_CARE && *width > window->maxwidth)
         *width = window->maxwidth;
 
-    if (window->minheight != GLFW_DONT_CARE && *height < window->minheight)
+    if (window->minheight != LUM_DONT_CARE && *height < window->minheight)
         *height = window->minheight;
-    else if (window->maxheight != GLFW_DONT_CARE && *height > window->maxheight)
+    else if (window->maxheight != LUM_DONT_CARE && *height > window->maxheight)
         *height = window->maxheight;
 }
 
-static void fitToMonitor(_GLFWwindow* window)
+static void fitToMonitor(_LUMwindow* window)
 {
-    GLFWvidmode mode;
-    _glfwGetVideoModeNull(window->monitor, &mode);
-    _glfwGetMonitorPosNull(window->monitor,
+    LUMvidmode mode;
+    _lumGetVideoModeNull(window->monitor, &mode);
+    _lumGetMonitorPosNull(window->monitor,
                            &window->null.xpos,
                            &window->null.ypos);
     window->null.width = mode.width;
     window->null.height = mode.height;
 }
 
-static void acquireMonitor(_GLFWwindow* window)
+static void acquireMonitor(_LUMwindow* window)
 {
-    _glfwInputMonitorWindow(window->monitor, window);
+    _lumInputMonitorWindow(window->monitor, window);
 }
 
-static void releaseMonitor(_GLFWwindow* window)
+static void releaseMonitor(_LUMwindow* window)
 {
     if (window->monitor->window != window)
         return;
 
-    _glfwInputMonitorWindow(window->monitor, NULL);
+    _lumInputMonitorWindow(window->monitor, NULL);
 }
 
-static int createNativeWindow(_GLFWwindow* window,
-                              const _GLFWwndconfig* wndconfig,
-                              const _GLFWfbconfig* fbconfig)
+static int createNativeWindow(_LUMwindow* window,
+                              const _LUMwndconfig* wndconfig,
+                              const _LUMfbconfig* fbconfig)
 {
     if (window->monitor)
         fitToMonitor(window);
@@ -95,73 +95,73 @@ static int createNativeWindow(_GLFWwindow* window,
     window->null.transparent = fbconfig->transparent;
     window->null.opacity = 1.f;
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-int _glfwCreateWindowNull(_GLFWwindow* window,
-                          const _GLFWwndconfig* wndconfig,
-                          const _GLFWctxconfig* ctxconfig,
-                          const _GLFWfbconfig* fbconfig)
+int _lumCreateWindowNull(_LUMwindow* window,
+                          const _LUMwndconfig* wndconfig,
+                          const _LUMctxconfig* ctxconfig,
+                          const _LUMfbconfig* fbconfig)
 {
     if (!createNativeWindow(window, wndconfig, fbconfig))
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    if (ctxconfig->client != GLFW_NO_API)
+    if (ctxconfig->client != LUM_NO_API)
     {
-        if (ctxconfig->source == GLFW_NATIVE_CONTEXT_API ||
-            ctxconfig->source == GLFW_OSMESA_CONTEXT_API)
+        if (ctxconfig->source == LUM_NATIVE_CONTEXT_API ||
+            ctxconfig->source == LUM_OSMESA_CONTEXT_API)
         {
-            if (!_glfwInitOSMesa())
-                return GLFW_FALSE;
-            if (!_glfwCreateContextOSMesa(window, ctxconfig, fbconfig))
-                return GLFW_FALSE;
+            if (!_lumInitOSMesa())
+                return LUM_FALSE;
+            if (!_lumCreateContextOSMesa(window, ctxconfig, fbconfig))
+                return LUM_FALSE;
         }
-        else if (ctxconfig->source == GLFW_EGL_CONTEXT_API)
+        else if (ctxconfig->source == LUM_EGL_CONTEXT_API)
         {
-            if (!_glfwInitEGL())
-                return GLFW_FALSE;
-            if (!_glfwCreateContextEGL(window, ctxconfig, fbconfig))
-                return GLFW_FALSE;
+            if (!_lumInitEGL())
+                return LUM_FALSE;
+            if (!_lumCreateContextEGL(window, ctxconfig, fbconfig))
+                return LUM_FALSE;
         }
     }
 
     if (window->monitor)
     {
-        _glfwShowWindowNull(window);
-        _glfwFocusWindowNull(window);
+        _lumShowWindowNull(window);
+        _lumFocusWindowNull(window);
         acquireMonitor(window);
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwDestroyWindowNull(_GLFWwindow* window)
+void _lumDestroyWindowNull(_LUMwindow* window)
 {
     if (window->monitor)
         releaseMonitor(window);
 
-    if (_glfw.null.focusedWindow == window)
-        _glfw.null.focusedWindow = NULL;
+    if (_lum.null.focusedWindow == window)
+        _lum.null.focusedWindow = NULL;
 
     if (window->context.destroy)
         window->context.destroy(window);
 }
 
-void _glfwSetWindowTitleNull(_GLFWwindow* window, const char* title)
+void _lumSetWindowTitleNull(_LUMwindow* window, const char* title)
 {
 }
 
-void _glfwSetWindowIconNull(_GLFWwindow* window, int count, const GLFWimage* images)
+void _lumSetWindowIconNull(_LUMwindow* window, int count, const LUMimage* images)
 {
 }
 
-void _glfwSetWindowMonitorNull(_GLFWwindow* window,
-                               _GLFWmonitor* monitor,
+void _lumSetWindowMonitorNull(_LUMwindow* window,
+                               _LUMmonitor* monitor,
                                int xpos, int ypos,
                                int width, int height,
                                int refreshRate)
@@ -170,8 +170,8 @@ void _glfwSetWindowMonitorNull(_GLFWwindow* window,
     {
         if (!monitor)
         {
-            _glfwSetWindowPosNull(window, xpos, ypos);
-            _glfwSetWindowSizeNull(window, width, height);
+            _lumSetWindowPosNull(window, xpos, ypos);
+            _lumSetWindowSizeNull(window, width, height);
         }
 
         return;
@@ -180,22 +180,22 @@ void _glfwSetWindowMonitorNull(_GLFWwindow* window,
     if (window->monitor)
         releaseMonitor(window);
 
-    _glfwInputWindowMonitor(window, monitor);
+    _lumInputWindowMonitor(window, monitor);
 
     if (window->monitor)
     {
-        window->null.visible = GLFW_TRUE;
+        window->null.visible = LUM_TRUE;
         acquireMonitor(window);
         fitToMonitor(window);
     }
     else
     {
-        _glfwSetWindowPosNull(window, xpos, ypos);
-        _glfwSetWindowSizeNull(window, width, height);
+        _lumSetWindowPosNull(window, xpos, ypos);
+        _lumSetWindowSizeNull(window, width, height);
     }
 }
 
-void _glfwGetWindowPosNull(_GLFWwindow* window, int* xpos, int* ypos)
+void _lumGetWindowPosNull(_LUMwindow* window, int* xpos, int* ypos)
 {
     if (xpos)
         *xpos = window->null.xpos;
@@ -203,7 +203,7 @@ void _glfwGetWindowPosNull(_GLFWwindow* window, int* xpos, int* ypos)
         *ypos = window->null.ypos;
 }
 
-void _glfwSetWindowPosNull(_GLFWwindow* window, int xpos, int ypos)
+void _lumSetWindowPosNull(_LUMwindow* window, int xpos, int ypos)
 {
     if (window->monitor)
         return;
@@ -212,11 +212,11 @@ void _glfwSetWindowPosNull(_GLFWwindow* window, int xpos, int ypos)
     {
         window->null.xpos = xpos;
         window->null.ypos = ypos;
-        _glfwInputWindowPos(window, xpos, ypos);
+        _lumInputWindowPos(window, xpos, ypos);
     }
 }
 
-void _glfwGetWindowSizeNull(_GLFWwindow* window, int* width, int* height)
+void _lumGetWindowSizeNull(_LUMwindow* window, int* width, int* height)
 {
     if (width)
         *width = window->null.width;
@@ -224,7 +224,7 @@ void _glfwGetWindowSizeNull(_GLFWwindow* window, int* width, int* height)
         *height = window->null.height;
 }
 
-void _glfwSetWindowSizeNull(_GLFWwindow* window, int width, int height)
+void _lumSetWindowSizeNull(_LUMwindow* window, int width, int height)
 {
     if (window->monitor)
         return;
@@ -233,30 +233,30 @@ void _glfwSetWindowSizeNull(_GLFWwindow* window, int width, int height)
     {
         window->null.width = width;
         window->null.height = height;
-        _glfwInputWindowSize(window, width, height);
-        _glfwInputFramebufferSize(window, width, height);
+        _lumInputWindowSize(window, width, height);
+        _lumInputFramebufferSize(window, width, height);
     }
 }
 
-void _glfwSetWindowSizeLimitsNull(_GLFWwindow* window,
+void _lumSetWindowSizeLimitsNull(_LUMwindow* window,
                                   int minwidth, int minheight,
                                   int maxwidth, int maxheight)
 {
     int width = window->null.width;
     int height = window->null.height;
     applySizeLimits(window, &width, &height);
-    _glfwSetWindowSizeNull(window, width, height);
+    _lumSetWindowSizeNull(window, width, height);
 }
 
-void _glfwSetWindowAspectRatioNull(_GLFWwindow* window, int n, int d)
+void _lumSetWindowAspectRatioNull(_LUMwindow* window, int n, int d)
 {
     int width = window->null.width;
     int height = window->null.height;
     applySizeLimits(window, &width, &height);
-    _glfwSetWindowSizeNull(window, width, height);
+    _lumSetWindowSizeNull(window, width, height);
 }
 
-void _glfwGetFramebufferSizeNull(_GLFWwindow* window, int* width, int* height)
+void _lumGetFramebufferSizeNull(_LUMwindow* window, int* width, int* height)
 {
     if (width)
         *width = window->null.width;
@@ -264,7 +264,7 @@ void _glfwGetFramebufferSizeNull(_GLFWwindow* window, int* width, int* height)
         *height = window->null.height;
 }
 
-void _glfwGetWindowFrameSizeNull(_GLFWwindow* window,
+void _lumGetWindowFrameSizeNull(_LUMwindow* window,
                                  int* left, int* top,
                                  int* right, int* bottom)
 {
@@ -292,7 +292,7 @@ void _glfwGetWindowFrameSizeNull(_GLFWwindow* window,
     }
 }
 
-void _glfwGetWindowContentScaleNull(_GLFWwindow* window, float* xscale, float* yscale)
+void _lumGetWindowContentScaleNull(_LUMwindow* window, float* xscale, float* yscale)
 {
     if (xscale)
         *xscale = 1.f;
@@ -300,395 +300,395 @@ void _glfwGetWindowContentScaleNull(_GLFWwindow* window, float* xscale, float* y
         *yscale = 1.f;
 }
 
-void _glfwIconifyWindowNull(_GLFWwindow* window)
+void _lumIconifyWindowNull(_LUMwindow* window)
 {
-    if (_glfw.null.focusedWindow == window)
+    if (_lum.null.focusedWindow == window)
     {
-        _glfw.null.focusedWindow = NULL;
-        _glfwInputWindowFocus(window, GLFW_FALSE);
+        _lum.null.focusedWindow = NULL;
+        _lumInputWindowFocus(window, LUM_FALSE);
     }
 
     if (!window->null.iconified)
     {
-        window->null.iconified = GLFW_TRUE;
-        _glfwInputWindowIconify(window, GLFW_TRUE);
+        window->null.iconified = LUM_TRUE;
+        _lumInputWindowIconify(window, LUM_TRUE);
 
         if (window->monitor)
             releaseMonitor(window);
     }
 }
 
-void _glfwRestoreWindowNull(_GLFWwindow* window)
+void _lumRestoreWindowNull(_LUMwindow* window)
 {
     if (window->null.iconified)
     {
-        window->null.iconified = GLFW_FALSE;
-        _glfwInputWindowIconify(window, GLFW_FALSE);
+        window->null.iconified = LUM_FALSE;
+        _lumInputWindowIconify(window, LUM_FALSE);
 
         if (window->monitor)
             acquireMonitor(window);
     }
     else if (window->null.maximized)
     {
-        window->null.maximized = GLFW_FALSE;
-        _glfwInputWindowMaximize(window, GLFW_FALSE);
+        window->null.maximized = LUM_FALSE;
+        _lumInputWindowMaximize(window, LUM_FALSE);
     }
 }
 
-void _glfwMaximizeWindowNull(_GLFWwindow* window)
+void _lumMaximizeWindowNull(_LUMwindow* window)
 {
     if (!window->null.maximized)
     {
-        window->null.maximized = GLFW_TRUE;
-        _glfwInputWindowMaximize(window, GLFW_TRUE);
+        window->null.maximized = LUM_TRUE;
+        _lumInputWindowMaximize(window, LUM_TRUE);
     }
 }
 
-int _glfwWindowMaximizedNull(_GLFWwindow* window)
+int _lumWindowMaximizedNull(_LUMwindow* window)
 {
     return window->null.maximized;
 }
 
-int _glfwWindowHoveredNull(_GLFWwindow* window)
+int _lumWindowHoveredNull(_LUMwindow* window)
 {
-    return _glfw.null.xcursor >= window->null.xpos &&
-           _glfw.null.ycursor >= window->null.ypos &&
-           _glfw.null.xcursor <= window->null.xpos + window->null.width - 1 &&
-           _glfw.null.ycursor <= window->null.ypos + window->null.height - 1;
+    return _lum.null.xcursor >= window->null.xpos &&
+           _lum.null.ycursor >= window->null.ypos &&
+           _lum.null.xcursor <= window->null.xpos + window->null.width - 1 &&
+           _lum.null.ycursor <= window->null.ypos + window->null.height - 1;
 }
 
-int _glfwFramebufferTransparentNull(_GLFWwindow* window)
+int _lumFramebufferTransparentNull(_LUMwindow* window)
 {
     return window->null.transparent;
 }
 
-void _glfwSetWindowResizableNull(_GLFWwindow* window, GLFWbool enabled)
+void _lumSetWindowResizableNull(_LUMwindow* window, LUMbool enabled)
 {
     window->null.resizable = enabled;
 }
 
-void _glfwSetWindowDecoratedNull(_GLFWwindow* window, GLFWbool enabled)
+void _lumSetWindowDecoratedNull(_LUMwindow* window, LUMbool enabled)
 {
     window->null.decorated = enabled;
 }
 
-void _glfwSetWindowTitlebarNull(_GLFWwindow* window, GLFWbool enabled)
+void _lumSetWindowTitlebarNull(_LUMwindow* window, LUMbool enabled)
 {
     window->null.titlebar = enabled;
 }
 
-void _glfwSetWindowFloatingNull(_GLFWwindow* window, GLFWbool enabled)
+void _lumSetWindowFloatingNull(_LUMwindow* window, LUMbool enabled)
 {
     window->null.floating = enabled;
 }
 
-void _glfwSetWindowMousePassthroughNull(_GLFWwindow* window, GLFWbool enabled)
+void _lumSetWindowMousePassthroughNull(_LUMwindow* window, LUMbool enabled)
 {
 }
 
-float _glfwGetWindowOpacityNull(_GLFWwindow* window)
+float _lumGetWindowOpacityNull(_LUMwindow* window)
 {
     return window->null.opacity;
 }
 
-void _glfwSetWindowOpacityNull(_GLFWwindow* window, float opacity)
+void _lumSetWindowOpacityNull(_LUMwindow* window, float opacity)
 {
     window->null.opacity = opacity;
 }
 
-void _glfwSetRawMouseMotionNull(_GLFWwindow *window, GLFWbool enabled)
+void _lumSetRawMouseMotionNull(_LUMwindow *window, LUMbool enabled)
 {
 }
 
-GLFWbool _glfwRawMouseMotionSupportedNull(void)
+LUMbool _lumRawMouseMotionSupportedNull(void)
 {
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwShowWindowNull(_GLFWwindow* window)
+void _lumShowWindowNull(_LUMwindow* window)
 {
-    window->null.visible = GLFW_TRUE;
+    window->null.visible = LUM_TRUE;
 }
 
-void _glfwRequestWindowAttentionNull(_GLFWwindow* window)
+void _lumRequestWindowAttentionNull(_LUMwindow* window)
 {
 }
 
-void _glfwHideWindowNull(_GLFWwindow* window)
+void _lumHideWindowNull(_LUMwindow* window)
 {
-    if (_glfw.null.focusedWindow == window)
+    if (_lum.null.focusedWindow == window)
     {
-        _glfw.null.focusedWindow = NULL;
-        _glfwInputWindowFocus(window, GLFW_FALSE);
+        _lum.null.focusedWindow = NULL;
+        _lumInputWindowFocus(window, LUM_FALSE);
     }
 
-    window->null.visible = GLFW_FALSE;
+    window->null.visible = LUM_FALSE;
 }
 
-void _glfwFocusWindowNull(_GLFWwindow* window)
+void _lumFocusWindowNull(_LUMwindow* window)
 {
-    _GLFWwindow* previous;
+    _LUMwindow* previous;
 
-    if (_glfw.null.focusedWindow == window)
+    if (_lum.null.focusedWindow == window)
         return;
 
     if (!window->null.visible)
         return;
 
-    previous = _glfw.null.focusedWindow;
-    _glfw.null.focusedWindow = window;
+    previous = _lum.null.focusedWindow;
+    _lum.null.focusedWindow = window;
 
     if (previous)
     {
-        _glfwInputWindowFocus(previous, GLFW_FALSE);
+        _lumInputWindowFocus(previous, LUM_FALSE);
         if (previous->monitor && previous->autoIconify)
-            _glfwIconifyWindowNull(previous);
+            _lumIconifyWindowNull(previous);
     }
 
-    _glfwInputWindowFocus(window, GLFW_TRUE);
+    _lumInputWindowFocus(window, LUM_TRUE);
 }
 
-int _glfwWindowFocusedNull(_GLFWwindow* window)
+int _lumWindowFocusedNull(_LUMwindow* window)
 {
-    return _glfw.null.focusedWindow == window;
+    return _lum.null.focusedWindow == window;
 }
 
-int _glfwWindowIconifiedNull(_GLFWwindow* window)
+int _lumWindowIconifiedNull(_LUMwindow* window)
 {
     return window->null.iconified;
 }
 
-int _glfwWindowVisibleNull(_GLFWwindow* window)
+int _lumWindowVisibleNull(_LUMwindow* window)
 {
     return window->null.visible;
 }
 
-void _glfwPollEventsNull(void)
+void _lumPollEventsNull(void)
 {
 }
 
-void _glfwWaitEventsNull(void)
+void _lumWaitEventsNull(void)
 {
 }
 
-void _glfwWaitEventsTimeoutNull(double timeout)
+void _lumWaitEventsTimeoutNull(double timeout)
 {
 }
 
-void _glfwPostEmptyEventNull(void)
+void _lumPostEmptyEventNull(void)
 {
 }
 
-void _glfwGetCursorPosNull(_GLFWwindow* window, double* xpos, double* ypos)
+void _lumGetCursorPosNull(_LUMwindow* window, double* xpos, double* ypos)
 {
     if (xpos)
-        *xpos = _glfw.null.xcursor - window->null.xpos;
+        *xpos = _lum.null.xcursor - window->null.xpos;
     if (ypos)
-        *ypos = _glfw.null.ycursor - window->null.ypos;
+        *ypos = _lum.null.ycursor - window->null.ypos;
 }
 
-void _glfwSetCursorPosNull(_GLFWwindow* window, double x, double y)
+void _lumSetCursorPosNull(_LUMwindow* window, double x, double y)
 {
-    _glfw.null.xcursor = window->null.xpos + (int) x;
-    _glfw.null.ycursor = window->null.ypos + (int) y;
+    _lum.null.xcursor = window->null.xpos + (int) x;
+    _lum.null.ycursor = window->null.ypos + (int) y;
 }
 
-void _glfwSetCursorModeNull(_GLFWwindow* window, int mode)
+void _lumSetCursorModeNull(_LUMwindow* window, int mode)
 {
 }
 
-int _glfwCreateCursorNull(_GLFWcursor* cursor,
-                          const GLFWimage* image,
+int _lumCreateCursorNull(_LUMcursor* cursor,
+                          const LUMimage* image,
                           int xhot, int yhot)
 {
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-int _glfwCreateStandardCursorNull(_GLFWcursor* cursor, int shape)
+int _lumCreateStandardCursorNull(_LUMcursor* cursor, int shape)
 {
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwDestroyCursorNull(_GLFWcursor* cursor)
-{
-}
-
-void _glfwSetCursorNull(_GLFWwindow* window, _GLFWcursor* cursor)
+void _lumDestroyCursorNull(_LUMcursor* cursor)
 {
 }
 
-void _glfwSetClipboardStringNull(const char* string)
+void _lumSetCursorNull(_LUMwindow* window, _LUMcursor* cursor)
 {
-    char* copy = _glfw_strdup(string);
-    _glfw_free(_glfw.null.clipboardString);
-    _glfw.null.clipboardString = copy;
 }
 
-const char* _glfwGetClipboardStringNull(void)
+void _lumSetClipboardStringNull(const char* string)
 {
-    return _glfw.null.clipboardString;
+    char* copy = _lum_strdup(string);
+    _lum_free(_lum.null.clipboardString);
+    _lum.null.clipboardString = copy;
 }
 
-EGLenum _glfwGetEGLPlatformNull(EGLint** attribs)
+const char* _lumGetClipboardStringNull(void)
 {
-    return 0;
+    return _lum.null.clipboardString;
 }
 
-EGLNativeDisplayType _glfwGetEGLNativeDisplayNull(void)
+EGLenum _lumGetEGLPlatformNull(EGLint** attribs)
 {
     return 0;
 }
 
-EGLNativeWindowType _glfwGetEGLNativeWindowNull(_GLFWwindow* window)
+EGLNativeDisplayType _lumGetEGLNativeDisplayNull(void)
 {
     return 0;
 }
 
-const char* _glfwGetScancodeNameNull(int scancode)
+EGLNativeWindowType _lumGetEGLNativeWindowNull(_LUMwindow* window)
 {
-    if (scancode < GLFW_KEY_SPACE || scancode > GLFW_KEY_LAST)
+    return 0;
+}
+
+const char* _lumGetScancodeNameNull(int scancode)
+{
+    if (scancode < LUM_KEY_SPACE || scancode > LUM_KEY_LAST)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid scancode %i", scancode);
+        _lumInputError(LUM_INVALID_VALUE, "Invalid scancode %i", scancode);
         return NULL;
     }
 
     switch (scancode)
     {
-        case GLFW_KEY_APOSTROPHE:
+        case LUM_KEY_APOSTROPHE:
             return "'";
-        case GLFW_KEY_COMMA:
+        case LUM_KEY_COMMA:
             return ",";
-        case GLFW_KEY_MINUS:
-        case GLFW_KEY_KP_SUBTRACT:
+        case LUM_KEY_MINUS:
+        case LUM_KEY_KP_SUBTRACT:
             return "-";
-        case GLFW_KEY_PERIOD:
-        case GLFW_KEY_KP_DECIMAL:
+        case LUM_KEY_PERIOD:
+        case LUM_KEY_KP_DECIMAL:
             return ".";
-        case GLFW_KEY_SLASH:
-        case GLFW_KEY_KP_DIVIDE:
+        case LUM_KEY_SLASH:
+        case LUM_KEY_KP_DIVIDE:
             return "/";
-        case GLFW_KEY_SEMICOLON:
+        case LUM_KEY_SEMICOLON:
             return ";";
-        case GLFW_KEY_EQUAL:
-        case GLFW_KEY_KP_EQUAL:
+        case LUM_KEY_EQUAL:
+        case LUM_KEY_KP_EQUAL:
             return "=";
-        case GLFW_KEY_LEFT_BRACKET:
+        case LUM_KEY_LEFT_BRACKET:
             return "[";
-        case GLFW_KEY_RIGHT_BRACKET:
+        case LUM_KEY_RIGHT_BRACKET:
             return "]";
-        case GLFW_KEY_KP_MULTIPLY:
+        case LUM_KEY_KP_MULTIPLY:
             return "*";
-        case GLFW_KEY_KP_ADD:
+        case LUM_KEY_KP_ADD:
             return "+";
-        case GLFW_KEY_BACKSLASH:
-        case GLFW_KEY_WORLD_1:
-        case GLFW_KEY_WORLD_2:
+        case LUM_KEY_BACKSLASH:
+        case LUM_KEY_WORLD_1:
+        case LUM_KEY_WORLD_2:
             return "\\";
-        case GLFW_KEY_0:
-        case GLFW_KEY_KP_0:
+        case LUM_KEY_0:
+        case LUM_KEY_KP_0:
             return "0";
-        case GLFW_KEY_1:
-        case GLFW_KEY_KP_1:
+        case LUM_KEY_1:
+        case LUM_KEY_KP_1:
             return "1";
-        case GLFW_KEY_2:
-        case GLFW_KEY_KP_2:
+        case LUM_KEY_2:
+        case LUM_KEY_KP_2:
             return "2";
-        case GLFW_KEY_3:
-        case GLFW_KEY_KP_3:
+        case LUM_KEY_3:
+        case LUM_KEY_KP_3:
             return "3";
-        case GLFW_KEY_4:
-        case GLFW_KEY_KP_4:
+        case LUM_KEY_4:
+        case LUM_KEY_KP_4:
             return "4";
-        case GLFW_KEY_5:
-        case GLFW_KEY_KP_5:
+        case LUM_KEY_5:
+        case LUM_KEY_KP_5:
             return "5";
-        case GLFW_KEY_6:
-        case GLFW_KEY_KP_6:
+        case LUM_KEY_6:
+        case LUM_KEY_KP_6:
             return "6";
-        case GLFW_KEY_7:
-        case GLFW_KEY_KP_7:
+        case LUM_KEY_7:
+        case LUM_KEY_KP_7:
             return "7";
-        case GLFW_KEY_8:
-        case GLFW_KEY_KP_8:
+        case LUM_KEY_8:
+        case LUM_KEY_KP_8:
             return "8";
-        case GLFW_KEY_9:
-        case GLFW_KEY_KP_9:
+        case LUM_KEY_9:
+        case LUM_KEY_KP_9:
             return "9";
-        case GLFW_KEY_A:
+        case LUM_KEY_A:
             return "a";
-        case GLFW_KEY_B:
+        case LUM_KEY_B:
             return "b";
-        case GLFW_KEY_C:
+        case LUM_KEY_C:
             return "c";
-        case GLFW_KEY_D:
+        case LUM_KEY_D:
             return "d";
-        case GLFW_KEY_E:
+        case LUM_KEY_E:
             return "e";
-        case GLFW_KEY_F:
+        case LUM_KEY_F:
             return "f";
-        case GLFW_KEY_G:
+        case LUM_KEY_G:
             return "g";
-        case GLFW_KEY_H:
+        case LUM_KEY_H:
             return "h";
-        case GLFW_KEY_I:
+        case LUM_KEY_I:
             return "i";
-        case GLFW_KEY_J:
+        case LUM_KEY_J:
             return "j";
-        case GLFW_KEY_K:
+        case LUM_KEY_K:
             return "k";
-        case GLFW_KEY_L:
+        case LUM_KEY_L:
             return "l";
-        case GLFW_KEY_M:
+        case LUM_KEY_M:
             return "m";
-        case GLFW_KEY_N:
+        case LUM_KEY_N:
             return "n";
-        case GLFW_KEY_O:
+        case LUM_KEY_O:
             return "o";
-        case GLFW_KEY_P:
+        case LUM_KEY_P:
             return "p";
-        case GLFW_KEY_Q:
+        case LUM_KEY_Q:
             return "q";
-        case GLFW_KEY_R:
+        case LUM_KEY_R:
             return "r";
-        case GLFW_KEY_S:
+        case LUM_KEY_S:
             return "s";
-        case GLFW_KEY_T:
+        case LUM_KEY_T:
             return "t";
-        case GLFW_KEY_U:
+        case LUM_KEY_U:
             return "u";
-        case GLFW_KEY_V:
+        case LUM_KEY_V:
             return "v";
-        case GLFW_KEY_W:
+        case LUM_KEY_W:
             return "w";
-        case GLFW_KEY_X:
+        case LUM_KEY_X:
             return "x";
-        case GLFW_KEY_Y:
+        case LUM_KEY_Y:
             return "y";
-        case GLFW_KEY_Z:
+        case LUM_KEY_Z:
             return "z";
     }
 
     return NULL;
 }
 
-int _glfwGetKeyScancodeNull(int key)
+int _lumGetKeyScancodeNull(int key)
 {
     return key;
 }
 
-void _glfwGetRequiredInstanceExtensionsNull(char** extensions)
+void _lumGetRequiredInstanceExtensionsNull(char** extensions)
 {
 }
 
-int _glfwGetPhysicalDevicePresentationSupportNull(VkInstance instance,
+int _lumGetPhysicalDevicePresentationSupportNull(VkInstance instance,
                                                   VkPhysicalDevice device,
                                                   uint32_t queuefamily)
 {
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
-VkResult _glfwCreateWindowSurfaceNull(VkInstance instance,
-                                      _GLFWwindow* window,
+VkResult _lumCreateWindowSurfaceNull(VkInstance instance,
+                                      _LUMwindow* window,
                                       const VkAllocationCallbacks* allocator,
                                       VkSurfaceKHR* surface)
 {

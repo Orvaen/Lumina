@@ -3,7 +3,7 @@
  * Desc:    Tribute to Amiga Boing.
  * Author:  Jim Brooks  <gfx@jimbrooks.org>
  *          Original Amiga authors were R.J. Mical and Dale Luck.
- *          GLFW conversion by Marcus Geelnard
+ *          Lumina conversion by Marcus Geelnard
  * Notes:   - 360' = 2*PI [radian]
  *
  *          - Distances between objects are created by doing a relative
@@ -38,8 +38,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <linmath.h>
 
@@ -51,10 +51,10 @@
 /* Prototypes */
 void init( void );
 void display( void );
-void reshape( GLFWwindow* window, int w, int h );
-void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods );
-void mouse_button_callback( GLFWwindow* window, int button, int action, int mods );
-void cursor_position_callback( GLFWwindow* window, double x, double y );
+void reshape( LUMwindow* window, int w, int h );
+void key_callback( LUMwindow* window, int key, int scancode, int action, int mods );
+void mouse_button_callback( LUMwindow* window, int button, int action, int mods );
+void cursor_position_callback( LUMwindow* window, double x, double y );
 void DrawBoingBall( void );
 void BounceBall( double dt );
 void DrawBoingBallBand( GLfloat long_lo, GLfloat long_hi );
@@ -95,7 +95,7 @@ int windowed_xpos, windowed_ypos, windowed_width, windowed_height;
 int width, height;
 GLfloat deg_rot_y       = 0.f;
 GLfloat deg_rot_y_inc   = 2.f;
-int override_pos        = GLFW_FALSE;
+int override_pos        = LUM_FALSE;
 GLfloat cursor_x        = 0.f;
 GLfloat cursor_y        = 0.f;
 GLfloat ball_x          = -RADIUS;
@@ -214,7 +214,7 @@ void display(void)
 /*****************************************************************************
  * reshape()
  *****************************************************************************/
-void reshape( GLFWwindow* window, int w, int h )
+void reshape( LUMwindow* window, int w, int h )
 {
    mat4x4 projection, view;
 
@@ -237,31 +237,31 @@ void reshape( GLFWwindow* window, int w, int h )
    glLoadMatrixf((const GLfloat*) view);
 }
 
-void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods )
+void key_callback( LUMwindow* window, int key, int scancode, int action, int mods )
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
-    if (key == GLFW_KEY_ESCAPE && mods == 0)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    if ((key == GLFW_KEY_ENTER && mods == GLFW_MOD_ALT) ||
-        (key == GLFW_KEY_F11 && mods == GLFW_MOD_ALT))
+    if (key == LUM_KEY_ESCAPE && mods == 0)
+        lumSetWindowShouldClose(window, LUM_TRUE);
+    if ((key == LUM_KEY_ENTER && mods == LUM_MOD_ALT) ||
+        (key == LUM_KEY_F11 && mods == LUM_MOD_ALT))
     {
-        if (glfwGetWindowMonitor(window))
+        if (lumGetWindowMonitor(window))
         {
-            glfwSetWindowMonitor(window, NULL,
+            lumSetWindowMonitor(window, NULL,
                                  windowed_xpos, windowed_ypos,
                                  windowed_width, windowed_height, 0);
         }
         else
         {
-            GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+            LUMmonitor* monitor = lumGetPrimaryMonitor();
             if (monitor)
             {
-                const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                glfwGetWindowPos(window, &windowed_xpos, &windowed_ypos);
-                glfwGetWindowSize(window, &windowed_width, &windowed_height);
-                glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+                const LUMvidmode* mode = lumGetVideoMode(monitor);
+                lumGetWindowPos(window, &windowed_xpos, &windowed_ypos);
+                lumGetWindowSize(window, &windowed_width, &windowed_height);
+                lumSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
             }
         }
     }
@@ -273,23 +273,23 @@ static void set_ball_pos ( GLfloat x, GLfloat y )
    ball_y = y - (height / 2);
 }
 
-void mouse_button_callback( GLFWwindow* window, int button, int action, int mods )
+void mouse_button_callback( LUMwindow* window, int button, int action, int mods )
 {
-   if (button != GLFW_MOUSE_BUTTON_LEFT)
+   if (button != LUM_MOUSE_BUTTON_LEFT)
       return;
 
-   if (action == GLFW_PRESS)
+   if (action == LUM_PRESS)
    {
-      override_pos = GLFW_TRUE;
+      override_pos = LUM_TRUE;
       set_ball_pos(cursor_x, cursor_y);
    }
    else
    {
-      override_pos = GLFW_FALSE;
+      override_pos = LUM_FALSE;
    }
 }
 
-void cursor_position_callback( GLFWwindow* window, double x, double y )
+void cursor_position_callback( LUMwindow* window, double x, double y )
 {
    cursor_x = (float) x;
    cursor_y = (float) y;
@@ -623,34 +623,34 @@ void DrawGrid( void )
 
 int main( void )
 {
-   GLFWwindow* window;
+   LUMwindow* window;
 
-   /* Init GLFW */
-   if( !glfwInit() )
+   /* Init Lumina */
+   if( !lumInit() )
       exit( EXIT_FAILURE );
 
-   window = glfwCreateWindow( 400, 400, "Boing (classic Amiga demo)", NULL, NULL );
+   window = lumCreateWindow( 400, 400, "Boing (classic Amiga demo)", NULL, NULL );
    if (!window)
    {
-       glfwTerminate();
+       lumTerminate();
        exit( EXIT_FAILURE );
    }
 
-   glfwSetWindowAspectRatio(window, 1, 1);
+   lumSetWindowAspectRatio(window, 1, 1);
 
-   glfwSetFramebufferSizeCallback(window, reshape);
-   glfwSetKeyCallback(window, key_callback);
-   glfwSetMouseButtonCallback(window, mouse_button_callback);
-   glfwSetCursorPosCallback(window, cursor_position_callback);
+   lumSetFramebufferSizeCallback(window, reshape);
+   lumSetKeyCallback(window, key_callback);
+   lumSetMouseButtonCallback(window, mouse_button_callback);
+   lumSetCursorPosCallback(window, cursor_position_callback);
 
-   glfwMakeContextCurrent(window);
-   gladLoadGL(glfwGetProcAddress);
-   glfwSwapInterval( 1 );
+   lumMakeContextCurrent(window);
+   gladLoadGL(lumGetProcAddress);
+   lumSwapInterval( 1 );
 
-   glfwGetFramebufferSize(window, &width, &height);
+   lumGetFramebufferSize(window, &width, &height);
    reshape(window, width, height);
 
-   glfwSetTime( 0.0 );
+   lumSetTime( 0.0 );
 
    init();
 
@@ -658,7 +658,7 @@ int main( void )
    for (;;)
    {
        /* Timing */
-       t = glfwGetTime();
+       t = lumGetTime();
        dt = t - t_old;
        t_old = t;
 
@@ -666,15 +666,15 @@ int main( void )
        display();
 
        /* Swap buffers */
-       glfwSwapBuffers(window);
-       glfwPollEvents();
+       lumSwapBuffers(window);
+       lumPollEvents();
 
        /* Check if we are still running */
-       if (glfwWindowShouldClose(window))
+       if (lumWindowShouldClose(window))
            break;
    }
 
-   glfwTerminate();
+   lumTerminate();
    exit( EXIT_SUCCESS );
 }
 

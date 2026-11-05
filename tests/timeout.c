@@ -29,8 +29,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <time.h>
 #include <math.h>
@@ -42,10 +42,10 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
 }
 
 static float nrand(void)
@@ -55,45 +55,45 @@ static float nrand(void)
 
 int main(void)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
 
     srand((unsigned int) time(NULL));
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    window = glfwCreateWindow(640, 480, "Event Wait Timeout Test", NULL, NULL);
+    window = lumCreateWindow(640, 480, "Event Wait Timeout Test", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSetKeyCallback(window, key_callback);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSetKeyCallback(window, key_callback);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         int width, height;
         float r = nrand(), g = nrand(), b = nrand();
         float l = (float) sqrt(r * r + g * g + b * b);
 
-        glfwGetFramebufferSize(window, &width, &height);
+        lumGetFramebufferSize(window, &width, &height);
 
         glViewport(0, 0, width, height);
         glClearColor(r / l, g / l, b / l, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
+        lumSwapBuffers(window);
 
-        glfwWaitEventsTimeout(1.0);
+        lumWaitEventsTimeout(1.0);
     }
 
-    glfwDestroyWindow(window);
+    lumDestroyWindow(window);
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

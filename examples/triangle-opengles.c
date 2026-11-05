@@ -25,8 +25,8 @@
 
 #define GLAD_GLES2_IMPLEMENTATION
 #include <glad/gles2.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include "linmath.h"
 
@@ -71,44 +71,44 @@ static const char* fragment_shader_text =
 
 static void error_callback(int error, const char* description)
 {
-    fprintf(stderr, "GLFW Error: %s\n", description);
+    fprintf(stderr, "Lumina Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (key == LUM_KEY_ESCAPE && action == LUM_PRESS)
+        lumSetWindowShouldClose(window, LUM_TRUE);
 }
 
 int main(void)
 {
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+    lumWindowHint(LUM_CLIENT_API, LUM_OPENGL_ES_API);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_CONTEXT_CREATION_API, LUM_EGL_CONTEXT_API);
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "OpenGL ES 2.0 Triangle (EGL)", NULL, NULL);
+    LUMwindow* window = lumCreateWindow(640, 480, "OpenGL ES 2.0 Triangle (EGL)", NULL, NULL);
     if (!window)
     {
-        glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-        window = glfwCreateWindow(640, 480, "OpenGL ES 2.0 Triangle", NULL, NULL);
+        lumWindowHint(LUM_CONTEXT_CREATION_API, LUM_NATIVE_CONTEXT_API);
+        window = lumCreateWindow(640, 480, "OpenGL ES 2.0 Triangle", NULL, NULL);
         if (!window)
         {
-            glfwTerminate();
+            lumTerminate();
             exit(EXIT_FAILURE);
         }
     }
 
-    glfwSetKeyCallback(window, key_callback);
+    lumSetKeyCallback(window, key_callback);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGLES2(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGLES2(lumGetProcAddress);
+    lumSwapInterval(1);
 
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
@@ -139,10 +139,10 @@ int main(void)
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (void*) offsetof(Vertex, col));
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
+        lumGetFramebufferSize(window, &width, &height);
         const float ratio = width / (float) height;
 
         glViewport(0, 0, width, height);
@@ -150,7 +150,7 @@ int main(void)
 
         mat4x4 m, p, mvp;
         mat4x4_identity(m);
-        mat4x4_rotate_Z(m, m, (float) glfwGetTime());
+        mat4x4_rotate_Z(m, m, (float) lumGetTime());
         mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
         mat4x4_mul(mvp, p, m);
 
@@ -158,13 +158,13 @@ int main(void)
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) &mvp);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
     }
 
-    glfwDestroyWindow(window);
+    lumDestroyWindow(window);
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

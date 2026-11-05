@@ -162,7 +162,7 @@ h3 {
 	font-size:110%;
 }
 
-.glfwheader {
+.lumheader {
 	font-size:16px;
 	min-height:64px;
 	max-width:920px;
@@ -177,7 +177,7 @@ h3 {
 	align-content: stretch;
 }
 
-#glfwhome {
+#lumhome {
 	line-height:64px;
 	padding-right:48px;
 	color:$header-footer-link-color;
@@ -185,28 +185,28 @@ h3 {
 	background:url("https://www.glfw.org/css/arrow.png") no-repeat right;
 }
 
-.glfwnavbar {
+.lumnavbar {
 	list-style-type:none;
 	margin:0 0 0 auto;
 	float:right;
 }
 
-#glfwhome,.glfwnavbar li {
+#lumhome,.lumnavbar li {
 	float:left;
 }
 
-.glfwnavbar a,.glfwnavbar a:visited {
+.lumnavbar a,.lumnavbar a:visited {
 	line-height:64px;
 	margin-left:2em;
 	display:block;
 	color:$header-footer-link-color;
 }
 
-.glfwnavbar {
+.lumnavbar {
 	padding-left: 0;
 }
 
-#glfwhome,.glfwnavbar a,.glfwnavbar a:visited {
+#lumhome,.lumnavbar a,.lumnavbar a:visited {
 	transition:.35s ease;
 }
 
@@ -364,7 +364,7 @@ table.doxtable,table.markdownTable {
 	border-radius:4px;
 }
 
-a,a:hover,a:visited,a:visited:hover,.contents a:visited,.el,a.el:visited,#glfwhome:hover,#main-menu a:hover,span.lineno a:hover {
+a,a:hover,a:visited,a:visited:hover,.contents a:visited,.el,a.el:visited,#lumhome:hover,#main-menu a:hover,span.lineno a:hover {
 	color:$default-link-color;
 	text-decoration:none;
 }

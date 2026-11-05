@@ -30,8 +30,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #define NK_IMPLEMENTATION
 #define NK_INCLUDE_FIXED_TYPES
@@ -43,8 +43,8 @@
 #define NK_BUTTON_TRIGGER_ON_RELEASE
 #include <nuklear.h>
 
-#define NK_GLFW_GL2_IMPLEMENTATION
-#include <nuklear_glfw_gl2.h>
+#define NK_LUM_GL2_IMPLEMENTATION
+#include <nuklear_lumina_gl2.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -54,8 +54,8 @@
 #define strdup(x) _strdup(x)
 #endif
 
-static GLFWwindow* window;
-static int joysticks[GLFW_JOYSTICK_LAST + 1];
+static LUMwindow* window;
+static int joysticks[LUM_JOYSTICK_LAST + 1];
 static int joystick_count = 0;
 
 static void error_callback(int error, const char* description)
@@ -65,9 +65,9 @@ static void error_callback(int error, const char* description)
 
 static void joystick_callback(int jid, int event)
 {
-    if (event == GLFW_CONNECTED)
+    if (event == LUM_CONNECTED)
         joysticks[joystick_count++] = jid;
-    else if (event == GLFW_DISCONNECTED)
+    else if (event == LUM_DISCONNECTED)
     {
         int i;
 
@@ -83,11 +83,11 @@ static void joystick_callback(int jid, int event)
         joystick_count--;
     }
 
-    if (!glfwGetWindowAttrib(window, GLFW_FOCUSED))
-        glfwRequestWindowAttention(window);
+    if (!lumGetWindowAttrib(window, LUM_FOCUSED))
+        lumRequestWindowAttention(window);
 }
 
-static void drop_callback(GLFWwindow* window, int count, const char* paths[])
+static void drop_callback(LUMwindow* window, int count, const char* paths[])
 {
     int i;
 
@@ -106,7 +106,7 @@ static void drop_callback(GLFWwindow* window, int count, const char* paths[])
         text = malloc(size + 1);
         text[size] = '\0';
         if (fread(text, 1, size, stream) == size)
-            glfwUpdateGamepadMappings(text);
+            lumUpdateGamepadMappings(text);
 
         free(text);
         fclose(stream);
@@ -116,7 +116,7 @@ static void drop_callback(GLFWwindow* window, int count, const char* paths[])
 static const char* joystick_label(int jid)
 {
     static char label[1024];
-    snprintf(label, sizeof(label), "%i: %s", jid + 1, glfwGetJoystickName(jid));
+    snprintf(label, sizeof(label), "%i: %s", jid + 1, lumGetJoystickName(jid));
     return label;
 }
 
@@ -171,52 +171,52 @@ static void hat_widget(struct nk_context* nk, unsigned char state)
 
 int main(void)
 {
-    int jid, hat_buttons = GLFW_FALSE;
+    int jid, hat_buttons = LUM_FALSE;
     struct nk_context* nk;
     struct nk_font_atlas* atlas;
 
     memset(joysticks, 0, sizeof(joysticks));
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwWindowHint(GLFW_WIN32_KEYBOARD_MENU, GLFW_TRUE);
+    lumWindowHint(LUM_SCALE_TO_MONITOR, LUM_TRUE);
+    lumWindowHint(LUM_WIN32_KEYBOARD_MENU, LUM_TRUE);
 
-    window = glfwCreateWindow(800, 600, "Joystick Test", NULL, NULL);
+    window = lumCreateWindow(800, 600, "Joystick Test", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
+    lumSwapInterval(1);
 
-    nk = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS);
-    nk_glfw3_font_stash_begin(&atlas);
-    nk_glfw3_font_stash_end();
+    nk = nk_lumina_init(window, NK_LUMINA_INSTALL_CALLBACKS);
+    nk_lumina_font_stash_begin(&atlas);
+    nk_lumina_font_stash_end();
 
-    for (jid = GLFW_JOYSTICK_1;  jid <= GLFW_JOYSTICK_LAST;  jid++)
+    for (jid = LUM_JOYSTICK_1;  jid <= LUM_JOYSTICK_LAST;  jid++)
     {
-        if (glfwJoystickPresent(jid))
+        if (lumJoystickPresent(jid))
             joysticks[joystick_count++] = jid;
     }
 
-    glfwSetJoystickCallback(joystick_callback);
-    glfwSetDropCallback(window, drop_callback);
+    lumSetJoystickCallback(joystick_callback);
+    lumSetDropCallback(window, drop_callback);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         int i, width, height;
 
-        glfwGetWindowSize(window, &width, &height);
+        lumGetWindowSize(window, &width, &height);
 
         glClear(GL_COLOR_BUFFER_BIT);
-        nk_glfw3_new_frame();
+        nk_lumina_new_frame();
 
         if (nk_begin(nk,
                      "Joysticks",
@@ -257,16 +257,16 @@ int main(void)
                 const float* axes;
                 const unsigned char* buttons;
                 const unsigned char* hats;
-                GLFWgamepadstate state;
+                LUMgamepadstate state;
 
                 nk_layout_row_dynamic(nk, 30, 1);
                 nk_labelf(nk, NK_TEXT_LEFT, "Hardware GUID %s",
-                          glfwGetJoystickGUID(joysticks[i]));
+                          lumGetJoystickGUID(joysticks[i]));
                 nk_label(nk, "Joystick state", NK_TEXT_LEFT);
 
-                axes = glfwGetJoystickAxes(joysticks[i], &axis_count);
-                buttons = glfwGetJoystickButtons(joysticks[i], &button_count);
-                hats = glfwGetJoystickHats(joysticks[i], &hat_count);
+                axes = lumGetJoystickAxes(joysticks[i], &axis_count);
+                buttons = lumGetJoystickButtons(joysticks[i], &button_count);
+                hats = lumGetJoystickHats(joysticks[i], &hat_count);
 
                 if (!hat_buttons)
                     button_count -= hat_count * 4;
@@ -290,10 +290,10 @@ int main(void)
 
                 nk_layout_row_dynamic(nk, 30, 1);
 
-                if (glfwGetGamepadState(joysticks[i], &state))
+                if (lumGetGamepadState(joysticks[i], &state))
                 {
                     int hat = 0;
-                    const char* names[GLFW_GAMEPAD_BUTTON_LAST + 1 - 4] =
+                    const char* names[LUM_GAMEPAD_BUTTON_LAST + 1 - 4] =
                     {
                         "A", "B", "X", "Y",
                         "LB", "RB",
@@ -303,26 +303,26 @@ int main(void)
 
                     nk_labelf(nk, NK_TEXT_LEFT,
                               "Gamepad state: %s",
-                              glfwGetGamepadName(joysticks[i]));
+                              lumGetGamepadName(joysticks[i]));
 
                     nk_layout_row_dynamic(nk, 30, 2);
 
-                    for (j = 0;  j <= GLFW_GAMEPAD_AXIS_LAST;  j++)
+                    for (j = 0;  j <= LUM_GAMEPAD_AXIS_LAST;  j++)
                         nk_slide_float(nk, -1.f, state.axes[j], 1.f, 0.1f);
 
-                    nk_layout_row_dynamic(nk, 30, GLFW_GAMEPAD_BUTTON_LAST + 1 - 4);
+                    nk_layout_row_dynamic(nk, 30, LUM_GAMEPAD_BUTTON_LAST + 1 - 4);
 
-                    for (j = 0;  j <= GLFW_GAMEPAD_BUTTON_LAST - 4;  j++)
+                    for (j = 0;  j <= LUM_GAMEPAD_BUTTON_LAST - 4;  j++)
                         nk_select_label(nk, names[j], NK_TEXT_CENTERED, state.buttons[j]);
 
-                    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP])
-                        hat |= GLFW_HAT_UP;
-                    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT])
-                        hat |= GLFW_HAT_RIGHT;
-                    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN])
-                        hat |= GLFW_HAT_DOWN;
-                    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT])
-                        hat |= GLFW_HAT_LEFT;
+                    if (state.buttons[LUM_GAMEPAD_BUTTON_DPAD_UP])
+                        hat |= LUM_HAT_UP;
+                    if (state.buttons[LUM_GAMEPAD_BUTTON_DPAD_RIGHT])
+                        hat |= LUM_HAT_RIGHT;
+                    if (state.buttons[LUM_GAMEPAD_BUTTON_DPAD_DOWN])
+                        hat |= LUM_HAT_DOWN;
+                    if (state.buttons[LUM_GAMEPAD_BUTTON_DPAD_LEFT])
+                        hat |= LUM_HAT_LEFT;
 
                     nk_layout_row_dynamic(nk, 30, 8);
                     hat_widget(nk, hat);
@@ -334,13 +334,13 @@ int main(void)
             nk_end(nk);
         }
 
-        nk_glfw3_render(NK_ANTI_ALIASING_ON);
+        nk_lumina_render(NK_ANTI_ALIASING_ON);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// Lumina Win32 - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -27,22 +27,22 @@
 
 #include <windows.h>
 
-#define GLFW_WIN32_TLS_STATE            _GLFWtlsWin32     win32;
-#define GLFW_WIN32_MUTEX_STATE          _GLFWmutexWin32   win32;
+#define LUM_WIN32_TLS_STATE            _LUMtlsWin32     win32;
+#define LUM_WIN32_MUTEX_STATE          _LUMmutexWin32   win32;
 
 // Win32-specific thread local storage data
 //
-typedef struct _GLFWtlsWin32
+typedef struct _LUMtlsWin32
 {
-    GLFWbool            allocated;
+    LUMbool            allocated;
     DWORD               index;
-} _GLFWtlsWin32;
+} _LUMtlsWin32;
 
 // Win32-specific mutex data
 //
-typedef struct _GLFWmutexWin32
+typedef struct _LUMmutexWin32
 {
-    GLFWbool            allocated;
+    LUMbool            allocated;
     CRITICAL_SECTION    section;
-} _GLFWmutexWin32;
+} _LUMmutexWin32;
 

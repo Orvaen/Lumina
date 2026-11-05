@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 POSIX - www.glfw.org
+// Lumina POSIX - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2021 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -31,20 +31,20 @@
 #include <dlfcn.h>
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void* _glfwPlatformLoadModule(const char* path)
+void* _lumPlatformLoadModule(const char* path)
 {
     return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 }
 
-void _glfwPlatformFreeModule(void* module)
+void _lumPlatformFreeModule(void* module)
 {
     dlclose(module);
 }
 
-GLFWproc _glfwPlatformGetModuleSymbol(void* module, const char* name)
+LUMproc _lumPlatformGetModuleSymbol(void* module, const char* name)
 {
     return dlsym(module, name);
 }

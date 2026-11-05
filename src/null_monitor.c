@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2016 Google Inc.
 // Copyright (c) 2016-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -35,9 +35,9 @@
 
 // The the sole (fake) video mode of our (sole) fake monitor
 //
-static GLFWvidmode getVideoMode(void)
+static LUMvidmode getVideoMode(void)
 {
-    GLFWvidmode mode;
+    LUMvidmode mode;
     mode.width = 1920;
     mode.height = 1080;
     mode.redBits = 8;
@@ -48,29 +48,29 @@ static GLFWvidmode getVideoMode(void)
 }
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwPollMonitorsNull(void)
+void _lumPollMonitorsNull(void)
 {
     const float dpi = 141.f;
-    const GLFWvidmode mode = getVideoMode();
-    _GLFWmonitor* monitor = _glfwAllocMonitor("Null SuperNoop 0",
+    const LUMvidmode mode = getVideoMode();
+    _LUMmonitor* monitor = _lumAllocMonitor("Null SuperNoop 0",
                                               (int) (mode.width * 25.4f / dpi),
                                               (int) (mode.height * 25.4f / dpi));
-    _glfwInputMonitor(monitor, GLFW_CONNECTED, _GLFW_INSERT_FIRST);
+    _lumInputMonitor(monitor, LUM_CONNECTED, _LUM_INSERT_FIRST);
 }
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwFreeMonitorNull(_GLFWmonitor* monitor)
+void _lumFreeMonitorNull(_LUMmonitor* monitor)
 {
-    _glfwFreeGammaArrays(&monitor->null.ramp);
+    _lumFreeGammaArrays(&monitor->null.ramp);
 }
 
-void _glfwGetMonitorPosNull(_GLFWmonitor* monitor, int* xpos, int* ypos)
+void _lumGetMonitorPosNull(_LUMmonitor* monitor, int* xpos, int* ypos)
 {
     if (xpos)
         *xpos = 0;
@@ -78,7 +78,7 @@ void _glfwGetMonitorPosNull(_GLFWmonitor* monitor, int* xpos, int* ypos)
         *ypos = 0;
 }
 
-void _glfwGetMonitorContentScaleNull(_GLFWmonitor* monitor,
+void _lumGetMonitorContentScaleNull(_LUMmonitor* monitor,
                                      float* xscale, float* yscale)
 {
     if (xscale)
@@ -87,11 +87,11 @@ void _glfwGetMonitorContentScaleNull(_GLFWmonitor* monitor,
         *yscale = 1.f;
 }
 
-void _glfwGetMonitorWorkareaNull(_GLFWmonitor* monitor,
+void _lumGetMonitorWorkareaNull(_LUMmonitor* monitor,
                                  int* xpos, int* ypos,
                                  int* width, int* height)
 {
-    const GLFWvidmode mode = getVideoMode();
+    const LUMvidmode mode = getVideoMode();
 
     if (xpos)
         *xpos = 0;
@@ -103,26 +103,26 @@ void _glfwGetMonitorWorkareaNull(_GLFWmonitor* monitor,
         *height = mode.height - 10;
 }
 
-GLFWvidmode* _glfwGetVideoModesNull(_GLFWmonitor* monitor, int* found)
+LUMvidmode* _lumGetVideoModesNull(_LUMmonitor* monitor, int* found)
 {
-    GLFWvidmode* mode = _glfw_calloc(1, sizeof(GLFWvidmode));
+    LUMvidmode* mode = _lum_calloc(1, sizeof(LUMvidmode));
     *mode = getVideoMode();
     *found = 1;
     return mode;
 }
 
-void _glfwGetVideoModeNull(_GLFWmonitor* monitor, GLFWvidmode* mode)
+void _lumGetVideoModeNull(_LUMmonitor* monitor, LUMvidmode* mode)
 {
     *mode = getVideoMode();
 }
 
-GLFWbool _glfwGetGammaRampNull(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
+LUMbool _lumGetGammaRampNull(_LUMmonitor* monitor, LUMgammaramp* ramp)
 {
     if (!monitor->null.ramp.size)
     {
         unsigned int i;
 
-        _glfwAllocGammaArrays(&monitor->null.ramp, 256);
+        _lumAllocGammaArrays(&monitor->null.ramp, 256);
 
         for (i = 0;  i < monitor->null.ramp.size;  i++)
         {
@@ -130,7 +130,7 @@ GLFWbool _glfwGetGammaRampNull(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
             float value;
             value = i / (float) (monitor->null.ramp.size - 1);
             value = powf(value, 1.f / gamma) * 65535.f + 0.5f;
-            value = _glfw_fminf(value, 65535.f);
+            value = _lum_fminf(value, 65535.f);
 
             monitor->null.ramp.red[i]   = (unsigned short) value;
             monitor->null.ramp.green[i] = (unsigned short) value;
@@ -138,18 +138,18 @@ GLFWbool _glfwGetGammaRampNull(_GLFWmonitor* monitor, GLFWgammaramp* ramp)
         }
     }
 
-    _glfwAllocGammaArrays(ramp, monitor->null.ramp.size);
+    _lumAllocGammaArrays(ramp, monitor->null.ramp.size);
     memcpy(ramp->red,   monitor->null.ramp.red,   sizeof(short) * ramp->size);
     memcpy(ramp->green, monitor->null.ramp.green, sizeof(short) * ramp->size);
     memcpy(ramp->blue,  monitor->null.ramp.blue,  sizeof(short) * ramp->size);
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-void _glfwSetGammaRampNull(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
+void _lumSetGammaRampNull(_LUMmonitor* monitor, const LUMgammaramp* ramp)
 {
     if (monitor->null.ramp.size != ramp->size)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Null: Gamma ramp size must match current ramp size");
         return;
     }

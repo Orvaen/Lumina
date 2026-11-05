@@ -23,15 +23,15 @@
 //
 //========================================================================
 //
-// This test renders a marker at the cursor position reported by GLFW to
+// This test renders a marker at the cursor position reported by Lumina to
 // check how much it lags behind the hardware mouse cursor
 //
 //========================================================================
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #define NK_IMPLEMENTATION
 #define NK_INCLUDE_FIXED_TYPES
@@ -42,8 +42,8 @@
 #define NK_INCLUDE_STANDARD_VARARGS
 #include <nuklear.h>
 
-#define NK_GLFW_GL2_IMPLEMENTATION
-#include <nuklear_glfw_gl2.h>
+#define NK_LUM_GL2_IMPLEMENTATION
+#include <nuklear_lumina_gl2.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,13 +62,13 @@ void usage(void)
 struct nk_vec2 cursor_new, cursor_pos, cursor_vel;
 enum { cursor_sync_query, cursor_input_message } cursor_method = cursor_sync_query;
 
-void sample_input(GLFWwindow* window)
+void sample_input(LUMwindow* window)
 {
     float a = .25; // exponential smoothing factor
 
     if (cursor_method == cursor_sync_query) {
         double x, y;
-        glfwGetCursorPos(window, &x, &y);
+        lumGetCursorPos(window, &x, &y);
         cursor_new.x = (float) x;
         cursor_new.y = (float) y;
     }
@@ -78,7 +78,7 @@ void sample_input(GLFWwindow* window)
     cursor_pos = cursor_new;
 }
 
-void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+void cursor_pos_callback(LUMwindow* window, double xpos, double ypos)
 {
     cursor_new.x = (float) xpos;
     cursor_new.y = (float) ypos;
@@ -88,7 +88,7 @@ int enable_vsync = nk_true;
 
 void update_vsync()
 {
-    glfwSwapInterval(enable_vsync == nk_true ? 1 : 0);
+    lumSwapInterval(enable_vsync == nk_true ? 1 : 0);
 }
 
 int swap_clear = nk_false;
@@ -97,9 +97,9 @@ int swap_occlusion_query = nk_false;
 int swap_read_pixels = nk_false;
 GLuint occlusion_query;
 
-void swap_buffers(GLFWwindow* window)
+void swap_buffers(LUMwindow* window)
 {
-    glfwSwapBuffers(window);
+    lumSwapBuffers(window);
 
     if (swap_clear)
         glClear(GL_COLOR_BUFFER_BIT);
@@ -130,15 +130,15 @@ void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, 1);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, 1);
             break;
     }
 }
@@ -156,9 +156,9 @@ int main(int argc, char** argv)
     unsigned long frame_count = 0;
     double last_time, current_time;
     double frame_rate = 0;
-    int fullscreen = GLFW_FALSE;
-    GLFWmonitor* monitor = NULL;
-    GLFWwindow* window;
+    int fullscreen = LUM_FALSE;
+    LUMmonitor* monitor = NULL;
+    LUMwindow* window;
     struct nk_context* nk;
     struct nk_font_atlas* atlas;
 
@@ -173,22 +173,22 @@ int main(int argc, char** argv)
                 exit(EXIT_SUCCESS);
 
             case 'f':
-                fullscreen = GLFW_TRUE;
+                fullscreen = LUM_TRUE;
                 break;
         }
     }
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
     if (fullscreen)
     {
-        const GLFWvidmode* mode;
+        const LUMvidmode* mode;
 
-        monitor = glfwGetPrimaryMonitor();
-        mode = glfwGetVideoMode(monitor);
+        monitor = lumGetPrimaryMonitor();
+        mode = lumGetVideoMode(monitor);
 
         width = mode->width;
         height = mode->height;
@@ -199,45 +199,45 @@ int main(int argc, char** argv)
         height = 480;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
 
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwWindowHint(GLFW_WIN32_KEYBOARD_MENU, GLFW_TRUE);
+    lumWindowHint(LUM_SCALE_TO_MONITOR, LUM_TRUE);
+    lumWindowHint(LUM_WIN32_KEYBOARD_MENU, LUM_TRUE);
 
-    window = glfwCreateWindow(width, height, "Input lag test", monitor, NULL);
+    window = lumCreateWindow(width, height, "Input lag test", monitor, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
     update_vsync();
 
-    last_time = glfwGetTime();
+    last_time = lumGetTime();
 
-    nk = nk_glfw3_init(window, NK_GLFW3_INSTALL_CALLBACKS);
-    nk_glfw3_font_stash_begin(&atlas);
-    nk_glfw3_font_stash_end();
+    nk = nk_lumina_init(window, NK_LUMINA_INSTALL_CALLBACKS);
+    nk_lumina_font_stash_begin(&atlas);
+    nk_lumina_font_stash_end();
 
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, cursor_pos_callback);
+    lumSetKeyCallback(window, key_callback);
+    lumSetCursorPosCallback(window, cursor_pos_callback);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         int width, height;
         struct nk_rect area;
 
-        glfwPollEvents();
+        lumPollEvents();
         sample_input(window);
 
-        glfwGetWindowSize(window, &width, &height);
+        lumGetWindowSize(window, &width, &height);
         area = nk_rect(0.f, 0.f, (float) width, (float) height);
 
         glClear(GL_COLOR_BUFFER_BIT);
-        nk_glfw3_new_frame();
+        nk_lumina_new_frame();
         if (nk_begin(nk, "", area, 0))
         {
             nk_flags align_left = NK_TEXT_ALIGN_LEFT | NK_TEXT_ALIGN_MIDDLE;
@@ -268,9 +268,9 @@ int main(int argc, char** argv)
 
             nk_checkbox_label(nk, "Show forecasts", &show_forecasts);
             nk_label(nk, "Input method:", align_left);
-            if (nk_option_label(nk, "glfwGetCursorPos (sync query)", cursor_method == cursor_sync_query))
+            if (nk_option_label(nk, "lumGetCursorPos (sync query)", cursor_method == cursor_sync_query))
                 cursor_method = cursor_sync_query;
-            if (nk_option_label(nk, "glfwSetCursorPosCallback (latest input message)", cursor_method == cursor_input_message))
+            if (nk_option_label(nk, "lumSetCursorPosCallback (latest input message)", cursor_method == cursor_input_message))
                 cursor_method = cursor_input_message;
 
             nk_label(nk, "", 0); // separator
@@ -289,13 +289,13 @@ int main(int argc, char** argv)
         }
 
         nk_end(nk);
-        nk_glfw3_render(NK_ANTI_ALIASING_ON);
+        nk_lumina_render(NK_ANTI_ALIASING_ON);
 
         swap_buffers(window);
 
         frame_count++;
 
-        current_time = glfwGetTime();
+        current_time = lumGetTime();
         if (current_time - last_time > 1.0)
         {
             frame_rate = frame_count / (current_time - last_time);
@@ -304,7 +304,7 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

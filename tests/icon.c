@@ -29,14 +29,14 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// a simple glfw logo
+// a simple lumina logo
 const char* const logo[] =
 {
     "................",
@@ -68,12 +68,12 @@ const unsigned char icon_colors[5][4] =
 
 static int cur_icon_color = 0;
 
-static void set_icon(GLFWwindow* window, int icon_color)
+static void set_icon(LUMwindow* window, int icon_color)
 {
     int x, y;
     unsigned char pixels[16 * 16 * 4];
     unsigned char* target = pixels;
-    GLFWimage img = { 16, 16, pixels };
+    LUMimage img = { 16, 16, pixels };
 
     for (y = 0;  y < img.width;  y++)
     {
@@ -88,63 +88,63 @@ static void set_icon(GLFWwindow* window, int icon_color)
         }
     }
 
-    glfwSetWindowIcon(window, 1, &img);
+    lumSetWindowIcon(window, 1, &img);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, LUM_TRUE);
             break;
-        case GLFW_KEY_SPACE:
+        case LUM_KEY_SPACE:
             cur_icon_color = (cur_icon_color + 1) % 5;
             set_icon(window, cur_icon_color);
             break;
-        case GLFW_KEY_X:
-            glfwSetWindowIcon(window, 0, NULL);
+        case LUM_KEY_X:
+            lumSetWindowIcon(window, 0, NULL);
             break;
     }
 }
 
 int main(int argc, char** argv)
 {
-    GLFWwindow* window;
+    LUMwindow* window;
 
-    if (!glfwInit())
+    if (!lumInit())
     {
-        fprintf(stderr, "Failed to initialize GLFW\n");
+        fprintf(stderr, "Failed to initialize Lumina\n");
         exit(EXIT_FAILURE);
     }
 
-    window = glfwCreateWindow(200, 200, "Window Icon", NULL, NULL);
+    window = lumCreateWindow(200, 200, "Window Icon", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
 
-        fprintf(stderr, "Failed to open GLFW window\n");
+        fprintf(stderr, "Failed to open Lumina window\n");
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
 
-    glfwSetKeyCallback(window, key_callback);
+    lumSetKeyCallback(window, key_callback);
     set_icon(window, cur_icon_color);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
-        glfwWaitEvents();
+        lumSwapBuffers(window);
+        lumWaitEvents();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    lumDestroyWindow(window);
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

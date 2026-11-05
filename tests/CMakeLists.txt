@@ -1,7 +1,7 @@
 
-link_libraries(glfw)
+link_libraries(lumina)
 
-include_directories("${GLFW_SOURCE_DIR}/deps")
+include_directories("${LUM_SOURCE_DIR}/deps")
 
 if (MATH_LIBRARY)
     link_libraries("${MATH_LIBRARY}")
@@ -12,22 +12,23 @@ if (MSVC OR CMAKE_C_SIMULATE_ID STREQUAL "MSVC")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-set(GLAD_GL "${GLFW_SOURCE_DIR}/deps/glad/gl.h")
-set(GLAD_VULKAN "${GLFW_SOURCE_DIR}/deps/glad/vulkan.h")
-set(GETOPT "${GLFW_SOURCE_DIR}/deps/getopt.h"
-           "${GLFW_SOURCE_DIR}/deps/getopt.c")
-set(TINYCTHREAD "${GLFW_SOURCE_DIR}/deps/tinycthread.h"
-                "${GLFW_SOURCE_DIR}/deps/tinycthread.c")
+set(GLAD_GL "${LUM_SOURCE_DIR}/deps/glad/gl.h")
+set(GLAD_VULKAN "${LUM_SOURCE_DIR}/deps/glad/vulkan.h")
+set(GETOPT "${LUM_SOURCE_DIR}/deps/getopt.h"
+           "${LUM_SOURCE_DIR}/deps/getopt.c")
+set(TINYCTHREAD "${LUM_SOURCE_DIR}/deps/tinycthread.h"
+                "${LUM_SOURCE_DIR}/deps/tinycthread.c")
 
 add_executable(allocator allocator.c ${GLAD_GL})
 add_executable(clipboard clipboard.c ${GETOPT} ${GLAD_GL})
 add_executable(events events.c ${GETOPT} ${GLAD_GL})
 add_executable(msaa msaa.c ${GETOPT} ${GLAD_GL})
-add_executable(glfwinfo glfwinfo.c ${GETOPT} ${GLAD_GL} ${GLAD_VULKAN})
+add_executable(lumina_info lumina_info.c ${GETOPT} ${GLAD_GL} ${GLAD_VULKAN})
 add_executable(iconify iconify.c ${GETOPT} ${GLAD_GL})
 add_executable(monitors monitors.c ${GETOPT} ${GLAD_GL})
 add_executable(reopen reopen.c ${GLAD_GL})
 add_executable(cursor cursor.c ${GLAD_GL})
+add_executable(windowdesc windowdesc.c ${GLAD_GL})
 
 add_executable(empty WIN32 MACOSX_BUNDLE empty.c ${TINYCTHREAD} ${GLAD_GL})
 add_executable(gamma WIN32 MACOSX_BUNDLE gamma.c ${GLAD_GL})
@@ -50,12 +51,12 @@ endif()
 
 set(GUI_ONLY_BINARIES empty gamma icon inputlag joysticks tearing threads
     timeout title triangle-vulkan window)
-set(CONSOLE_BINARIES allocator clipboard events msaa glfwinfo iconify monitors
-    reopen cursor)
+set(CONSOLE_BINARIES allocator clipboard events msaa lumina_info iconify monitors
+    reopen cursor windowdesc)
 
 set_target_properties(${GUI_ONLY_BINARIES} ${CONSOLE_BINARIES} PROPERTIES
                       C_STANDARD 99
-                      FOLDER "GLFW3/Tests")
+                      FOLDER "Lumina/Tests")
 
 if (MSVC)
     # Tell MSVC to use main instead of WinMain
@@ -79,8 +80,8 @@ if (APPLE)
     set_target_properties(window PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Window")
 
     set_target_properties(${GUI_ONLY_BINARIES} PROPERTIES
-                          MACOSX_BUNDLE_SHORT_VERSION_STRING ${GLFW_VERSION}
-                          MACOSX_BUNDLE_LONG_VERSION_STRING ${GLFW_VERSION}
-                          MACOSX_BUNDLE_INFO_PLIST "${GLFW_SOURCE_DIR}/CMake/Info.plist.in")
+                          MACOSX_BUNDLE_SHORT_VERSION_STRING ${LUM_VERSION}
+                          MACOSX_BUNDLE_LONG_VERSION_STRING ${LUM_VERSION}
+                          MACOSX_BUNDLE_INFO_PLIST "${LUM_SOURCE_DIR}/CMake/Info.plist.in")
 endif()
 

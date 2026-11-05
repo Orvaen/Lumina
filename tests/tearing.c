@@ -30,8 +30,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define LUM_INCLUDE_NONE
+#include <Lumina/lumina.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +70,7 @@ static int swap_tear;
 static int swap_interval;
 static double frame_rate;
 
-static void update_window_title(GLFWwindow* window)
+static void update_window_title(LUMwindow* window)
 {
     char title[256];
 
@@ -79,13 +79,13 @@ static void update_window_title(GLFWwindow* window)
              (swap_tear && swap_interval < 0) ? " (swap tear)" : "",
              frame_rate);
 
-    glfwSetWindowTitle(window, title);
+    lumSetWindowTitle(window, title);
 }
 
-static void set_swap_interval(GLFWwindow* window, int interval)
+static void set_swap_interval(LUMwindow* window, int interval)
 {
     swap_interval = interval;
-    glfwSwapInterval(swap_interval);
+    lumSwapInterval(swap_interval);
     update_window_title(window);
 }
 
@@ -94,21 +94,21 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(LUMwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action != GLFW_PRESS)
+    if (action != LUM_PRESS)
         return;
 
     switch (key)
     {
-        case GLFW_KEY_UP:
+        case LUM_KEY_UP:
         {
             if (swap_interval + 1 > swap_interval)
                 set_swap_interval(window, swap_interval + 1);
             break;
         }
 
-        case GLFW_KEY_DOWN:
+        case LUM_KEY_DOWN:
         {
             if (swap_tear)
             {
@@ -123,27 +123,27 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             break;
         }
 
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, 1);
+        case LUM_KEY_ESCAPE:
+            lumSetWindowShouldClose(window, 1);
             break;
 
-        case GLFW_KEY_F11:
-        case GLFW_KEY_ENTER:
+        case LUM_KEY_F11:
+        case LUM_KEY_ENTER:
         {
             static int x, y, width, height;
 
-            if (mods != GLFW_MOD_ALT)
+            if (mods != LUM_MOD_ALT)
                 return;
 
-            if (glfwGetWindowMonitor(window))
-                glfwSetWindowMonitor(window, NULL, x, y, width, height, 0);
+            if (lumGetWindowMonitor(window))
+                lumSetWindowMonitor(window, NULL, x, y, width, height, 0);
             else
             {
-                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-                const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                glfwGetWindowPos(window, &x, &y);
-                glfwGetWindowSize(window, &width, &height);
-                glfwSetWindowMonitor(window, monitor,
+                LUMmonitor* monitor = lumGetPrimaryMonitor();
+                const LUMvidmode* mode = lumGetVideoMode(monitor);
+                lumGetWindowPos(window, &x, &y);
+                lumGetWindowSize(window, &width, &height);
+                lumSetWindowMonitor(window, monitor,
                                      0, 0, mode->width, mode->height,
                                      mode->refreshRate);
             }
@@ -157,35 +157,35 @@ int main(int argc, char** argv)
 {
     unsigned long frame_count = 0;
     double last_time, current_time;
-    GLFWwindow* window;
+    LUMwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
     GLint mvp_location, vpos_location;
 
-    glfwSetErrorCallback(error_callback);
+    lumSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!lumInit())
         exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    lumWindowHint(LUM_CONTEXT_VERSION_MAJOR, 2);
+    lumWindowHint(LUM_CONTEXT_VERSION_MINOR, 0);
 
-    window = glfwCreateWindow(640, 480, "Tearing detector", NULL, NULL);
+    window = lumCreateWindow(640, 480, "Tearing detector", NULL, NULL);
     if (!window)
     {
-        glfwTerminate();
+        lumTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+    lumMakeContextCurrent(window);
+    gladLoadGL(lumGetProcAddress);
     set_swap_interval(window, 0);
 
-    last_time = glfwGetTime();
+    last_time = lumGetTime();
     frame_rate = 0.0;
-    swap_tear = (glfwExtensionSupported("WGL_EXT_swap_control_tear") ||
-                 glfwExtensionSupported("GLX_EXT_swap_control_tear"));
+    swap_tear = (lumExtensionSupported("WGL_EXT_swap_control_tear") ||
+                 lumExtensionSupported("GLX_EXT_swap_control_tear"));
 
-    glfwSetKeyCallback(window, key_callback);
+    lumSetKeyCallback(window, key_callback);
 
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -211,13 +211,13 @@ int main(int argc, char** argv)
     glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) 0);
 
-    while (!glfwWindowShouldClose(window))
+    while (!lumWindowShouldClose(window))
     {
         int width, height;
         mat4x4 m, p, mvp;
-        float position = cosf((float) glfwGetTime() * 4.f) * 0.75f;
+        float position = cosf((float) lumGetTime() * 4.f) * 0.75f;
 
-        glfwGetFramebufferSize(window, &width, &height);
+        lumGetFramebufferSize(window, &width, &height);
 
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -230,12 +230,12 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        lumSwapBuffers(window);
+        lumPollEvents();
 
         frame_count++;
 
-        current_time = glfwGetTime();
+        current_time = lumGetTime();
         if (current_time - last_time > 1.0)
         {
             frame_rate = frame_count / (current_time - last_time);
@@ -245,7 +245,7 @@ int main(int argc, char** argv)
         }
     }
 
-    glfwTerminate();
+    lumTerminate();
     exit(EXIT_SUCCESS);
 }
 

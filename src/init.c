@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2018 Camilla Löwy <elmindreda@glfw.org>
@@ -36,31 +36,31 @@
 #include <assert.h>
 
 
-// NOTE: The global variables below comprise all mutable global data in GLFW
+// NOTE: The global variables below comprise all mutable global data in Lumina
 //       Any other mutable global variable is a bug
 
-// This contains all mutable state shared between compilation units of GLFW
+// This contains all mutable state shared between compilation units of Lumina
 //
-_GLFWlibrary _glfw = { GLFW_FALSE };
+_LUMlibrary _lum = { LUM_FALSE };
 
-// These are outside of _glfw so they can be used before initialization and
-// after termination without special handling when _glfw is cleared to zero
+// These are outside of _lum so they can be used before initialization and
+// after termination without special handling when _lum is cleared to zero
 //
-static _GLFWerror _glfwMainThreadError;
-static GLFWerrorfun _glfwErrorCallback;
-static GLFWallocator _glfwInitAllocator;
-static _GLFWinitconfig _glfwInitHints =
+static _LUMerror _lumMainThreadError;
+static LUMerrorfun _lumErrorCallback;
+static LUMallocator _lumInitAllocator;
+static _LUMinitconfig _lumInitHints =
 {
-    GLFW_TRUE,      // hat buttons
-    GLFW_ANGLE_PLATFORM_TYPE_NONE, // ANGLE backend
-    GLFW_ANY_PLATFORM, // preferred platform
+    LUM_TRUE,      // hat buttons
+    LUM_ANGLE_PLATFORM_TYPE_NONE, // ANGLE backend
+    LUM_ANY_PLATFORM, // preferred platform
     NULL,           // vkGetInstanceProcAddr function
     {
-        GLFW_TRUE,  // macOS menu bar
-        GLFW_TRUE   // macOS bundle chdir
+        LUM_TRUE,  // macOS menu bar
+        LUM_TRUE   // macOS bundle chdir
     },
     {
-        GLFW_TRUE,  // X11 XCB Vulkan surface
+        LUM_TRUE,  // X11 XCB Vulkan surface
     },
 };
 
@@ -91,59 +91,59 @@ static void terminate(void)
 {
     int i;
 
-    memset(&_glfw.callbacks, 0, sizeof(_glfw.callbacks));
+    memset(&_lum.callbacks, 0, sizeof(_lum.callbacks));
 
-    while (_glfw.windowListHead)
-        glfwDestroyWindow((GLFWwindow*) _glfw.windowListHead);
+    while (_lum.windowListHead)
+        lumDestroyWindow((LUMwindow*) _lum.windowListHead);
 
-    while (_glfw.cursorListHead)
-        glfwDestroyCursor((GLFWcursor*) _glfw.cursorListHead);
+    while (_lum.cursorListHead)
+        lumDestroyCursor((LUMcursor*) _lum.cursorListHead);
 
-    for (i = 0;  i < _glfw.monitorCount;  i++)
+    for (i = 0;  i < _lum.monitorCount;  i++)
     {
-        _GLFWmonitor* monitor = _glfw.monitors[i];
+        _LUMmonitor* monitor = _lum.monitors[i];
         if (monitor->originalRamp.size)
-            _glfw.platform.setGammaRamp(monitor, &monitor->originalRamp);
-        _glfwFreeMonitor(monitor);
+            _lum.platform.setGammaRamp(monitor, &monitor->originalRamp);
+        _lumFreeMonitor(monitor);
     }
 
-    _glfw_free(_glfw.monitors);
-    _glfw.monitors = NULL;
-    _glfw.monitorCount = 0;
+    _lum_free(_lum.monitors);
+    _lum.monitors = NULL;
+    _lum.monitorCount = 0;
 
-    _glfw_free(_glfw.mappings);
-    _glfw.mappings = NULL;
-    _glfw.mappingCount = 0;
+    _lum_free(_lum.mappings);
+    _lum.mappings = NULL;
+    _lum.mappingCount = 0;
 
-    _glfwTerminateVulkan();
-    _glfw.platform.terminateJoysticks();
-    _glfw.platform.terminate();
+    _lumTerminateVulkan();
+    _lum.platform.terminateJoysticks();
+    _lum.platform.terminate();
 
-    _glfw.initialized = GLFW_FALSE;
+    _lum.initialized = LUM_FALSE;
 
-    while (_glfw.errorListHead)
+    while (_lum.errorListHead)
     {
-        _GLFWerror* error = _glfw.errorListHead;
-        _glfw.errorListHead = error->next;
-        _glfw_free(error);
+        _LUMerror* error = _lum.errorListHead;
+        _lum.errorListHead = error->next;
+        _lum_free(error);
     }
 
-    _glfwPlatformDestroyTls(&_glfw.contextSlot);
-    _glfwPlatformDestroyTls(&_glfw.errorSlot);
-    _glfwPlatformDestroyMutex(&_glfw.errorLock);
+    _lumPlatformDestroyTls(&_lum.contextSlot);
+    _lumPlatformDestroyTls(&_lum.errorSlot);
+    _lumPlatformDestroyMutex(&_lum.errorLock);
 
-    memset(&_glfw, 0, sizeof(_glfw));
+    memset(&_lum, 0, sizeof(_lum));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 // Encode a Unicode code point to a UTF-8 stream
 // Based on cutef8 by Jeff Bezanson (Public Domain)
 //
-size_t _glfwEncodeUTF8(char* s, uint32_t codepoint)
+size_t _lumEncodeUTF8(char* s, uint32_t codepoint)
 {
     size_t count = 0;
 
@@ -171,15 +171,15 @@ size_t _glfwEncodeUTF8(char* s, uint32_t codepoint)
     return count;
 }
 
-char* _glfw_strdup(const char* source)
+char* _lum_strdup(const char* source)
 {
     const size_t length = strlen(source);
-    char* result = _glfw_calloc(length + 1, 1);
+    char* result = _lum_calloc(length + 1, 1);
     strcpy(result, source);
     return result;
 }
 
-float _glfw_fminf(float a, float b)
+float _lum_fminf(float a, float b)
 {
     if (a != a)
         return b;
@@ -191,7 +191,7 @@ float _glfw_fminf(float a, float b)
         return b;
 }
 
-float _glfw_fmaxf(float a, float b)
+float _lum_fmaxf(float a, float b)
 {
     if (a != a)
         return b;
@@ -203,7 +203,7 @@ float _glfw_fmaxf(float a, float b)
         return b;
 }
 
-void* _glfw_calloc(size_t count, size_t size)
+void* _lum_calloc(size_t count, size_t size)
 {
     if (count && size)
     {
@@ -211,16 +211,16 @@ void* _glfw_calloc(size_t count, size_t size)
 
         if (count > SIZE_MAX / size)
         {
-            _glfwInputError(GLFW_INVALID_VALUE, "Allocation size overflow");
+            _lumInputError(LUM_INVALID_VALUE, "Allocation size overflow");
             return NULL;
         }
 
-        block = _glfw.allocator.allocate(count * size, _glfw.allocator.user);
+        block = _lum.allocator.allocate(count * size, _lum.allocator.user);
         if (block)
             return memset(block, 0, count * size);
         else
         {
-            _glfwInputError(GLFW_OUT_OF_MEMORY, NULL);
+            _lumInputError(LUM_OUT_OF_MEMORY, NULL);
             return NULL;
         }
     }
@@ -228,45 +228,45 @@ void* _glfw_calloc(size_t count, size_t size)
         return NULL;
 }
 
-void* _glfw_realloc(void* block, size_t size)
+void* _lum_realloc(void* block, size_t size)
 {
     if (block && size)
     {
-        void* resized = _glfw.allocator.reallocate(block, size, _glfw.allocator.user);
+        void* resized = _lum.allocator.reallocate(block, size, _lum.allocator.user);
         if (resized)
             return resized;
         else
         {
-            _glfwInputError(GLFW_OUT_OF_MEMORY, NULL);
+            _lumInputError(LUM_OUT_OF_MEMORY, NULL);
             return NULL;
         }
     }
     else if (block)
     {
-        _glfw_free(block);
+        _lum_free(block);
         return NULL;
     }
     else
-        return _glfw_calloc(1, size);
+        return _lum_calloc(1, size);
 }
 
-void _glfw_free(void* block)
+void _lum_free(void* block)
 {
     if (block)
-        _glfw.allocator.deallocate(block, _glfw.allocator.user);
+        _lum.allocator.deallocate(block, _lum.allocator.user);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                         GLFW event API                       //////
+//////                         Lumina event API                       //////
 //////////////////////////////////////////////////////////////////////////
 
 // Notifies shared code of an error
 //
-void _glfwInputError(int code, const char* format, ...)
+void _lumInputError(int code, const char* format, ...)
 {
-    _GLFWerror* error;
-    char description[_GLFW_MESSAGE_SIZE];
+    _LUMerror* error;
+    char description[_LUM_MESSAGE_SIZE];
 
     if (format)
     {
@@ -280,193 +280,193 @@ void _glfwInputError(int code, const char* format, ...)
     }
     else
     {
-        if (code == GLFW_NOT_INITIALIZED)
-            strcpy(description, "The GLFW library is not initialized");
-        else if (code == GLFW_NO_CURRENT_CONTEXT)
+        if (code == LUM_NOT_INITIALIZED)
+            strcpy(description, "The Lumina library is not initialized");
+        else if (code == LUM_NO_CURRENT_CONTEXT)
             strcpy(description, "There is no current context");
-        else if (code == GLFW_INVALID_ENUM)
+        else if (code == LUM_INVALID_ENUM)
             strcpy(description, "Invalid argument for enum parameter");
-        else if (code == GLFW_INVALID_VALUE)
+        else if (code == LUM_INVALID_VALUE)
             strcpy(description, "Invalid value for parameter");
-        else if (code == GLFW_OUT_OF_MEMORY)
+        else if (code == LUM_OUT_OF_MEMORY)
             strcpy(description, "Out of memory");
-        else if (code == GLFW_API_UNAVAILABLE)
+        else if (code == LUM_API_UNAVAILABLE)
             strcpy(description, "The requested API is unavailable");
-        else if (code == GLFW_VERSION_UNAVAILABLE)
+        else if (code == LUM_VERSION_UNAVAILABLE)
             strcpy(description, "The requested API version is unavailable");
-        else if (code == GLFW_PLATFORM_ERROR)
+        else if (code == LUM_PLATFORM_ERROR)
             strcpy(description, "A platform-specific error occurred");
-        else if (code == GLFW_FORMAT_UNAVAILABLE)
+        else if (code == LUM_FORMAT_UNAVAILABLE)
             strcpy(description, "The requested format is unavailable");
-        else if (code == GLFW_NO_WINDOW_CONTEXT)
+        else if (code == LUM_NO_WINDOW_CONTEXT)
             strcpy(description, "The specified window has no context");
-        else if (code == GLFW_CURSOR_UNAVAILABLE)
+        else if (code == LUM_CURSOR_UNAVAILABLE)
             strcpy(description, "The specified cursor shape is unavailable");
-        else if (code == GLFW_FEATURE_UNAVAILABLE)
+        else if (code == LUM_FEATURE_UNAVAILABLE)
             strcpy(description, "The requested feature cannot be implemented for this platform");
-        else if (code == GLFW_FEATURE_UNIMPLEMENTED)
+        else if (code == LUM_FEATURE_UNIMPLEMENTED)
             strcpy(description, "The requested feature has not yet been implemented for this platform");
-        else if (code == GLFW_PLATFORM_UNAVAILABLE)
+        else if (code == LUM_PLATFORM_UNAVAILABLE)
             strcpy(description, "The requested platform is unavailable");
         else
-            strcpy(description, "ERROR: UNKNOWN GLFW ERROR");
+            strcpy(description, "ERROR: UNKNOWN Lumina ERROR");
     }
 
-    if (_glfw.initialized)
+    if (_lum.initialized)
     {
-        error = _glfwPlatformGetTls(&_glfw.errorSlot);
+        error = _lumPlatformGetTls(&_lum.errorSlot);
         if (!error)
         {
-            error = _glfw_calloc(1, sizeof(_GLFWerror));
-            _glfwPlatformSetTls(&_glfw.errorSlot, error);
-            _glfwPlatformLockMutex(&_glfw.errorLock);
-            error->next = _glfw.errorListHead;
-            _glfw.errorListHead = error;
-            _glfwPlatformUnlockMutex(&_glfw.errorLock);
+            error = _lum_calloc(1, sizeof(_LUMerror));
+            _lumPlatformSetTls(&_lum.errorSlot, error);
+            _lumPlatformLockMutex(&_lum.errorLock);
+            error->next = _lum.errorListHead;
+            _lum.errorListHead = error;
+            _lumPlatformUnlockMutex(&_lum.errorLock);
         }
     }
     else
-        error = &_glfwMainThreadError;
+        error = &_lumMainThreadError;
 
     error->code = code;
     strcpy(error->description, description);
 
-    if (_glfwErrorCallback)
-        _glfwErrorCallback(code, description);
+    if (_lumErrorCallback)
+        _lumErrorCallback(code, description);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW public API                       //////
+//////                        Lumina public API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI int glfwInit(void)
+LUMAPI int lumInit(void)
 {
-    if (_glfw.initialized)
-        return GLFW_TRUE;
+    if (_lum.initialized)
+        return LUM_TRUE;
 
-    memset(&_glfw, 0, sizeof(_glfw));
-    _glfw.hints.init = _glfwInitHints;
+    memset(&_lum, 0, sizeof(_lum));
+    _lum.hints.init = _lumInitHints;
 
-    _glfw.allocator = _glfwInitAllocator;
-    if (!_glfw.allocator.allocate)
+    _lum.allocator = _lumInitAllocator;
+    if (!_lum.allocator.allocate)
     {
-        _glfw.allocator.allocate   = defaultAllocate;
-        _glfw.allocator.reallocate = defaultReallocate;
-        _glfw.allocator.deallocate = defaultDeallocate;
+        _lum.allocator.allocate   = defaultAllocate;
+        _lum.allocator.reallocate = defaultReallocate;
+        _lum.allocator.deallocate = defaultDeallocate;
     }
 
-    if (!_glfwSelectPlatform(_glfw.hints.init.platformID, &_glfw.platform))
-        return GLFW_FALSE;
+    if (!_lumSelectPlatform(_lum.hints.init.platformID, &_lum.platform))
+        return LUM_FALSE;
 
-    if (!_glfw.platform.init())
-    {
-        terminate();
-        return GLFW_FALSE;
-    }
-
-    if (!_glfwPlatformCreateMutex(&_glfw.errorLock) ||
-        !_glfwPlatformCreateTls(&_glfw.errorSlot) ||
-        !_glfwPlatformCreateTls(&_glfw.contextSlot))
+    if (!_lum.platform.init())
     {
         terminate();
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    _glfwPlatformSetTls(&_glfw.errorSlot, &_glfwMainThreadError);
+    if (!_lumPlatformCreateMutex(&_lum.errorLock) ||
+        !_lumPlatformCreateTls(&_lum.errorSlot) ||
+        !_lumPlatformCreateTls(&_lum.contextSlot))
+    {
+        terminate();
+        return LUM_FALSE;
+    }
 
-    _glfwInitGamepadMappings();
+    _lumPlatformSetTls(&_lum.errorSlot, &_lumMainThreadError);
 
-    _glfwPlatformInitTimer();
-    _glfw.timer.offset = _glfwPlatformGetTimerValue();
+    _lumInitGamepadMappings();
 
-    _glfw.initialized = GLFW_TRUE;
+    _lumPlatformInitTimer();
+    _lum.timer.offset = _lumPlatformGetTimerValue();
 
-    glfwDefaultWindowHints();
-    return GLFW_TRUE;
+    _lum.initialized = LUM_TRUE;
+
+    lumDefaultWindowHints();
+    return LUM_TRUE;
 }
 
-GLFWAPI void glfwTerminate(void)
+LUMAPI void lumTerminate(void)
 {
-    if (!_glfw.initialized)
+    if (!_lum.initialized)
         return;
 
     terminate();
 }
 
-GLFWAPI void glfwInitHint(int hint, int value)
+LUMAPI void lumInitHint(int hint, int value)
 {
     switch (hint)
     {
-        case GLFW_JOYSTICK_HAT_BUTTONS:
-            _glfwInitHints.hatButtons = value;
+        case LUM_JOYSTICK_HAT_BUTTONS:
+            _lumInitHints.hatButtons = value;
             return;
-        case GLFW_ANGLE_PLATFORM_TYPE:
-            _glfwInitHints.angleType = value;
+        case LUM_ANGLE_PLATFORM_TYPE:
+            _lumInitHints.angleType = value;
             return;
-        case GLFW_PLATFORM:
-            _glfwInitHints.platformID = value;
+        case LUM_PLATFORM:
+            _lumInitHints.platformID = value;
             return;
-        case GLFW_COCOA_CHDIR_RESOURCES:
-            _glfwInitHints.ns.chdir = value;
+        case LUM_COCOA_CHDIR_RESOURCES:
+            _lumInitHints.ns.chdir = value;
             return;
-        case GLFW_COCOA_MENUBAR:
-            _glfwInitHints.ns.menubar = value;
+        case LUM_COCOA_MENUBAR:
+            _lumInitHints.ns.menubar = value;
             return;
-        case GLFW_X11_XCB_VULKAN_SURFACE:
-            _glfwInitHints.x11.xcbVulkanSurface = value;
+        case LUM_X11_XCB_VULKAN_SURFACE:
+            _lumInitHints.x11.xcbVulkanSurface = value;
             return;
     }
 
-    _glfwInputError(GLFW_INVALID_ENUM,
+    _lumInputError(LUM_INVALID_ENUM,
                     "Invalid init hint 0x%08X", hint);
 }
 
-GLFWAPI void glfwInitAllocator(const GLFWallocator* allocator)
+LUMAPI void lumInitAllocator(const LUMallocator* allocator)
 {
     if (allocator)
     {
         if (allocator->allocate && allocator->reallocate && allocator->deallocate)
-            _glfwInitAllocator = *allocator;
+            _lumInitAllocator = *allocator;
         else
-            _glfwInputError(GLFW_INVALID_VALUE, "Missing function in allocator");
+            _lumInputError(LUM_INVALID_VALUE, "Missing function in allocator");
     }
     else
-        memset(&_glfwInitAllocator, 0, sizeof(GLFWallocator));
+        memset(&_lumInitAllocator, 0, sizeof(LUMallocator));
 }
 
-GLFWAPI void glfwInitVulkanLoader(PFN_vkGetInstanceProcAddr loader)
+LUMAPI void lumInitVulkanLoader(PFN_vkGetInstanceProcAddr loader)
 {
-    _glfwInitHints.vulkanLoader = loader;
+    _lumInitHints.vulkanLoader = loader;
 }
 
-GLFWAPI void glfwGetVersion(int* major, int* minor, int* rev)
+LUMAPI void lumGetVersion(int* major, int* minor, int* rev)
 {
     if (major != NULL)
-        *major = GLFW_VERSION_MAJOR;
+        *major = LUM_VERSION_MAJOR;
     if (minor != NULL)
-        *minor = GLFW_VERSION_MINOR;
+        *minor = LUM_VERSION_MINOR;
     if (rev != NULL)
-        *rev = GLFW_VERSION_REVISION;
+        *rev = LUM_VERSION_REVISION;
 }
 
-GLFWAPI int glfwGetError(const char** description)
+LUMAPI int lumGetError(const char** description)
 {
-    _GLFWerror* error;
-    int code = GLFW_NO_ERROR;
+    _LUMerror* error;
+    int code = LUM_NO_ERROR;
 
     if (description)
         *description = NULL;
 
-    if (_glfw.initialized)
-        error = _glfwPlatformGetTls(&_glfw.errorSlot);
+    if (_lum.initialized)
+        error = _lumPlatformGetTls(&_lum.errorSlot);
     else
-        error = &_glfwMainThreadError;
+        error = &_lumMainThreadError;
 
     if (error)
     {
         code = error->code;
-        error->code = GLFW_NO_ERROR;
+        error->code = LUM_NO_ERROR;
         if (description && code)
             *description = error->description;
     }
@@ -474,9 +474,9 @@ GLFWAPI int glfwGetError(const char** description)
     return code;
 }
 
-GLFWAPI GLFWerrorfun glfwSetErrorCallback(GLFWerrorfun cbfun)
+LUMAPI LUMerrorfun lumSetErrorCallback(LUMerrorfun cbfun)
 {
-    _GLFW_SWAP(GLFWerrorfun, _glfwErrorCallback, cbfun);
+    _LUM_SWAP(LUMerrorfun, _lumErrorCallback, cbfun);
     return cbfun;
 }
 

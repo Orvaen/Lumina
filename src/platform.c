@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// Lumina - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2018 Camilla Löwy <elmindreda@glfw.org>
@@ -30,55 +30,55 @@
 #include "internal.h"
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
 static const struct
 {
     int ID;
-    GLFWbool (*connect)(int,_GLFWplatform*);
+    LUMbool (*connect)(int,_LUMplatform*);
 } supportedPlatforms[] =
 {
-#if defined(_GLFW_WIN32)
-    { GLFW_PLATFORM_WIN32, _glfwConnectWin32 },
+#if defined(_LUM_WIN32)
+    { LUM_PLATFORM_WIN32, _lumConnectWin32 },
 #endif
-#if defined(_GLFW_COCOA)
-    { GLFW_PLATFORM_COCOA, _glfwConnectCocoa },
+#if defined(_LUM_COCOA)
+    { LUM_PLATFORM_COCOA, _lumConnectCocoa },
 #endif
-#if defined(_GLFW_X11)
-    { GLFW_PLATFORM_X11, _glfwConnectX11 },
+#if defined(_LUM_X11)
+    { LUM_PLATFORM_X11, _lumConnectX11 },
 #endif
-#if defined(_GLFW_WAYLAND)
-    { GLFW_PLATFORM_WAYLAND, _glfwConnectWayland },
+#if defined(_LUM_WAYLAND)
+    { LUM_PLATFORM_WAYLAND, _lumConnectWayland },
 #endif
 };
 
-GLFWbool _glfwSelectPlatform(int desiredID, _GLFWplatform* platform)
+LUMbool _lumSelectPlatform(int desiredID, _LUMplatform* platform)
 {
     const size_t count = sizeof(supportedPlatforms) / sizeof(supportedPlatforms[0]);
     size_t i;
 
-    if (desiredID != GLFW_ANY_PLATFORM &&
-        desiredID != GLFW_PLATFORM_WIN32 &&
-        desiredID != GLFW_PLATFORM_COCOA &&
-        desiredID != GLFW_PLATFORM_WAYLAND &&
-        desiredID != GLFW_PLATFORM_X11 &&
-        desiredID != GLFW_PLATFORM_NULL)
+    if (desiredID != LUM_ANY_PLATFORM &&
+        desiredID != LUM_PLATFORM_WIN32 &&
+        desiredID != LUM_PLATFORM_COCOA &&
+        desiredID != LUM_PLATFORM_WAYLAND &&
+        desiredID != LUM_PLATFORM_X11 &&
+        desiredID != LUM_PLATFORM_NULL)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid platform ID 0x%08X", desiredID);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid platform ID 0x%08X", desiredID);
+        return LUM_FALSE;
     }
 
     // Only allow the Null platform if specifically requested
-    if (desiredID == GLFW_PLATFORM_NULL)
-        return _glfwConnectNull(desiredID, platform);
+    if (desiredID == LUM_PLATFORM_NULL)
+        return _lumConnectNull(desiredID, platform);
     else if (count == 0)
     {
-        _glfwInputError(GLFW_PLATFORM_UNAVAILABLE, "This binary only supports the Null platform");
-        return GLFW_FALSE;
+        _lumInputError(LUM_PLATFORM_UNAVAILABLE, "This binary only supports the Null platform");
+        return LUM_FALSE;
     }
 
-    if (desiredID == GLFW_ANY_PLATFORM)
+    if (desiredID == LUM_ANY_PLATFORM)
     {
         // If there is exactly one platform available for auto-selection, let it emit the
         // error on failure as the platform-specific error description may be more helpful
@@ -88,10 +88,10 @@ GLFWbool _glfwSelectPlatform(int desiredID, _GLFWplatform* platform)
         for (i = 0;  i < count;  i++)
         {
             if (supportedPlatforms[i].connect(desiredID, platform))
-                return GLFW_TRUE;
+                return LUM_TRUE;
         }
 
-        _glfwInputError(GLFW_PLATFORM_UNAVAILABLE, "Failed to detect any supported platform");
+        _lumInputError(LUM_PLATFORM_UNAVAILABLE, "Failed to detect any supported platform");
     }
     else
     {
@@ -101,62 +101,62 @@ GLFWbool _glfwSelectPlatform(int desiredID, _GLFWplatform* platform)
                 return supportedPlatforms[i].connect(desiredID, platform);
         }
 
-        _glfwInputError(GLFW_PLATFORM_UNAVAILABLE, "The requested platform is not supported");
+        _lumInputError(LUM_PLATFORM_UNAVAILABLE, "The requested platform is not supported");
     }
 
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
 //////////////////////////////////////////////////////////////////////////
-//////                        GLFW public API                       //////
+//////                        Lumina public API                       //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWAPI int glfwGetPlatform(void)
+LUMAPI int lumGetPlatform(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
-    return _glfw.platform.platformID;
+    _LUM_REQUIRE_INIT_OR_RETURN(0);
+    return _lum.platform.platformID;
 }
 
-GLFWAPI int glfwPlatformSupported(int platformID)
+LUMAPI int lumPlatformSupported(int platformID)
 {
     const size_t count = sizeof(supportedPlatforms) / sizeof(supportedPlatforms[0]);
     size_t i;
 
-    if (platformID != GLFW_PLATFORM_WIN32 &&
-        platformID != GLFW_PLATFORM_COCOA &&
-        platformID != GLFW_PLATFORM_WAYLAND &&
-        platformID != GLFW_PLATFORM_X11 &&
-        platformID != GLFW_PLATFORM_NULL)
+    if (platformID != LUM_PLATFORM_WIN32 &&
+        platformID != LUM_PLATFORM_COCOA &&
+        platformID != LUM_PLATFORM_WAYLAND &&
+        platformID != LUM_PLATFORM_X11 &&
+        platformID != LUM_PLATFORM_NULL)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid platform ID 0x%08X", platformID);
-        return GLFW_FALSE;
+        _lumInputError(LUM_INVALID_ENUM, "Invalid platform ID 0x%08X", platformID);
+        return LUM_FALSE;
     }
 
-    if (platformID == GLFW_PLATFORM_NULL)
-        return GLFW_TRUE;
+    if (platformID == LUM_PLATFORM_NULL)
+        return LUM_TRUE;
 
     for (i = 0;  i < count;  i++)
     {
         if (platformID == supportedPlatforms[i].ID)
-            return GLFW_TRUE;
+            return LUM_TRUE;
     }
 
-    return GLFW_FALSE;
+    return LUM_FALSE;
 }
 
-GLFWAPI const char* glfwGetVersionString(void)
+LUMAPI const char* lumGetVersionString(void)
 {
-    return _GLFW_VERSION_NUMBER
-#if defined(_GLFW_WIN32)
+    return _LUM_VERSION_NUMBER
+#if defined(_LUM_WIN32)
         " Win32 WGL"
 #endif
-#if defined(_GLFW_COCOA)
+#if defined(_LUM_COCOA)
         " Cocoa NSGL"
 #endif
-#if defined(_GLFW_WAYLAND)
+#if defined(_LUM_WAYLAND)
         " Wayland"
 #endif
-#if defined(_GLFW_X11)
+#if defined(_LUM_X11)
         " X11 GLX"
 #endif
         " Null"
@@ -169,13 +169,13 @@ GLFWAPI const char* glfwGetVersionString(void)
 #elif defined(_MSC_VER)
         " VisualC"
 #endif
-#if defined(_GLFW_USE_HYBRID_HPG) || defined(_GLFW_USE_OPTIMUS_HPG)
+#if defined(_LUM_USE_HYBRID_HPG) || defined(_LUM_USE_OPTIMUS_HPG)
         " hybrid-GPU"
 #endif
 #if defined(_POSIX_MONOTONIC_CLOCK)
         " monotonic"
 #endif
-#if defined(_GLFW_BUILD_DLL)
+#if defined(_LUM_BUILD_DLL)
 #if defined(_WIN32)
         " DLL"
 #elif defined(__APPLE__)

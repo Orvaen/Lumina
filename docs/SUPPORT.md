@@ -3,8 +3,8 @@
 See the [latest documentation](https://www.glfw.org/docs/latest/) for tutorials,
 guides and the API reference.
 
-If you have questions about using GLFW, we have a
-[forum](https://discourse.glfw.org/), and the `#glfw` IRC channel on
+If you have questions about using Lumina, we have a
+[forum](https://discourse.glfw.org/), and the `#lumina` IRC channel on
 [Libera.Chat](https://libera.chat/).
 
 Bugs are reported to our [issue tracker](https://github.com/glfw/glfw/issues).

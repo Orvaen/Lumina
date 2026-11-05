@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// Lumina macOS - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -104,7 +104,7 @@ static void createMenuBar(void)
         if (progname && *progname)
             appName = @(*progname);
         else
-            appName = @"GLFW Application";
+            appName = @"Lumina Application";
     }
 
     NSMenu* bar = [[NSMenu alloc] init];
@@ -176,189 +176,189 @@ static void createMenuBar(void)
 //
 static void createKeyTables(void)
 {
-    memset(_glfw.ns.keycodes, -1, sizeof(_glfw.ns.keycodes));
-    memset(_glfw.ns.scancodes, -1, sizeof(_glfw.ns.scancodes));
+    memset(_lum.ns.keycodes, -1, sizeof(_lum.ns.keycodes));
+    memset(_lum.ns.scancodes, -1, sizeof(_lum.ns.scancodes));
 
-    _glfw.ns.keycodes[0x1D] = GLFW_KEY_0;
-    _glfw.ns.keycodes[0x12] = GLFW_KEY_1;
-    _glfw.ns.keycodes[0x13] = GLFW_KEY_2;
-    _glfw.ns.keycodes[0x14] = GLFW_KEY_3;
-    _glfw.ns.keycodes[0x15] = GLFW_KEY_4;
-    _glfw.ns.keycodes[0x17] = GLFW_KEY_5;
-    _glfw.ns.keycodes[0x16] = GLFW_KEY_6;
-    _glfw.ns.keycodes[0x1A] = GLFW_KEY_7;
-    _glfw.ns.keycodes[0x1C] = GLFW_KEY_8;
-    _glfw.ns.keycodes[0x19] = GLFW_KEY_9;
-    _glfw.ns.keycodes[0x00] = GLFW_KEY_A;
-    _glfw.ns.keycodes[0x0B] = GLFW_KEY_B;
-    _glfw.ns.keycodes[0x08] = GLFW_KEY_C;
-    _glfw.ns.keycodes[0x02] = GLFW_KEY_D;
-    _glfw.ns.keycodes[0x0E] = GLFW_KEY_E;
-    _glfw.ns.keycodes[0x03] = GLFW_KEY_F;
-    _glfw.ns.keycodes[0x05] = GLFW_KEY_G;
-    _glfw.ns.keycodes[0x04] = GLFW_KEY_H;
-    _glfw.ns.keycodes[0x22] = GLFW_KEY_I;
-    _glfw.ns.keycodes[0x26] = GLFW_KEY_J;
-    _glfw.ns.keycodes[0x28] = GLFW_KEY_K;
-    _glfw.ns.keycodes[0x25] = GLFW_KEY_L;
-    _glfw.ns.keycodes[0x2E] = GLFW_KEY_M;
-    _glfw.ns.keycodes[0x2D] = GLFW_KEY_N;
-    _glfw.ns.keycodes[0x1F] = GLFW_KEY_O;
-    _glfw.ns.keycodes[0x23] = GLFW_KEY_P;
-    _glfw.ns.keycodes[0x0C] = GLFW_KEY_Q;
-    _glfw.ns.keycodes[0x0F] = GLFW_KEY_R;
-    _glfw.ns.keycodes[0x01] = GLFW_KEY_S;
-    _glfw.ns.keycodes[0x11] = GLFW_KEY_T;
-    _glfw.ns.keycodes[0x20] = GLFW_KEY_U;
-    _glfw.ns.keycodes[0x09] = GLFW_KEY_V;
-    _glfw.ns.keycodes[0x0D] = GLFW_KEY_W;
-    _glfw.ns.keycodes[0x07] = GLFW_KEY_X;
-    _glfw.ns.keycodes[0x10] = GLFW_KEY_Y;
-    _glfw.ns.keycodes[0x06] = GLFW_KEY_Z;
+    _lum.ns.keycodes[0x1D] = LUM_KEY_0;
+    _lum.ns.keycodes[0x12] = LUM_KEY_1;
+    _lum.ns.keycodes[0x13] = LUM_KEY_2;
+    _lum.ns.keycodes[0x14] = LUM_KEY_3;
+    _lum.ns.keycodes[0x15] = LUM_KEY_4;
+    _lum.ns.keycodes[0x17] = LUM_KEY_5;
+    _lum.ns.keycodes[0x16] = LUM_KEY_6;
+    _lum.ns.keycodes[0x1A] = LUM_KEY_7;
+    _lum.ns.keycodes[0x1C] = LUM_KEY_8;
+    _lum.ns.keycodes[0x19] = LUM_KEY_9;
+    _lum.ns.keycodes[0x00] = LUM_KEY_A;
+    _lum.ns.keycodes[0x0B] = LUM_KEY_B;
+    _lum.ns.keycodes[0x08] = LUM_KEY_C;
+    _lum.ns.keycodes[0x02] = LUM_KEY_D;
+    _lum.ns.keycodes[0x0E] = LUM_KEY_E;
+    _lum.ns.keycodes[0x03] = LUM_KEY_F;
+    _lum.ns.keycodes[0x05] = LUM_KEY_G;
+    _lum.ns.keycodes[0x04] = LUM_KEY_H;
+    _lum.ns.keycodes[0x22] = LUM_KEY_I;
+    _lum.ns.keycodes[0x26] = LUM_KEY_J;
+    _lum.ns.keycodes[0x28] = LUM_KEY_K;
+    _lum.ns.keycodes[0x25] = LUM_KEY_L;
+    _lum.ns.keycodes[0x2E] = LUM_KEY_M;
+    _lum.ns.keycodes[0x2D] = LUM_KEY_N;
+    _lum.ns.keycodes[0x1F] = LUM_KEY_O;
+    _lum.ns.keycodes[0x23] = LUM_KEY_P;
+    _lum.ns.keycodes[0x0C] = LUM_KEY_Q;
+    _lum.ns.keycodes[0x0F] = LUM_KEY_R;
+    _lum.ns.keycodes[0x01] = LUM_KEY_S;
+    _lum.ns.keycodes[0x11] = LUM_KEY_T;
+    _lum.ns.keycodes[0x20] = LUM_KEY_U;
+    _lum.ns.keycodes[0x09] = LUM_KEY_V;
+    _lum.ns.keycodes[0x0D] = LUM_KEY_W;
+    _lum.ns.keycodes[0x07] = LUM_KEY_X;
+    _lum.ns.keycodes[0x10] = LUM_KEY_Y;
+    _lum.ns.keycodes[0x06] = LUM_KEY_Z;
 
-    _glfw.ns.keycodes[0x27] = GLFW_KEY_APOSTROPHE;
-    _glfw.ns.keycodes[0x2A] = GLFW_KEY_BACKSLASH;
-    _glfw.ns.keycodes[0x2B] = GLFW_KEY_COMMA;
-    _glfw.ns.keycodes[0x18] = GLFW_KEY_EQUAL;
-    _glfw.ns.keycodes[0x32] = GLFW_KEY_GRAVE_ACCENT;
-    _glfw.ns.keycodes[0x21] = GLFW_KEY_LEFT_BRACKET;
-    _glfw.ns.keycodes[0x1B] = GLFW_KEY_MINUS;
-    _glfw.ns.keycodes[0x2F] = GLFW_KEY_PERIOD;
-    _glfw.ns.keycodes[0x1E] = GLFW_KEY_RIGHT_BRACKET;
-    _glfw.ns.keycodes[0x29] = GLFW_KEY_SEMICOLON;
-    _glfw.ns.keycodes[0x2C] = GLFW_KEY_SLASH;
-    _glfw.ns.keycodes[0x0A] = GLFW_KEY_WORLD_1;
+    _lum.ns.keycodes[0x27] = LUM_KEY_APOSTROPHE;
+    _lum.ns.keycodes[0x2A] = LUM_KEY_BACKSLASH;
+    _lum.ns.keycodes[0x2B] = LUM_KEY_COMMA;
+    _lum.ns.keycodes[0x18] = LUM_KEY_EQUAL;
+    _lum.ns.keycodes[0x32] = LUM_KEY_GRAVE_ACCENT;
+    _lum.ns.keycodes[0x21] = LUM_KEY_LEFT_BRACKET;
+    _lum.ns.keycodes[0x1B] = LUM_KEY_MINUS;
+    _lum.ns.keycodes[0x2F] = LUM_KEY_PERIOD;
+    _lum.ns.keycodes[0x1E] = LUM_KEY_RIGHT_BRACKET;
+    _lum.ns.keycodes[0x29] = LUM_KEY_SEMICOLON;
+    _lum.ns.keycodes[0x2C] = LUM_KEY_SLASH;
+    _lum.ns.keycodes[0x0A] = LUM_KEY_WORLD_1;
 
-    _glfw.ns.keycodes[0x33] = GLFW_KEY_BACKSPACE;
-    _glfw.ns.keycodes[0x39] = GLFW_KEY_CAPS_LOCK;
-    _glfw.ns.keycodes[0x75] = GLFW_KEY_DELETE;
-    _glfw.ns.keycodes[0x7D] = GLFW_KEY_DOWN;
-    _glfw.ns.keycodes[0x77] = GLFW_KEY_END;
-    _glfw.ns.keycodes[0x24] = GLFW_KEY_ENTER;
-    _glfw.ns.keycodes[0x35] = GLFW_KEY_ESCAPE;
-    _glfw.ns.keycodes[0x7A] = GLFW_KEY_F1;
-    _glfw.ns.keycodes[0x78] = GLFW_KEY_F2;
-    _glfw.ns.keycodes[0x63] = GLFW_KEY_F3;
-    _glfw.ns.keycodes[0x76] = GLFW_KEY_F4;
-    _glfw.ns.keycodes[0x60] = GLFW_KEY_F5;
-    _glfw.ns.keycodes[0x61] = GLFW_KEY_F6;
-    _glfw.ns.keycodes[0x62] = GLFW_KEY_F7;
-    _glfw.ns.keycodes[0x64] = GLFW_KEY_F8;
-    _glfw.ns.keycodes[0x65] = GLFW_KEY_F9;
-    _glfw.ns.keycodes[0x6D] = GLFW_KEY_F10;
-    _glfw.ns.keycodes[0x67] = GLFW_KEY_F11;
-    _glfw.ns.keycodes[0x6F] = GLFW_KEY_F12;
-    _glfw.ns.keycodes[0x69] = GLFW_KEY_PRINT_SCREEN;
-    _glfw.ns.keycodes[0x6B] = GLFW_KEY_F14;
-    _glfw.ns.keycodes[0x71] = GLFW_KEY_F15;
-    _glfw.ns.keycodes[0x6A] = GLFW_KEY_F16;
-    _glfw.ns.keycodes[0x40] = GLFW_KEY_F17;
-    _glfw.ns.keycodes[0x4F] = GLFW_KEY_F18;
-    _glfw.ns.keycodes[0x50] = GLFW_KEY_F19;
-    _glfw.ns.keycodes[0x5A] = GLFW_KEY_F20;
-    _glfw.ns.keycodes[0x73] = GLFW_KEY_HOME;
-    _glfw.ns.keycodes[0x72] = GLFW_KEY_INSERT;
-    _glfw.ns.keycodes[0x7B] = GLFW_KEY_LEFT;
-    _glfw.ns.keycodes[0x3A] = GLFW_KEY_LEFT_ALT;
-    _glfw.ns.keycodes[0x3B] = GLFW_KEY_LEFT_CONTROL;
-    _glfw.ns.keycodes[0x38] = GLFW_KEY_LEFT_SHIFT;
-    _glfw.ns.keycodes[0x37] = GLFW_KEY_LEFT_SUPER;
-    _glfw.ns.keycodes[0x6E] = GLFW_KEY_MENU;
-    _glfw.ns.keycodes[0x47] = GLFW_KEY_NUM_LOCK;
-    _glfw.ns.keycodes[0x79] = GLFW_KEY_PAGE_DOWN;
-    _glfw.ns.keycodes[0x74] = GLFW_KEY_PAGE_UP;
-    _glfw.ns.keycodes[0x7C] = GLFW_KEY_RIGHT;
-    _glfw.ns.keycodes[0x3D] = GLFW_KEY_RIGHT_ALT;
-    _glfw.ns.keycodes[0x3E] = GLFW_KEY_RIGHT_CONTROL;
-    _glfw.ns.keycodes[0x3C] = GLFW_KEY_RIGHT_SHIFT;
-    _glfw.ns.keycodes[0x36] = GLFW_KEY_RIGHT_SUPER;
-    _glfw.ns.keycodes[0x31] = GLFW_KEY_SPACE;
-    _glfw.ns.keycodes[0x30] = GLFW_KEY_TAB;
-    _glfw.ns.keycodes[0x7E] = GLFW_KEY_UP;
+    _lum.ns.keycodes[0x33] = LUM_KEY_BACKSPACE;
+    _lum.ns.keycodes[0x39] = LUM_KEY_CAPS_LOCK;
+    _lum.ns.keycodes[0x75] = LUM_KEY_DELETE;
+    _lum.ns.keycodes[0x7D] = LUM_KEY_DOWN;
+    _lum.ns.keycodes[0x77] = LUM_KEY_END;
+    _lum.ns.keycodes[0x24] = LUM_KEY_ENTER;
+    _lum.ns.keycodes[0x35] = LUM_KEY_ESCAPE;
+    _lum.ns.keycodes[0x7A] = LUM_KEY_F1;
+    _lum.ns.keycodes[0x78] = LUM_KEY_F2;
+    _lum.ns.keycodes[0x63] = LUM_KEY_F3;
+    _lum.ns.keycodes[0x76] = LUM_KEY_F4;
+    _lum.ns.keycodes[0x60] = LUM_KEY_F5;
+    _lum.ns.keycodes[0x61] = LUM_KEY_F6;
+    _lum.ns.keycodes[0x62] = LUM_KEY_F7;
+    _lum.ns.keycodes[0x64] = LUM_KEY_F8;
+    _lum.ns.keycodes[0x65] = LUM_KEY_F9;
+    _lum.ns.keycodes[0x6D] = LUM_KEY_F10;
+    _lum.ns.keycodes[0x67] = LUM_KEY_F11;
+    _lum.ns.keycodes[0x6F] = LUM_KEY_F12;
+    _lum.ns.keycodes[0x69] = LUM_KEY_PRINT_SCREEN;
+    _lum.ns.keycodes[0x6B] = LUM_KEY_F14;
+    _lum.ns.keycodes[0x71] = LUM_KEY_F15;
+    _lum.ns.keycodes[0x6A] = LUM_KEY_F16;
+    _lum.ns.keycodes[0x40] = LUM_KEY_F17;
+    _lum.ns.keycodes[0x4F] = LUM_KEY_F18;
+    _lum.ns.keycodes[0x50] = LUM_KEY_F19;
+    _lum.ns.keycodes[0x5A] = LUM_KEY_F20;
+    _lum.ns.keycodes[0x73] = LUM_KEY_HOME;
+    _lum.ns.keycodes[0x72] = LUM_KEY_INSERT;
+    _lum.ns.keycodes[0x7B] = LUM_KEY_LEFT;
+    _lum.ns.keycodes[0x3A] = LUM_KEY_LEFT_ALT;
+    _lum.ns.keycodes[0x3B] = LUM_KEY_LEFT_CONTROL;
+    _lum.ns.keycodes[0x38] = LUM_KEY_LEFT_SHIFT;
+    _lum.ns.keycodes[0x37] = LUM_KEY_LEFT_SUPER;
+    _lum.ns.keycodes[0x6E] = LUM_KEY_MENU;
+    _lum.ns.keycodes[0x47] = LUM_KEY_NUM_LOCK;
+    _lum.ns.keycodes[0x79] = LUM_KEY_PAGE_DOWN;
+    _lum.ns.keycodes[0x74] = LUM_KEY_PAGE_UP;
+    _lum.ns.keycodes[0x7C] = LUM_KEY_RIGHT;
+    _lum.ns.keycodes[0x3D] = LUM_KEY_RIGHT_ALT;
+    _lum.ns.keycodes[0x3E] = LUM_KEY_RIGHT_CONTROL;
+    _lum.ns.keycodes[0x3C] = LUM_KEY_RIGHT_SHIFT;
+    _lum.ns.keycodes[0x36] = LUM_KEY_RIGHT_SUPER;
+    _lum.ns.keycodes[0x31] = LUM_KEY_SPACE;
+    _lum.ns.keycodes[0x30] = LUM_KEY_TAB;
+    _lum.ns.keycodes[0x7E] = LUM_KEY_UP;
 
-    _glfw.ns.keycodes[0x52] = GLFW_KEY_KP_0;
-    _glfw.ns.keycodes[0x53] = GLFW_KEY_KP_1;
-    _glfw.ns.keycodes[0x54] = GLFW_KEY_KP_2;
-    _glfw.ns.keycodes[0x55] = GLFW_KEY_KP_3;
-    _glfw.ns.keycodes[0x56] = GLFW_KEY_KP_4;
-    _glfw.ns.keycodes[0x57] = GLFW_KEY_KP_5;
-    _glfw.ns.keycodes[0x58] = GLFW_KEY_KP_6;
-    _glfw.ns.keycodes[0x59] = GLFW_KEY_KP_7;
-    _glfw.ns.keycodes[0x5B] = GLFW_KEY_KP_8;
-    _glfw.ns.keycodes[0x5C] = GLFW_KEY_KP_9;
-    _glfw.ns.keycodes[0x45] = GLFW_KEY_KP_ADD;
-    _glfw.ns.keycodes[0x41] = GLFW_KEY_KP_DECIMAL;
-    _glfw.ns.keycodes[0x4B] = GLFW_KEY_KP_DIVIDE;
-    _glfw.ns.keycodes[0x4C] = GLFW_KEY_KP_ENTER;
-    _glfw.ns.keycodes[0x51] = GLFW_KEY_KP_EQUAL;
-    _glfw.ns.keycodes[0x43] = GLFW_KEY_KP_MULTIPLY;
-    _glfw.ns.keycodes[0x4E] = GLFW_KEY_KP_SUBTRACT;
+    _lum.ns.keycodes[0x52] = LUM_KEY_KP_0;
+    _lum.ns.keycodes[0x53] = LUM_KEY_KP_1;
+    _lum.ns.keycodes[0x54] = LUM_KEY_KP_2;
+    _lum.ns.keycodes[0x55] = LUM_KEY_KP_3;
+    _lum.ns.keycodes[0x56] = LUM_KEY_KP_4;
+    _lum.ns.keycodes[0x57] = LUM_KEY_KP_5;
+    _lum.ns.keycodes[0x58] = LUM_KEY_KP_6;
+    _lum.ns.keycodes[0x59] = LUM_KEY_KP_7;
+    _lum.ns.keycodes[0x5B] = LUM_KEY_KP_8;
+    _lum.ns.keycodes[0x5C] = LUM_KEY_KP_9;
+    _lum.ns.keycodes[0x45] = LUM_KEY_KP_ADD;
+    _lum.ns.keycodes[0x41] = LUM_KEY_KP_DECIMAL;
+    _lum.ns.keycodes[0x4B] = LUM_KEY_KP_DIVIDE;
+    _lum.ns.keycodes[0x4C] = LUM_KEY_KP_ENTER;
+    _lum.ns.keycodes[0x51] = LUM_KEY_KP_EQUAL;
+    _lum.ns.keycodes[0x43] = LUM_KEY_KP_MULTIPLY;
+    _lum.ns.keycodes[0x4E] = LUM_KEY_KP_SUBTRACT;
 
     for (int scancode = 0;  scancode < 256;  scancode++)
     {
         // Store the reverse translation for faster key name lookup
-        if (_glfw.ns.keycodes[scancode] >= 0)
-            _glfw.ns.scancodes[_glfw.ns.keycodes[scancode]] = scancode;
+        if (_lum.ns.keycodes[scancode] >= 0)
+            _lum.ns.scancodes[_lum.ns.keycodes[scancode]] = scancode;
     }
 }
 
 // Retrieve Unicode data for the current keyboard layout
 //
-static GLFWbool updateUnicodeData(void)
+static LUMbool updateUnicodeData(void)
 {
-    if (_glfw.ns.inputSource)
+    if (_lum.ns.inputSource)
     {
-        CFRelease(_glfw.ns.inputSource);
-        _glfw.ns.inputSource = NULL;
-        _glfw.ns.unicodeData = nil;
+        CFRelease(_lum.ns.inputSource);
+        _lum.ns.inputSource = NULL;
+        _lum.ns.unicodeData = nil;
     }
 
-    _glfw.ns.inputSource = TISCopyCurrentKeyboardLayoutInputSource();
-    if (!_glfw.ns.inputSource)
+    _lum.ns.inputSource = TISCopyCurrentKeyboardLayoutInputSource();
+    if (!_lum.ns.inputSource)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Cocoa: Failed to retrieve keyboard layout input source");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    _glfw.ns.unicodeData =
-        TISGetInputSourceProperty(_glfw.ns.inputSource,
+    _lum.ns.unicodeData =
+        TISGetInputSourceProperty(_lum.ns.inputSource,
                                   kTISPropertyUnicodeKeyLayoutData);
-    if (!_glfw.ns.unicodeData)
+    if (!_lum.ns.unicodeData)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Cocoa: Failed to retrieve keyboard layout Unicode data");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
 // Load HIToolbox.framework and the TIS symbols we need from it
 //
-static GLFWbool initializeTIS(void)
+static LUMbool initializeTIS(void)
 {
     // This works only because Cocoa has already loaded it properly
-    _glfw.ns.tis.bundle =
+    _lum.ns.tis.bundle =
         CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
-    if (!_glfw.ns.tis.bundle)
+    if (!_lum.ns.tis.bundle)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Cocoa: Failed to load HIToolbox.framework");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
     CFStringRef* kPropertyUnicodeKeyLayoutData =
-        CFBundleGetDataPointerForName(_glfw.ns.tis.bundle,
+        CFBundleGetDataPointerForName(_lum.ns.tis.bundle,
                                       CFSTR("kTISPropertyUnicodeKeyLayoutData"));
-    _glfw.ns.tis.CopyCurrentKeyboardLayoutInputSource =
-        CFBundleGetFunctionPointerForName(_glfw.ns.tis.bundle,
+    _lum.ns.tis.CopyCurrentKeyboardLayoutInputSource =
+        CFBundleGetFunctionPointerForName(_lum.ns.tis.bundle,
                                           CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
-    _glfw.ns.tis.GetInputSourceProperty =
-        CFBundleGetFunctionPointerForName(_glfw.ns.tis.bundle,
+    _lum.ns.tis.GetInputSourceProperty =
+        CFBundleGetFunctionPointerForName(_lum.ns.tis.bundle,
                                           CFSTR("TISGetInputSourceProperty"));
-    _glfw.ns.tis.GetKbdType =
-        CFBundleGetFunctionPointerForName(_glfw.ns.tis.bundle,
+    _lum.ns.tis.GetKbdType =
+        CFBundleGetFunctionPointerForName(_lum.ns.tis.bundle,
                                           CFSTR("LMGetKbdType"));
 
     if (!kPropertyUnicodeKeyLayoutData ||
@@ -366,21 +366,21 @@ static GLFWbool initializeTIS(void)
         !TISGetInputSourceProperty ||
         !LMGetKbdType)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Cocoa: Failed to load TIS API symbols");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    _glfw.ns.tis.kPropertyUnicodeKeyLayoutData =
+    _lum.ns.tis.kPropertyUnicodeKeyLayoutData =
         *kPropertyUnicodeKeyLayoutData;
 
     return updateUnicodeData();
 }
 
-@interface GLFWHelper : NSObject
+@interface LUMHelper : NSObject
 @end
 
-@implementation GLFWHelper
+@implementation LUMHelper
 
 - (void)selectedKeyboardInputSourceChanged:(NSObject* )object
 {
@@ -391,35 +391,35 @@ static GLFWbool initializeTIS(void)
 {
 }
 
-@end // GLFWHelper
+@end // LUMHelper
 
-@interface GLFWApplicationDelegate : NSObject <NSApplicationDelegate>
+@interface LUMApplicationDelegate : NSObject <NSApplicationDelegate>
 @end
 
-@implementation GLFWApplicationDelegate
+@implementation LUMApplicationDelegate
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
-    for (_GLFWwindow* window = _glfw.windowListHead;  window;  window = window->next)
-        _glfwInputWindowCloseRequest(window);
+    for (_LUMwindow* window = _lum.windowListHead;  window;  window = window->next)
+        _lumInputWindowCloseRequest(window);
 
     return NSTerminateCancel;
 }
 
 - (void)applicationDidChangeScreenParameters:(NSNotification *) notification
 {
-    for (_GLFWwindow* window = _glfw.windowListHead;  window;  window = window->next)
+    for (_LUMwindow* window = _lum.windowListHead;  window;  window = window->next)
     {
-        if (window->context.client != GLFW_NO_API)
+        if (window->context.client != LUM_NO_API)
             [window->context.nsgl.object update];
     }
 
-    _glfwPollMonitorsCocoa();
+    _lumPollMonitorsCocoa();
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification
 {
-    if (_glfw.hints.init.ns.menubar)
+    if (_lum.hints.init.ns.menubar)
     {
         // Menu bar setup must go between sharedApplication and finishLaunching
         // in order to properly emulate the behavior of NSApplicationMain
@@ -428,7 +428,7 @@ static GLFWbool initializeTIS(void)
         {
             [[NSBundle mainBundle] loadNibNamed:@"MainMenu"
                                           owner:NSApp
-                                topLevelObjects:&_glfw.ns.nibObjects];
+                                topLevelObjects:&_lum.ns.nibObjects];
         }
         else
             createMenuBar();
@@ -437,24 +437,24 @@ static GLFWbool initializeTIS(void)
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-    _glfwPostEmptyEventCocoa();
+    _lumPostEmptyEventCocoa();
     [NSApp stop:nil];
 }
 
 - (void)applicationDidHide:(NSNotification *)notification
 {
-    for (int i = 0;  i < _glfw.monitorCount;  i++)
-        _glfwRestoreVideoModeCocoa(_glfw.monitors[i]);
+    for (int i = 0;  i < _lum.monitorCount;  i++)
+        _lumRestoreVideoModeCocoa(_lum.monitors[i]);
 }
 
-@end // GLFWApplicationDelegate
+@end // LUMApplicationDelegate
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW internal API                      //////
+//////                       Lumina internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void* _glfwLoadLocalVulkanLoaderCocoa(void)
+void* _lumLoadLocalVulkanLoaderCocoa(void)
 {
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (!bundle)
@@ -469,7 +469,7 @@ void* _glfwLoadLocalVulkanLoaderCocoa(void)
     void* handle = NULL;
 
     if (CFURLGetFileSystemRepresentation(url, true, (UInt8*) path, sizeof(path) - 1))
-        handle = _glfwPlatformLoadModule(path);
+        handle = _lumPlatformLoadModule(path);
 
     CFRelease(url);
     return handle;
@@ -477,116 +477,116 @@ void* _glfwLoadLocalVulkanLoaderCocoa(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-GLFWbool _glfwConnectCocoa(int platformID, _GLFWplatform* platform)
+LUMbool _lumConnectCocoa(int platformID, _LUMplatform* platform)
 {
-    const _GLFWplatform cocoa =
+    const _LUMplatform cocoa =
     {
-        GLFW_PLATFORM_COCOA,
-        _glfwInitCocoa,
-        _glfwTerminateCocoa,
-        _glfwGetCursorPosCocoa,
-        _glfwSetCursorPosCocoa,
-        _glfwSetCursorModeCocoa,
-        _glfwSetRawMouseMotionCocoa,
-        _glfwRawMouseMotionSupportedCocoa,
-        _glfwCreateCursorCocoa,
-        _glfwCreateStandardCursorCocoa,
-        _glfwDestroyCursorCocoa,
-        _glfwSetCursorCocoa,
-        _glfwGetScancodeNameCocoa,
-        _glfwGetKeyScancodeCocoa,
-        _glfwSetClipboardStringCocoa,
-        _glfwGetClipboardStringCocoa,
-        _glfwInitJoysticksCocoa,
-        _glfwTerminateJoysticksCocoa,
-        _glfwPollJoystickCocoa,
-        _glfwGetMappingNameCocoa,
-        _glfwUpdateGamepadGUIDCocoa,
-        _glfwFreeMonitorCocoa,
-        _glfwGetMonitorPosCocoa,
-        _glfwGetMonitorContentScaleCocoa,
-        _glfwGetMonitorWorkareaCocoa,
-        _glfwGetVideoModesCocoa,
-        _glfwGetVideoModeCocoa,
-        _glfwGetGammaRampCocoa,
-        _glfwSetGammaRampCocoa,
-        _glfwCreateWindowCocoa,
-        _glfwDestroyWindowCocoa,
-        _glfwSetWindowTitleCocoa,
-        _glfwSetWindowIconCocoa,
-        _glfwGetWindowPosCocoa,
-        _glfwSetWindowPosCocoa,
-        _glfwGetWindowSizeCocoa,
-        _glfwSetWindowSizeCocoa,
-        _glfwSetWindowSizeLimitsCocoa,
-        _glfwSetWindowAspectRatioCocoa,
-        _glfwGetFramebufferSizeCocoa,
-        _glfwGetWindowFrameSizeCocoa,
-        _glfwGetWindowContentScaleCocoa,
-        _glfwIconifyWindowCocoa,
-        _glfwRestoreWindowCocoa,
-        _glfwMaximizeWindowCocoa,
-        _glfwShowWindowCocoa,
-        _glfwHideWindowCocoa,
-        _glfwRequestWindowAttentionCocoa,
-        _glfwFocusWindowCocoa,
-        _glfwSetWindowMonitorCocoa,
-        _glfwWindowFocusedCocoa,
-        _glfwWindowIconifiedCocoa,
-        _glfwWindowVisibleCocoa,
-        _glfwWindowMaximizedCocoa,
-        _glfwWindowHoveredCocoa,
-        _glfwFramebufferTransparentCocoa,
-        _glfwGetWindowOpacityCocoa,
-        _glfwSetWindowResizableCocoa,
-        _glfwSetWindowDecoratedCocoa,
-        _glfwSetWindowFloatingNull,
-        _glfwSetWindowOpacityCocoa,
-        _glfwSetWindowMousePassthroughCocoa,
-        _glfwPollEventsCocoa,
-        _glfwWaitEventsCocoa,
-        _glfwWaitEventsTimeoutCocoa,
-        _glfwPostEmptyEventCocoa,
+        LUM_PLATFORM_COCOA,
+        _lumInitCocoa,
+        _lumTerminateCocoa,
+        _lumGetCursorPosCocoa,
+        _lumSetCursorPosCocoa,
+        _lumSetCursorModeCocoa,
+        _lumSetRawMouseMotionCocoa,
+        _lumRawMouseMotionSupportedCocoa,
+        _lumCreateCursorCocoa,
+        _lumCreateStandardCursorCocoa,
+        _lumDestroyCursorCocoa,
+        _lumSetCursorCocoa,
+        _lumGetScancodeNameCocoa,
+        _lumGetKeyScancodeCocoa,
+        _lumSetClipboardStringCocoa,
+        _lumGetClipboardStringCocoa,
+        _lumInitJoysticksCocoa,
+        _lumTerminateJoysticksCocoa,
+        _lumPollJoystickCocoa,
+        _lumGetMappingNameCocoa,
+        _lumUpdateGamepadGUIDCocoa,
+        _lumFreeMonitorCocoa,
+        _lumGetMonitorPosCocoa,
+        _lumGetMonitorContentScaleCocoa,
+        _lumGetMonitorWorkareaCocoa,
+        _lumGetVideoModesCocoa,
+        _lumGetVideoModeCocoa,
+        _lumGetGammaRampCocoa,
+        _lumSetGammaRampCocoa,
+        _lumCreateWindowCocoa,
+        _lumDestroyWindowCocoa,
+        _lumSetWindowTitleCocoa,
+        _lumSetWindowIconCocoa,
+        _lumGetWindowPosCocoa,
+        _lumSetWindowPosCocoa,
+        _lumGetWindowSizeCocoa,
+        _lumSetWindowSizeCocoa,
+        _lumSetWindowSizeLimitsCocoa,
+        _lumSetWindowAspectRatioCocoa,
+        _lumGetFramebufferSizeCocoa,
+        _lumGetWindowFrameSizeCocoa,
+        _lumGetWindowContentScaleCocoa,
+        _lumIconifyWindowCocoa,
+        _lumRestoreWindowCocoa,
+        _lumMaximizeWindowCocoa,
+        _lumShowWindowCocoa,
+        _lumHideWindowCocoa,
+        _lumRequestWindowAttentionCocoa,
+        _lumFocusWindowCocoa,
+        _lumSetWindowMonitorCocoa,
+        _lumWindowFocusedCocoa,
+        _lumWindowIconifiedCocoa,
+        _lumWindowVisibleCocoa,
+        _lumWindowMaximizedCocoa,
+        _lumWindowHoveredCocoa,
+        _lumFramebufferTransparentCocoa,
+        _lumGetWindowOpacityCocoa,
+        _lumSetWindowResizableCocoa,
+        _lumSetWindowDecoratedCocoa,
+        _lumSetWindowFloatingNull,
+        _lumSetWindowOpacityCocoa,
+        _lumSetWindowMousePassthroughCocoa,
+        _lumPollEventsCocoa,
+        _lumWaitEventsCocoa,
+        _lumWaitEventsTimeoutCocoa,
+        _lumPostEmptyEventCocoa,
 
         // Hazel
-        _glfwSetWindowTitlebarNull,
+        _lumSetWindowTitlebarNull,
 
-        _glfwGetEGLPlatformCocoa,
-        _glfwGetEGLNativeDisplayCocoa,
-        _glfwGetEGLNativeWindowCocoa,
-        _glfwGetRequiredInstanceExtensionsCocoa,
-        _glfwGetPhysicalDevicePresentationSupportCocoa,
-        _glfwCreateWindowSurfaceCocoa,
+        _lumGetEGLPlatformCocoa,
+        _lumGetEGLNativeDisplayCocoa,
+        _lumGetEGLNativeWindowCocoa,
+        _lumGetRequiredInstanceExtensionsCocoa,
+        _lumGetPhysicalDevicePresentationSupportCocoa,
+        _lumCreateWindowSurfaceCocoa,
     };
 
     *platform = cocoa;
-    return GLFW_TRUE;
+    return LUM_TRUE;
 }
 
-int _glfwInitCocoa(void)
+int _lumInitCocoa(void)
 {
     @autoreleasepool {
 
-    _glfw.ns.helper = [[GLFWHelper alloc] init];
+    _lum.ns.helper = [[LUMHelper alloc] init];
 
     [NSThread detachNewThreadSelector:@selector(doNothing:)
-                             toTarget:_glfw.ns.helper
+                             toTarget:_lum.ns.helper
                            withObject:nil];
 
     [NSApplication sharedApplication];
 
-    _glfw.ns.delegate = [[GLFWApplicationDelegate alloc] init];
-    if (_glfw.ns.delegate == nil)
+    _lum.ns.delegate = [[LUMApplicationDelegate alloc] init];
+    if (_lum.ns.delegate == nil)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _lumInputError(LUM_PLATFORM_ERROR,
                         "Cocoa: Failed to create application delegate");
-        return GLFW_FALSE;
+        return LUM_FALSE;
     }
 
-    [NSApp setDelegate:_glfw.ns.delegate];
+    [NSApp setDelegate:_lum.ns.delegate];
 
     NSEvent* (^block)(NSEvent*) = ^ NSEvent* (NSEvent* event)
     {
@@ -596,11 +596,11 @@ int _glfwInitCocoa(void)
         return event;
     };
 
-    _glfw.ns.keyUpMonitor =
+    _lum.ns.keyUpMonitor =
         [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyUp
                                               handler:block];
 
-    if (_glfw.hints.init.ns.chdir)
+    if (_lum.hints.init.ns.chdir)
         changeToResourcesDirectory();
 
     // Press and Hold prevents some keys from emitting repeated characters
@@ -608,78 +608,78 @@ int _glfwInitCocoa(void)
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 
     [[NSNotificationCenter defaultCenter]
-        addObserver:_glfw.ns.helper
+        addObserver:_lum.ns.helper
            selector:@selector(selectedKeyboardInputSourceChanged:)
                name:NSTextInputContextKeyboardSelectionDidChangeNotification
              object:nil];
 
     createKeyTables();
 
-    _glfw.ns.eventSource = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-    if (!_glfw.ns.eventSource)
-        return GLFW_FALSE;
+    _lum.ns.eventSource = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
+    if (!_lum.ns.eventSource)
+        return LUM_FALSE;
 
-    CGEventSourceSetLocalEventsSuppressionInterval(_glfw.ns.eventSource, 0.0);
+    CGEventSourceSetLocalEventsSuppressionInterval(_lum.ns.eventSource, 0.0);
 
     if (!initializeTIS())
-        return GLFW_FALSE;
+        return LUM_FALSE;
 
-    _glfwPollMonitorsCocoa();
+    _lumPollMonitorsCocoa();
 
     if (![[NSRunningApplication currentApplication] isFinishedLaunching])
         [NSApp run];
 
     // In case we are unbundled, make us a proper UI application
-    if (_glfw.hints.init.ns.menubar)
+    if (_lum.hints.init.ns.menubar)
         [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    return GLFW_TRUE;
+    return LUM_TRUE;
 
     } // autoreleasepool
 }
 
-void _glfwTerminateCocoa(void)
+void _lumTerminateCocoa(void)
 {
     @autoreleasepool {
 
-    if (_glfw.ns.inputSource)
+    if (_lum.ns.inputSource)
     {
-        CFRelease(_glfw.ns.inputSource);
-        _glfw.ns.inputSource = NULL;
-        _glfw.ns.unicodeData = nil;
+        CFRelease(_lum.ns.inputSource);
+        _lum.ns.inputSource = NULL;
+        _lum.ns.unicodeData = nil;
     }
 
-    if (_glfw.ns.eventSource)
+    if (_lum.ns.eventSource)
     {
-        CFRelease(_glfw.ns.eventSource);
-        _glfw.ns.eventSource = NULL;
+        CFRelease(_lum.ns.eventSource);
+        _lum.ns.eventSource = NULL;
     }
 
-    if (_glfw.ns.delegate)
+    if (_lum.ns.delegate)
     {
         [NSApp setDelegate:nil];
-        [_glfw.ns.delegate release];
-        _glfw.ns.delegate = nil;
+        [_lum.ns.delegate release];
+        _lum.ns.delegate = nil;
     }
 
-    if (_glfw.ns.helper)
+    if (_lum.ns.helper)
     {
         [[NSNotificationCenter defaultCenter]
-            removeObserver:_glfw.ns.helper
+            removeObserver:_lum.ns.helper
                       name:NSTextInputContextKeyboardSelectionDidChangeNotification
                     object:nil];
         [[NSNotificationCenter defaultCenter]
-            removeObserver:_glfw.ns.helper];
-        [_glfw.ns.helper release];
-        _glfw.ns.helper = nil;
+            removeObserver:_lum.ns.helper];
+        [_lum.ns.helper release];
+        _lum.ns.helper = nil;
     }
 
-    if (_glfw.ns.keyUpMonitor)
-        [NSEvent removeMonitor:_glfw.ns.keyUpMonitor];
+    if (_lum.ns.keyUpMonitor)
+        [NSEvent removeMonitor:_lum.ns.keyUpMonitor];
 
-    _glfw_free(_glfw.ns.clipboardString);
+    _lum_free(_lum.ns.clipboardString);
 
-    _glfwTerminateNSGL();
+    _lumTerminateNSGL();
 
     } // autoreleasepool
 }

@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 POSIX - www.glfw.org
+// Lumina POSIX - fork of GLFW 3.4 (www.glfw.org)
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
@@ -34,30 +34,30 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//////                       GLFW platform API                      //////
+//////                       Lumina platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-void _glfwPlatformInitTimer(void)
+void _lumPlatformInitTimer(void)
 {
-    _glfw.timer.posix.clock = CLOCK_REALTIME;
-    _glfw.timer.posix.frequency = 1000000000;
+    _lum.timer.posix.clock = CLOCK_REALTIME;
+    _lum.timer.posix.frequency = 1000000000;
 
 #if defined(_POSIX_MONOTONIC_CLOCK)
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-        _glfw.timer.posix.clock = CLOCK_MONOTONIC;
+        _lum.timer.posix.clock = CLOCK_MONOTONIC;
 #endif
 }
 
-uint64_t _glfwPlatformGetTimerValue(void)
+uint64_t _lumPlatformGetTimerValue(void)
 {
     struct timespec ts;
-    clock_gettime(_glfw.timer.posix.clock, &ts);
-    return (uint64_t) ts.tv_sec * _glfw.timer.posix.frequency + (uint64_t) ts.tv_nsec;
+    clock_gettime(_lum.timer.posix.clock, &ts);
+    return (uint64_t) ts.tv_sec * _lum.timer.posix.frequency + (uint64_t) ts.tv_nsec;
 }
 
-uint64_t _glfwPlatformGetTimerFrequency(void)
+uint64_t _lumPlatformGetTimerFrequency(void)
 {
-    return _glfw.timer.posix.frequency;
+    return _lum.timer.posix.frequency;
 }
 
