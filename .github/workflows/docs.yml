@@ -1,0 +1,72 @@
+name: Documentation
+
+# Builds the documentation site and publishes it to GitHub Pages.
+#
+# The site is generated from include/Lumina/lumina.h and docs/*.dox, so a
+# change to the library or its guides changes the site. Rather than guess
+# which paths matter, this runs on every push to master; the build takes
+# seconds.
+#
+# One-time setup in the repository: Settings -> Pages -> Build and deployment
+# -> Source: GitHub Actions.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deployments race; let a run in progress finish, because a
+# half-published site is worse than a slightly stale one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - run: npm ci
+
+      - name: Build the site
+        run: npm run build
+
+      # Every page and every fragment, including the base path the site is
+      # served from. This has caught real breakage; it is a gate, not a report.
+      - name: Check every internal link
+        run: npm run check:links
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+
+  deploy:
+    # Pull requests are built and link-checked, but only master is published.
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,5 +1,7 @@
 # Lumina
 
+[Documentation](https://orvaen.github.io/Lumina/) ([français](https://orvaen.github.io/Lumina/fr/))
+
 ## Introduction
 
 Lumina is a multi-platform library for OpenGL, OpenGL ES and Vulkan application

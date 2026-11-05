@@ -25,6 +25,7 @@ import { buildMemory, createTranslator } from './lib/translate.mjs';
 import {
   ABOUT,
   ABOUT_DIR,
+  BASE,
   CONSTANT_GROUPS,
   DEFAULT_LOCALE,
   GUIDES,
@@ -239,7 +240,7 @@ const byName = (a, b) => a.name.localeCompare(b.name);
  */
 function buildLocale(locale) {
   const t = messages(locale.code);
-  const prefix = (path) => `${locale.base}${path}`;
+  const prefix = (path) => `${BASE}${locale.base}${path}`;
   const out = (path) => (locale.dir ? `${locale.dir}/${path}` : path);
 
   // Localise the API model once, before anything is rendered, so each field

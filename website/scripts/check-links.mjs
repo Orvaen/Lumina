@@ -9,6 +9,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { BASE } from './lib/structure.mjs';
+
 const site = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = resolve(site, 'dist');
 
@@ -72,7 +74,20 @@ for (const file of pages) {
 
     checked += 1;
     const [rawPath, fragment] = href.split('#');
-    const target = rawPath === '' ? from : rawPath;
+
+    // Every absolute link must carry the base the site is served from, or it
+    // resolves against the host root once deployed under /<repo>/. The built
+    // files themselves are laid out without it.
+    let stripped = rawPath;
+    if (BASE && rawPath !== '') {
+      if (rawPath !== BASE && !rawPath.startsWith(`${BASE}/`)) {
+        record(missingPages, `(missing base ${BASE}) ${rawPath}  <- ${from}`);
+        continue;
+      }
+      stripped = rawPath.slice(BASE.length) || '/';
+    }
+
+    const target = stripped === '' ? from : stripped;
     const normalised = target.endsWith('/') || /\.[a-z0-9]+$/i.test(target)
       ? target
       : `${target}/`;

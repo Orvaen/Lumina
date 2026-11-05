@@ -1,12 +1,14 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-import { buildSidebar } from './scripts/lib/structure.mjs';
+import { BASE, buildSidebar } from './scripts/lib/structure.mjs';
 
 export default defineConfig({
-  // Set `site` once Lumina has a public URL; it enables canonical links and
-  // the sitemap. Everything else, search included, works without it.
-  // site: 'https://lumina.example',
+  // Where the built site lives. `site` turns on canonical links and the
+  // sitemap; `base` is the path GitHub Pages serves a project site from, and
+  // comes from the one constant in structure.mjs.
+  site: 'https://orvaen.github.io',
+  base: BASE || '/',
 
   integrations: [
     starlight({
@@ -41,10 +43,11 @@ export default defineConfig({
       // The page frame override appends the site footer below the article.
       components: {
         PageFrame: './src/components/PageFrame.astro',
+        Hero: './src/components/Hero.astro',
       },
       // Add the repository here to turn on "Edit this page" links:
       // editLink: { baseUrl: 'https://github.com/<owner>/lumina/edit/master/' },
-      // social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/<owner>/lumina' }],
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Orvaen/Lumina' }],
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       expressiveCode: {
         themes: ['github-dark-default', 'github-light'],

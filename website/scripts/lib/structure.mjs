@@ -2,6 +2,19 @@
 // so the sidebar and the generated pages cannot drift apart.
 
 /**
+ * The path the site is served from.
+ *
+ * GitHub Pages serves a project site under /<repo>/, so every absolute link
+ * has to carry that prefix or it lands on the wrong host root. This is the
+ * only place it is written: set it to an empty string for a root deployment
+ * (a user site, or a custom domain) and nothing else needs to change.
+ */
+export const BASE = '/Lumina';
+
+/** An absolute site path with the base applied: withBase('/reference/'). */
+export const withBase = (path) => `${BASE}${path}`;
+
+/**
  * The locales the site is built in.
  *
  * English lives at the root, so every existing link keeps working; French is

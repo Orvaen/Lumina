@@ -17,6 +17,7 @@ hero:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import { withBase } from '../../../../scripts/lib/structure.mjs';
 import LumCard from '../../../components/LumCard.astro';
 
 ## Un programme complet
@@ -80,31 +81,31 @@ int main(void)
 ## Par où commencer
 
 <div class="lum-grid not-content">
-  <LumCard title="Ouvrir une fenêtre" icon="firstwindow" href="/fr/guides/first-window/">
+  <LumCard title="Ouvrir une fenêtre" icon="firstwindow" href={withBase('/fr/guides/first-window/')}>
     Le programme complet le plus court qui soit, expliqué ligne par ligne.
     Commencez ici.
   </LumCard>
-  <LumCard title="Premiers pas" icon="start" href="/fr/guides/getting-started/">
+  <LumCard title="Premiers pas" icon="start" href={withBase('/fr/guides/getting-started/')}>
     Le tutoriel plus long : un programme complet qui affiche un triangle en
     rotation.
   </LumCard>
-  <LumCard title="Introduction à l'API" icon="init" href="/fr/guides/introduction/">
+  <LumCard title="Introduction à l'API" icon="init" href={withBase('/fr/guides/introduction/')}>
     Initialisation, gestion des erreurs, versions, et les règles de conception
     que suit toute l'API.
   </LumCard>
-  <LumCard title="Toutes les fonctions" icon="reference" href="/fr/reference/">
+  <LumCard title="Toutes les fonctions" icon="reference" href={withBase('/fr/reference/')}>
     Index alphabétique de chaque fonction, avec le domaine auquel elle
     appartient.
   </LumCard>
-  <LumCard title="Constantes" icon="constants" href="/fr/reference/constants/">
+  <LumCard title="Constantes" icon="constants" href={withBase('/fr/reference/constants/')}>
     Codes de touches, indicateurs de modificateurs, indices de fenêtre, codes
     d'erreur et toutes les autres constantes.
   </LumCard>
-  <LumCard title="Compiler Lumina" icon="build" href="/fr/guides/compiling-lumina/">
+  <LumCard title="Compiler Lumina" icon="build" href={withBase('/fr/guides/compiling-lumina/')}>
     Construisez la bibliothèque avec CMake, ou ajoutez ses sources à votre
     propre build.
   </LumCard>
-  <LumCard title="Compiler une application" icon="package" href="/fr/guides/building-applications/">
+  <LumCard title="Compiler une application" icon="package" href={withBase('/fr/guides/building-applications/')}>
     Incluez l'en-tête et liez la bibliothèque depuis CMake, pkg-config ou à la
     main.
   </LumCard>

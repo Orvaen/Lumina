@@ -1,0 +1,25 @@
+---
+// Starlight's hero, with the site base applied to its action links.
+//
+// The hero is declared in a page's frontmatter, which cannot hold an
+// expression, so its links are written as plain site paths such as
+// `/guides/first-window/`. Starlight passes them through untouched, which is
+// wrong as soon as the site is served from a sub-path. Prefixing them here
+// keeps the base in one place instead of hard-coding the repository name in
+// the content.
+import Default from '@astrojs/starlight/components/Hero.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const actions = Astro.locals.starlightRoute.entry.data.hero?.actions;
+
+if (base && actions) {
+  for (const action of actions) {
+    // The entry can be shared between renders, so never prefix twice.
+    if (action.link.startsWith('/') && !action.link.startsWith(`${base}/`)) {
+      action.link = `${base}${action.link}`;
+    }
+  }
+}
+---
+
+<Default><slot /></Default>

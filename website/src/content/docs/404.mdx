@@ -6,12 +6,14 @@ editUrl: false
 tableOfContents: false
 ---
 
+import { withBase } from '../../../scripts/lib/structure.mjs';
+
 That page does not exist.
 
 If you followed a link from the old Doxygen documentation, the names changed
 with the fork: `glfw*` became `lum*`, `GLFW*` became `LUM*`. Try searching for
 the new name, or start from one of these:
 
-- [All functions](/reference/) — alphabetical index of the whole API
-- [Constants](/reference/constants/) — key codes, hints, error codes
-- [Getting started](/guides/getting-started/) — a complete first program
+- <a href={withBase('/guides/first-window/')}>Open a window</a> — the shortest complete program
+- <a href={withBase('/reference/')}>All functions</a> — alphabetical index of the whole API
+- <a href={withBase('/reference/constants/')}>Constants</a> — key codes, hints, error codes

@@ -10,7 +10,9 @@ import { dirname, join, resolve } from 'node:path';
 import { ABOUT, ABOUT_DIR, GUIDES, GUIDE_DIR, REFERENCE_DIR, labelOf } from '../../scripts/lib/structure.mjs';
 
 const locale = Astro.locals.starlightRoute?.locale === 'fr' ? 'fr' : 'en';
-const base = locale === 'en' ? '' : `/${locale}`;
+// BASE_URL is Astro's view of the configured base; it always ends in a slash.
+const site = import.meta.env.BASE_URL.replace(/\/$/, '');
+const base = locale === 'en' ? site : `${site}/${locale}`;
 
 // Read straight from the header, so the version in the footer cannot drift
 // away from the version in the library. Walk up from the working directory
