@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16...3.31 FATAL_ERROR)
 
 project(Lumina VERSION 3.4.0 LANGUAGES C)
 
@@ -35,7 +35,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(LUM_BUILD_EXAMPLES "Build the Lumina example programs" ${LUM_STANDALONE})
 option(LUM_BUILD_TESTS "Build the Lumina test programs" ${LUM_STANDALONE})
-option(LUM_BUILD_DOCS "Build the Lumina documentation" ON)
+option(LUM_BUILD_DOCS "Build the Lumina documentation" ${LUM_STANDALONE})
 option(LUM_INSTALL "Generate installation target" ON)
 
 include(GNUInstallDirs)
