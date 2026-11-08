@@ -930,25 +930,237 @@ lumSetWindowTitle(window, u8"Ceci est toujours une chaîne UTF-8");
 
 Les fenêtres décorées portent une icône sur certaines plateformes.  Vous la
 posez en fournissant une liste d'images candidates à @ref lumSetWindowIcon.
+Chacune est une @ref LUMimage : une taille, et un bloc de pixels bruts.
 
 @code
-LUMimage images[2];
-images[0] = load_icon("my_icon.png");
-images[1] = load_icon("my_icon_small.png");
+unsigned char pixels[16 * 16 * 4];
+memset(pixels, 0xff, sizeof(pixels));   // un simple carré blanc
 
-lumSetWindowIcon(window, 2, images);
+LUMimage image = { 16, 16, pixels };
+
+lumSetWindowIcon(window, 1, &image);
 @endcode
 
-Les données d'image sont en RVBA 32 bits, petit-boutiste, non prémultiplié,
-c'est-à-dire huit bits par canal avec le rouge en premier.  Les pixels sont
-rangés de façon canonique, en lignes successives, à partir du coin supérieur
-gauche.
+__Des pixels bruts sont la seule chose que cette fonction accepte.__  Lumina ne
+contient aucun décodeur d'image : aucun appel de la bibliothèque ne transforme
+`icon.png` ou `app.ico` en @ref LUMimage.  Aller d'un fichier sur le disque
+jusqu'à ces pixels est la partie qui vous revient, et celle sur laquelle tout
+le monde bute.  L'absence est volontaire : un décodeur représente beaucoup de
+code, avec un long passé de failles, et un programme qui charge déjà des
+textures en possède un.
 
-Pour revenir à l'icône par défaut, passez un tableau d'images vide.
+Il y a trois façons de poser une icône sur une fenêtre.  Ce sont moins des
+alternatives que des réponses à des questions différentes :
+
+Méthode | Demande | À choisir quand
+------- | ------- | ---------------
+[Décoder un fichier à l'exécution](@ref window_icon_loader) | un décodeur d'image | l'icône est livrée comme fichier à côté du programme
+[Les pixels dans le programme](@ref window_icon_embedded) | rien | l'icône est petite, générée, ou doit vivre dans le binaire
+[Laisser faire la plateforme](@ref window_icon_native) | une étape de compilation | vous voulez l'icône de la barre des tâches, du dock et d'Alt-Tab
+
+La troisième est celle que cherchent réellement la plupart de ceux qui posent
+la question, et elle ne demande aucun appel à Lumina.
+
+
+@subsubsection window_icon_format Le format des pixels
+
+Les pixels sont en RVBA 32 bits, petit-boutiste, non prémultiplié, c'est-à-dire
+huit bits par canal avec le rouge en premier.  Ils sont rangés de façon
+canonique, en lignes successives et contiguës, à partir du coin supérieur
+gauche, sans remplissage entre les lignes : exactement `width * height * 4`
+octets.
+
+Quatre détails décident si votre code de chargement marche du premier coup :
+
+- __Quatre canaux, toujours.__  Demander trois canaux au décodeur est l'erreur
+  la plus courante, et elle échoue d'une manière qui ressemble à un bug de
+  Lumina : les couleurs se décalent le long de chaque ligne et l'icône se
+  transforme en rayures diagonales.
+- __Les lignes du haut vers le bas.__  Si votre programme appelle
+  `stbi_set_flip_vertically_on_load(1)` pour ses textures OpenGL, comme c'est
+  fréquent, remettez-le à zéro autour du chargement de l'icône, sinon elle
+  arrive à l'envers.
+- __L'alpha n'est pas prémultiplié.__  Rangez la couleur brute à côté de sa
+  valeur d'alpha.  Des pixels prémultipliés donnent une icône cernée de sombre
+  sur les plateformes qui la composent.
+- __Les données sont copiées.__  @ref lumSetWindowIcon copie les pixels avant
+  de rendre la main : la mémoire peut être libérée à la ligne suivante, et un
+  tableau sur la pile convient.
+
+Passez plusieurs tailles d'un coup et Lumina retient celles qui sont les plus
+proches de ce que le système demande, en les redimensionnant s'il le faut.
+Aucune taille n'est imposée, mais 16x16, 32x32 et 48x48 couvrent les demandes
+habituelles.
+
+Pour revenir à l'icône par défaut, ne passez aucune image.
 
 @code
 lumSetWindowIcon(window, 0, NULL);
 @endcode
+
+Sur Windows, ce défaut est l'icône de la classe de fenêtre, décrite dans @ref
+window_icon_native.
+
+
+@subsubsection window_icon_loader Décoder un fichier image
+
+[stb_image](https://github.com/nothings/stb) est le choix habituel : un seul
+en-tête du domaine public, aucun système de compilation propre, et il rend les
+pixels exactement dans la disposition qu'attend @ref LUMimage.  Il n'est pas
+livré avec Lumina : copiez `stb_image.h` dans votre projet et définissez sa
+macro d'implémentation dans une seule unité de compilation.
+
+Voici la fonction de chargement que l'exemple ci-dessus vous laisse écrire,
+pour autant de tailles candidates que vous voulez :
+
+@code
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#include <Lumina/lumina.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Pose l'icône d'une fenêtre depuis des fichiers image sur le disque.  Retourne
+// le nombre de fichiers lus, donc zéro si l'icône est restée inchangée.
+static int set_window_icon(LUMwindow* window, const char** paths, int count)
+{
+    LUMimage* images = calloc(count, sizeof(LUMimage));
+    int loaded = 0;
+
+    for (int i = 0;  i < count;  i++)
+    {
+        // Le 4 final est ce qui force quatre canaux par pixel, quoi que
+        // contienne le fichier.  Sans lui, un PNG enregistré sans canal alpha
+        // se décode sur trois canaux et l'icône sort en rayures.
+        images[loaded].pixels = stbi_load(paths[i],
+                                          &images[loaded].width,
+                                          &images[loaded].height,
+                                          NULL, 4);
+        if (images[loaded].pixels)
+            loaded++;
+        else
+            fprintf(stderr, "%s: %s\n", paths[i], stbi_failure_reason());
+    }
+
+    if (loaded)
+        lumSetWindowIcon(window, loaded, images);
+
+    // Sans danger ici : les pixels ont déjà été copiés.
+    for (int i = 0;  i < loaded;  i++)
+        stbi_image_free(images[i].pixels);
+
+    free(images);
+    return loaded;
+}
+@endcode
+
+Appelée avec les tailles dont vous disposez :
+
+@code
+const char* paths[] = { "icon_48.png", "icon_32.png", "icon_16.png" };
+
+set_window_icon(window, paths, 3);
+@endcode
+
+stb_image lit le PNG, le JPEG, le BMP, le TGA, le GIF, le PSD, le HDR et le
+PIC, mais pas l'ICO.  Un fichier `.ico` contient plusieurs tailles à la fois,
+ce qui tombe bien pour @ref lumSetWindowIcon, mais le lire demande soit un
+décodeur qui le prenne en charge, soit une conversion en PNG à la compilation.
+
+N'importe quel décodeur fait l'affaire.  Les deux points à vérifier dans sa
+documentation sont qu'il sache rendre quatre canaux dans l'ordre RVBA, et que
+ses lignes aillent du haut vers le bas.  Les bibliothèques qui rendent du BGRA,
+ou des lignes du bas vers le haut, sont assez répandues ; dans les deux cas la
+correction tient en quelques lignes une fois les pixels en main.
+
+
+@subsubsection window_icon_embedded Les pixels dans le programme
+
+Rien n'oblige les pixels à venir d'un fichier.  Les écrire dans le source met
+l'icône dans le binaire : pas de décodeur, pas de dépendance, rien à installer
+à côté de l'exécutable et rien à perdre quand le répertoire de travail n'est
+pas celui que vous croyiez.
+
+@code
+// Une icône 2x2 : rouge, vert, bleu et transparent, un pixel chacun.
+static const unsigned char tiny[2 * 2 * 4] =
+{
+    255,   0,   0, 255,     0, 255,   0, 255,
+      0,   0, 255, 255,     0,   0,   0,   0
+};
+
+LUMimage image = { 2, 2, (unsigned char*) tiny };
+
+lumSetWindowIcon(window, 1, &image);
+@endcode
+
+Au-delà de quelques pixels, générez le tableau depuis une vraie image à la
+compilation plutôt que de le taper — `xxd -i`, ou quelques lignes du langage de
+script que votre build utilise déjà.
+
+`tests/icon.c`, dans les sources de Lumina, est un programme complet qui suit
+cette voie.  Il construit une icône 16x16 depuis un dessin fait d'un tableau de
+chaînes, et la recolore quand vous appuyez sur espace.
+
+
+@subsubsection window_icon_native L'icône de l'application
+
+@ref lumSetWindowIcon pose l'icône d'une fenêtre, ce qui n'est pas la même
+chose que l'icône d'une application.  Celle de la barre des tâches, du dock, du
+sélecteur Alt-Tab et du gestionnaire de fichiers vient de l'exécutable
+lui-même.  Elle se décide à la compilation, c'est en général ce qui était
+réellement cherché, et aucune fonction de Lumina n'intervient.
+
+@win32 Windows prend l'icône dans une ressource de l'exécutable.  Lumina en
+cherche une nommée `LUM_ICON` quand il enregistre sa classe de fenêtre et s'en
+sert comme icône initiale de toutes les fenêtres qu'il crée : un script de
+ressources suffit donc à tout.
+
+@code{.unparsed}
+LUM_ICON ICON "app.ico"
+@endcode
+
+Ajoutez ce script aux sources de l'exécutable et la chaîne de compilation
+l'intègre :
+
+@code{.cmake}
+add_executable(myapp WIN32 main.c app.rc)
+@endcode
+
+L'icône apparaît alors sans un seul appel à l'exécution, et c'est celle à
+laquelle une fenêtre revient quand @ref lumSetWindowIcon ne reçoit aucune
+image.  Si l'exécutable ne porte pas cette ressource, l'icône générique
+`IDI_APPLICATION` est utilisée.  Les exemples de Lumina sont bâtis ainsi ;
+`examples/lumina.rc` tient sur une ligne.
+
+@macos Les fenêtres ordinaires n'ont pas d'icône du tout, et @ref
+lumSetWindowIcon émet @ref LUM_FEATURE_UNAVAILABLE.  L'icône du dock vient du
+paquet applicatif : un fichier `.icns` dans `Contents/Resources`, désigné par
+la clé `CFBundleIconFile` de `Info.plist`.  Avec CMake :
+
+@code{.cmake}
+add_executable(myapp MACOSX_BUNDLE main.c app.icns)
+
+set_source_files_properties(app.icns PROPERTIES
+                            MACOSX_PACKAGE_LOCATION "Resources")
+set_target_properties(myapp PROPERTIES MACOSX_BUNDLE_ICON_FILE app.icns)
+@endcode
+
+@x11 L'icône posée par @ref lumSetWindowIcon devient la propriété
+`_NET_WM_ICON`, celle que lisent les gestionnaires de fenêtres : les méthodes
+ci-dessus fonctionnent donc bien.  Les environnements de bureau préfèrent
+souvent l'icône d'un fichier desktop installé, mis en correspondance par la
+propriété `WM_CLASS` de la fenêtre ; renseignez-la avec les champs
+`x11ClassName` et `x11InstanceName` de @ref LUMwindowdesc, ou l'indice de
+fenêtre @ref LUM_X11_CLASS_NAME_hint, pour que la correspondance soit seulement
+possible.
+
+@wayland Aucun protocole ne permet de poser une icône de fenêtre, et @ref
+lumSetWindowIcon émet @ref LUM_FEATURE_UNAVAILABLE.  L'icône vient du fichier
+desktop installé de l'application.  Lumina ne pose aucun identifiant
+d'application : ce fichier est la seule voie.
 
 
 @subsection window_monitor Écran de la fenêtre

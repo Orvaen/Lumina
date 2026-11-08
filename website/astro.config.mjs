@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-import { BASE, buildSidebar } from './scripts/lib/structure.mjs';
+import { BASE, REPO, buildSidebar } from './scripts/lib/structure.mjs';
 
 export default defineConfig({
   // Where the built site lives. `site` turns on canonical links and the
@@ -47,7 +47,7 @@ export default defineConfig({
       },
       // Add the repository here to turn on "Edit this page" links:
       // editLink: { baseUrl: 'https://github.com/<owner>/lumina/edit/master/' },
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Orvaen/Lumina' }],
+      social: [{ icon: 'github', label: 'GitHub', href: REPO }],
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       expressiveCode: {
         themes: ['github-dark-default', 'github-light'],
@@ -55,10 +55,10 @@ export default defineConfig({
           borderRadius: '0.5rem',
           codeFontSize: '0.875rem',
           // Expressive Code keeps its own selection colour. Point it at the
-          // same violet as the rest of the site; translucent, so the syntax
+          // same blue as the rest of the site; translucent, so the syntax
           // highlighting still shows through.
-          codeSelectionBackground: 'rgba(76, 29, 149, 0.7)',
-          uiSelectionBackground: 'rgba(76, 29, 149, 0.7)',
+          codeSelectionBackground: 'rgba(28, 60, 115, 0.8)',
+          uiSelectionBackground: 'rgba(28, 60, 115, 0.8)',
         },
       },
       lastUpdated: false,

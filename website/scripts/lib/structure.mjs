@@ -15,6 +15,14 @@ export const BASE = '/Lumina';
 export const withBase = (path) => `${BASE}${path}`;
 
 /**
+ * The repository the documentation describes.
+ *
+ * Read by both the header's social link and the footer, so the two cannot
+ * point at different forks.
+ */
+export const REPO = 'https://github.com/Orvaen/Lumina';
+
+/**
  * The locales the site is built in.
  *
  * English lives at the root, so every existing link keeps working; French is
@@ -127,6 +135,42 @@ export const ABOUT = [
   },
 ];
 
+/**
+ * The project's own documents: the licence, how to contribute, where to ask,
+ * and who wrote it.
+ *
+ * Unlike every other page, these are not written for the site. They live in
+ * the repository, where contributors and packagers read them, and the site
+ * renders that same file rather than a copy of it — so the page and the
+ * repository can never disagree. `file` is relative to the repository root.
+ */
+export const PROJECT = [
+  {
+    file: 'LICENSE.md',
+    slug: 'licence',
+    icon: 'licence',
+    labels: { en: 'Licence', fr: 'Licence' },
+  },
+  {
+    file: 'docs/CONTRIBUTING.md',
+    slug: 'contributing',
+    icon: 'contributing',
+    labels: { en: 'Contributing', fr: 'Contribuer' },
+  },
+  {
+    file: 'docs/SUPPORT.md',
+    slug: 'support',
+    icon: 'support',
+    labels: { en: 'Support', fr: 'Assistance' },
+  },
+  {
+    file: 'CONTRIBUTORS.md',
+    slug: 'contributors',
+    icon: 'contributors',
+    labels: { en: 'Contributors', fr: 'Contributeurs' },
+  },
+];
+
 /** The page built from main.dox; it sits at the root of the content tree. */
 export const OVERVIEW = {
   file: 'main.dox',
@@ -189,6 +233,7 @@ export const CONSTANT_GROUPS = [
 export const GUIDE_DIR = 'guides';
 export const ABOUT_DIR = 'about';
 export const REFERENCE_DIR = 'reference';
+export const PROJECT_DIR = 'project';
 
 /** The label of an entry in one locale, falling back to English. */
 export function labelOf(entry, locale) {
@@ -250,6 +295,11 @@ export function buildSidebar() {
       label: 'About',
       translations: { fr: 'À propos' },
       items: ABOUT.map((page) => item(page, `${ABOUT_DIR}/${page.slug}`)),
+    },
+    {
+      label: 'Project',
+      translations: { fr: 'Projet' },
+      items: PROJECT.map((page) => item(page, `${PROJECT_DIR}/${page.slug}`)),
     },
   ];
 }

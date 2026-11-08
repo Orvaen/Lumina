@@ -3,19 +3,38 @@
    the generated API reference needs. */
 
 :root {
-  /* Violet accent, taken from the logo. The ramp follows Starlight's
-     convention: -low for subtle fills, -accent for solid fills, -high for
-     text on the page background. */
-  --sl-color-accent-low: #2a1065;
-  --sl-color-accent: #7c3aed;
-  --sl-color-accent-high: #c4b5fd;
+  /* Near-neutral greys.  Starlight's own ramp is tinted blue (hue 224) and
+     carries that tint into every surface, which leaves the page with two
+     colours competing.  Dropping the saturation to a few percent is what makes
+     the accent the only colour on the page, and the page itself read as paper
+     rather than as a tinted panel. */
+  --sl-color-white: hsl(0, 0%, 100%);
+  --sl-color-gray-1: hsl(240, 9%, 94%);
+  --sl-color-gray-2: hsl(240, 5%, 78%);
+  --sl-color-gray-3: hsl(240, 4%, 57%);
+  --sl-color-gray-4: hsl(240, 4%, 37%);
+  --sl-color-gray-5: hsl(240, 5%, 23%);
+  --sl-color-gray-6: hsl(240, 5%, 15%);
+  --sl-color-black: hsl(240, 6%, 10%);
+
+  /* Blue accent.  The ramp follows Starlight's convention: -low for subtle
+     fills, -accent for borders and focus rings, -high for text on the page
+     background.  In dark mode Starlight also paints solid buttons -high with
+     -low as their text, so those two carry the contrast between them. */
+  --sl-color-accent-low: #11284d;
+  --sl-color-accent: #3574f0;
+  --sl-color-accent-high: #a8c7fa;
 
   /* The icon set reads these. Two tones plus a near-white for the panes,
      exactly as the logo is built. */
-  --lum-icon-deep: #6d28d9;
-  --lum-icon-main: #8b5cf6;
-  --lum-icon-light: #a78bfa;
-  --lum-icon-pane: #f5f3ff;
+  --lum-icon-deep: #2a5fc7;
+  --lum-icon-main: #3574f0;
+  --lum-icon-light: #6a9bf5;
+  --lum-icon-pane: #eef4ff;
+
+  /* The glow under the logo and the page icons, as bare channels so the two
+     rules can each pick their own opacity. */
+  --lum-glow: 53 116 240;
 
   /* Three typefaces, three jobs. All self-hosted via Fontsource.
      Instrument Sans reads well in long prose, Space Grotesk gives the headings
@@ -28,30 +47,43 @@
     Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   --lum-font-display: 'Space Grotesk Variable', var(--sl-font);
 
-  /* Selection: violet, like the accent. The solid pair is for prose; the
+  /* Selection: blue, like the accent. The solid pair is for prose; the
      translucent one is for code, where the syntax colours must survive. */
-  --lum-selection-bg: #4c1d95;
-  --lum-selection-fg: #ede9fe;
-  --lum-selection-soft: rgb(76 29 149 / 70%);
+  --lum-selection-bg: #1c3c73;
+  --lum-selection-fg: #dce8ff;
+  --lum-selection-soft: rgb(53 116 240 / 35%);
 
   /* The reference pages carry wide signatures and three-column tables. */
   --sl-content-width: 50rem;
 }
 
 :root[data-theme='light'] {
-  --sl-color-accent-low: #ede9fe;
-  --sl-color-accent: #6d28d9;
-  --sl-color-accent-high: #3b0f7a;
+  /* The same ramp, read from the other end. */
+  --sl-color-white: hsl(240, 6%, 10%);
+  --sl-color-gray-1: hsl(240, 5%, 15%);
+  --sl-color-gray-2: hsl(240, 5%, 23%);
+  --sl-color-gray-3: hsl(240, 4%, 37%);
+  --sl-color-gray-4: hsl(240, 4%, 57%);
+  --sl-color-gray-5: hsl(240, 5%, 78%);
+  --sl-color-gray-6: hsl(240, 9%, 94%);
+  --sl-color-gray-7: hsl(240, 10%, 97%);
+  --sl-color-black: hsl(0, 0%, 100%);
+
+  /* Here -accent is what links and solid buttons are painted with, against
+     white, so it has to be deep enough to read at body size. */
+  --sl-color-accent-low: #e3edfd;
+  --sl-color-accent: #2563d4;
+  --sl-color-accent-high: #11306e;
 
   /* Slightly deeper tones, because the icons sit on white here. */
-  --lum-icon-deep: #5b21b6;
-  --lum-icon-main: #7c3aed;
-  --lum-icon-light: #a78bfa;
-  --lum-icon-pane: #f8f7ff;
+  --lum-icon-deep: #1f4ba8;
+  --lum-icon-main: #2f6fe0;
+  --lum-icon-light: #6a9bf5;
+  --lum-icon-pane: #f4f8ff;
 
-  --lum-selection-bg: #ddd6fe;
-  --lum-selection-fg: #2e1065;
-  --lum-selection-soft: rgb(139 92 246 / 30%);
+  --lum-selection-bg: #d7e6ff;
+  --lum-selection-fg: #0b2e6b;
+  --lum-selection-soft: rgb(53 116 240 / 25%);
 }
 
 /* ------------------------------------------------------------------ */
@@ -260,7 +292,7 @@ samp,
 /* Splash page hero: give the logo some presence. */
 .hero > img,
 .hero .hero-html svg {
-  filter: drop-shadow(0 0 3rem rgb(124 58 237 / 45%));
+  filter: drop-shadow(0 0 3rem rgb(var(--lum-glow) / 45%));
 }
 
 /* ------------------------------------------------------------------ */
@@ -275,7 +307,7 @@ samp,
 }
 
 .lum-page-icon svg {
-  filter: drop-shadow(0 0.25rem 0.75rem rgb(124 58 237 / 28%));
+  filter: drop-shadow(0 0.25rem 0.75rem rgb(var(--lum-glow) / 28%));
 }
 
 .sl-markdown-content p:has(> .lum-page-icon:only-child) {
@@ -353,13 +385,15 @@ samp,
 /* Site footer                                                         */
 /* ------------------------------------------------------------------ */
 
-/* Deliberately plain: a hairline, a row of links, a line of small print.
-   The sidebar already carries the navigation. Sits below the article, inside
-   the main frame, so it clears the fixed left sidebar on its own. */
+/* A band rather than a rule: its own surface, a hairline above it, and the
+   page's last word standing just before. Deliberately plain inside — the
+   sidebar already carries the navigation, so this is four shortcuts, the
+   repository and the licence. Sits below the article, inside the main frame,
+   so it clears the fixed left sidebar on its own. */
 .lum-footer {
-  margin-top: 2.5rem;
   border-top: 1px solid var(--sl-color-hairline-shade);
-  padding: 1.25rem 1.5rem 0;
+  background-color: var(--sl-color-gray-6);
+  padding: 1.75rem 1.5rem 2rem;
   font-size: var(--sl-text-xs);
   color: var(--sl-color-gray-3);
 }
@@ -379,101 +413,107 @@ samp,
   }
 }
 
+/* Links on the left, the repository pushed to the far edge. */
+.lum-footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
 .lum-footer__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem 1.75rem;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
 }
 
 .lum-footer__links a {
+  position: relative;
   color: var(--sl-color-gray-2);
   text-decoration: none;
 }
 
-.lum-footer__links a:hover {
+.lum-footer__links a:hover,
+.lum-footer__links a:focus-visible {
   color: var(--sl-color-white);
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
 
+/* Hairline separators between the links, in the manner of a masthead. Only
+   once the row is wide enough to hold them all on one line: below that it
+   wraps, and a separator would open a line instead of dividing one. */
+@media (min-width: 50rem) {
+  .lum-footer__links a + a::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -0.75rem;
+    inset-block: 0.15em;
+    border-inline-start: 1px solid var(--sl-color-gray-5);
+  }
+}
+
+.lum-footer__icon {
+  display: inline-flex;
+  line-height: 0;
+  color: var(--sl-color-gray-3);
+  transition: color 0.15s ease;
+}
+
+.lum-footer__icon:hover,
+.lum-footer__icon:focus-visible {
+  color: var(--sl-color-white);
+}
+
+/* The project's own documents and the small print sit under a hairline, so
+   the band reads as two registers: what you might click while reading, then
+   what you only need once. */
+.lum-footer__bottom {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+.lum-footer__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
+}
+
+.lum-footer__meta a {
+  position: relative;
+  color: var(--sl-color-gray-3);
+  text-decoration: none;
+}
+
+.lum-footer__meta a:hover,
+.lum-footer__meta a:focus-visible {
+  color: var(--sl-color-white);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+@media (min-width: 50rem) {
+  .lum-footer__meta a + a::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -0.75rem;
+    inset-block: 0.15em;
+    border-inline-start: 1px solid var(--sl-color-gray-5);
+  }
+}
+
 .lum-footer__legal {
-  margin: 0.6rem 0 0;
+  margin: 0.75rem 0 0;
   line-height: 1.6;
   color: var(--sl-color-gray-4);
 }
 
-/* ------------------------------------------------------------------ */
-/* The wordmark at the end of the page                                 */
-/* ------------------------------------------------------------------ */
-
-/* The reveal needs somewhere to happen, so this block is a run of scroll with
-   nothing in it. The word is held against the bottom edge of the viewport
-   while you travel through it, rising and fading in as you go, and lands in
-   place exactly as the page ends. Kept short: any longer and the resting
-   state is mostly empty screen. */
-.lum-wordmark {
-  --p: 1;
-  /* Sized from the available width, not the viewport: the fixed sidebar takes
-     a slice out of the former, and the word must never be clipped. */
-  container-type: inline-size;
-  height: 38vh;
-  min-height: 15rem;
-  margin-top: 0.75rem;
-  user-select: none;
-  /* The word must sit at the BOTTOM of this run, because sticky only ever
-     holds an element back from leaving through the edge it names: it never
-     pushes one down. Parked at the top, it would simply stay there. */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.lum-wordmark__stick {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  overflow: hidden;
-  line-height: 0.78;
-}
-
-/* The movement lives on a wrapper, never on the element that paints the
-   letters: promoting a text-filled box to its own compositing layer is what
-   makes gradient-clipped text vanish in some engines, and keeping the two
-   apart costs nothing. */
-.lum-wordmark__rise {
-  /* Must not be inline: `transform` has no effect on inline boxes. */
-  display: inline-block;
-  /* A percentage resolves against the box own height, so the rise stays
-     proportional to the letters at every viewport width. An `em` here would
-     resolve against the inherited body size and barely move at all. */
-  transform: translateY(calc((1 - var(--p)) * 40%));
-  /* Stays at nothing for the first fifth of the travel, so the word really
-     does arrive during the scroll rather than fading the whole way down. */
-  opacity: calc(1.25 * var(--p) - 0.25);
-}
-
-/* One flat colour. No gradient, no bloom: at this size either one reads as
-   grime rather than as a mark. */
-.lum-wordmark__text {
-  display: inline-block;
-  font-family: var(--lum-font-display);
-  font-size: clamp(3.5rem, 17vw, 18rem);
-  font-size: clamp(3.5rem, 26cqw, 18rem);
-  font-weight: 700;
-  letter-spacing: -0.045em;
-  color: var(--lum-icon-deep);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .lum-wordmark {
-    height: auto;
-    min-height: 0;
-  }
-
-  .lum-wordmark__rise {
-    transform: none;
-    opacity: 1;
+  .lum-footer__icon {
+    transition: none;
   }
 }

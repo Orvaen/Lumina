@@ -4,15 +4,23 @@
 //   include/Lumina/lumina_native.h   -> the native access reference
 //   docs/*.dox                       -> the guides, in English
 //   translations/<locale>/*.dox      -> the guides, translated
+//   LICENSE.md, CONTRIBUTORS.md, …   -> the project's own documents
 //
 // Per locale, these directories are owned by this script and rewritten on
-// every run: guides/, about/, reference/ and overview.md. Everything else
-// under src/ is authored.
+// every run: guides/, about/, reference/, project/ and overview.md.
+// Everything else under src/ is authored.
 //
 // A guide with no translation is simply not emitted for that locale, and
 // Starlight serves the English page in its place.
 
-import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -32,8 +40,11 @@ import {
   GUIDE_DIR,
   LOCALES,
   OVERVIEW,
+  PROJECT,
+  PROJECT_DIR,
   REFERENCE_DIR,
   REFERENCE_PAGES,
+  REPO,
   labelOf,
 } from './lib/structure.mjs';
 
@@ -362,7 +373,7 @@ function buildLocale(locale) {
 
   // ---- wipe what this locale owns ---------------------------------------
 
-  for (const dir of [GUIDE_DIR, ABOUT_DIR, REFERENCE_DIR]) {
+  for (const dir of [GUIDE_DIR, ABOUT_DIR, REFERENCE_DIR, PROJECT_DIR]) {
     rmSync(resolve(contentDir, out(dir)), { recursive: true, force: true });
   }
   rmSync(resolve(contentDir, out(`${OVERVIEW.slug}.md`)), { force: true });
@@ -388,6 +399,52 @@ function buildLocale(locale) {
         description: summarise(body, t.descFallback(label)),
       }) +
         pageIcon(page.icon) +
+        notice +
+        body,
+    );
+  }
+
+  // ---- the project's own documents --------------------------------------
+
+  // These are the only pages whose source is not written for the site. The
+  // licence, the contribution guide, the support note and the credits are
+  // read in the repository by people who never open the site, so the page
+  // renders that same file instead of a copy that would quietly drift from
+  // it. Its first heading is dropped: Starlight already paints the title.
+  for (const page of PROJECT) {
+    const source = resolve(repo, page.file);
+    if (!existsSync(source)) {
+      notes.push(`project document not found: ${page.file}`);
+      continue;
+    }
+
+    const label = labelOf(page, locale.code);
+    const body = readFileSync(source, 'utf8')
+      .replace(/^﻿/, '')
+      .replace(/^#[ \t]+.*\n+/, '')
+      .trim();
+
+    // Say where the text comes from, so a reader who wants to propose a
+    // change knows which file to edit.
+    const origin =
+      `:::note\n${t.fromRepo(page.file)} ` +
+      `[${t.fromRepoLink}](${REPO}/blob/master/${page.file})\n:::\n\n`;
+
+    // There is no translation route for these: they are one file, shared with
+    // the repository. A locale that is not the default says so.
+    const notice =
+      locale.code === DEFAULT_LOCALE
+        ? ''
+        : `:::caution[${t.untranslatedTitle}]\n${t.untranslatedBody}\n:::\n\n`;
+
+    write(
+      out(`${PROJECT_DIR}/${page.slug}.md`),
+      frontmatter({
+        title: label,
+        description: summarise(body, t.descFallback(label)),
+      }) +
+        pageIcon(page.icon) +
+        origin +
         notice +
         body,
     );

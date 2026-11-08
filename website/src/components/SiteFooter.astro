@@ -1,13 +1,30 @@
 ---
-// The site footer: one row of links, one line of small print, and the
-// wordmark that scrolls into view at the very bottom. Nothing else — the
-// sidebar already carries the navigation, so anything more here is noise.
+// The site footer: a band closing the page, in two registers. Shortcuts into
+// the documentation and the repository on top; the project's own documents —
+// licence, how to contribute, where to ask — and the small print below.
+//
+// The sidebar already carries the navigation, so nothing here duplicates it.
+// The lower row points at the project pages the generator builds from the
+// repository's own documents, so the reader stays on the site and in their
+// language. There is no code of conduct and no terms page to link to.
 //
 // Injected by the PageFrame override so it sits below the whole page.
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
-import { ABOUT, ABOUT_DIR, GUIDES, GUIDE_DIR, REFERENCE_DIR, labelOf } from '../../scripts/lib/structure.mjs';
+import { Icon } from '@astrojs/starlight/components';
+
+import {
+  ABOUT,
+  ABOUT_DIR,
+  GUIDES,
+  GUIDE_DIR,
+  PROJECT,
+  PROJECT_DIR,
+  REFERENCE_DIR,
+  REPO,
+  labelOf,
+} from '../../scripts/lib/structure.mjs';
 
 const locale = Astro.locals.starlightRoute?.locale === 'fr' ? 'fr' : 'en';
 // BASE_URL is Astro's view of the configured base; it always ends in a slash.
@@ -40,15 +57,19 @@ const version = [versionPart('MAJOR'), versionPart('MINOR')]
 const t = {
   en: {
     nav: 'Lumina',
+    project: 'Project',
     allFunctions: 'All functions',
     constants: 'Constants',
+    source: 'Source on GitHub',
     licence: 'zlib/libpng licence',
     fork: 'an altered version of GLFW 3.4',
   },
   fr: {
     nav: 'Lumina',
+    project: 'Projet',
     allFunctions: 'Toutes les fonctions',
     constants: 'Constantes',
+    source: 'Sources sur GitHub',
     licence: 'licence zlib/libpng',
     fork: 'version modifiée de GLFW 3.4',
   },
@@ -67,56 +88,41 @@ const links = [
   { label: labelOf(releaseNotes, locale), href: `${base}/${ABOUT_DIR}/${releaseNotes.slug}/` },
 ];
 
+// The project's own documents, as the pages the generator builds from them.
+// Taken from the same list the sidebar is built from, so a document added
+// there appears here without touching this file.
+const projectLinks = PROJECT.map((page) => ({
+  label: labelOf(page, locale),
+  href: `${base}/${PROJECT_DIR}/${page.slug}/`,
+}));
+
 const year = new Date().getFullYear();
 ---
 
 <footer class="lum-footer not-content">
-  <nav class="lum-footer__links" aria-label={t.nav}>
-    {links.map((entry) => <a href={entry.href}>{entry.label}</a>)}
-  </nav>
+  <div class="lum-footer__top">
+    <nav class="lum-footer__links" aria-label={t.nav}>
+      {links.map((entry) => <a href={entry.href}>{entry.label}</a>)}
+    </nav>
 
-  <p class="lum-footer__legal">
-    &copy; {year} Lumina {version} &middot; {t.licence} &middot; {t.fork}
-  </p>
+    <a
+      class="lum-footer__icon"
+      href={REPO}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={t.source}
+    >
+      <Icon name="github" size="1.25rem" />
+    </a>
+  </div>
 
-  <div class="lum-wordmark" aria-hidden="true" data-lum-wordmark>
-    <div class="lum-wordmark__stick">
-      <span class="lum-wordmark__rise">
-        <span class="lum-wordmark__text">Lumina</span>
-      </span>
-    </div>
+  <div class="lum-footer__bottom">
+    <nav class="lum-footer__meta" aria-label={t.project}>
+      {projectLinks.map((entry) => <a href={entry.href}>{entry.label}</a>)}
+    </nav>
+
+    <p class="lum-footer__legal">
+      &copy; {year} Lumina {version} &middot; {t.licence} &middot; {t.fork}
+    </p>
   </div>
 </footer>
-
-<script is:inline>
-  (() => {
-    const el = document.querySelector('[data-lum-wordmark]');
-    if (!el) return;
-
-    // No animation when the reader has asked for less motion: show it outright.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      el.style.setProperty('--p', '1');
-      return;
-    }
-
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const box = el.getBoundingClientRect();
-      const viewport = window.innerHeight || 1;
-      // The block is the last thing on the page, so it can never travel
-      // further than "fully visible at the bottom edge". Measure against its
-      // own height: 0 as its top edge crosses the bottom of the viewport,
-      // 1 once all of it is on screen, which is exactly the end of the scroll.
-      const p = box.height > 0 ? (viewport - box.top) / box.height : 1;
-      el.style.setProperty('--p', Math.min(1, Math.max(0, p)).toFixed(3));
-    };
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-
-    update();
-    addEventListener('scroll', schedule, { passive: true });
-    addEventListener('resize', schedule);
-  })();
-</script>

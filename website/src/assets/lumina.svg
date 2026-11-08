@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" role="img" aria-label="Lumina">
   <defs>
     <linearGradient id="lum-face" x1="8" y1="8" x2="26" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#9f7bff"/>
-      <stop offset="1" stop-color="#7c3aed"/>
+      <stop offset="0" stop-color="#7fa8f7"/>
+      <stop offset="1" stop-color="#3574f0"/>
     </linearGradient>
     <linearGradient id="lum-floor" x1="14" y1="44" x2="52" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#b9a3fd"/>
-      <stop offset="1" stop-color="#9b7df5"/>
+      <stop offset="0" stop-color="#a4c3f9"/>
+      <stop offset="1" stop-color="#6a9bf5"/>
     </linearGradient>
   </defs>
 
@@ -19,7 +19,7 @@
         fill="url(#lum-face)" stroke="url(#lum-face)" stroke-width="3.5" stroke-linejoin="round"/>
 
   <!-- Panes. The right column sits a little lower, following the perspective. -->
-  <g fill="#f5f3ff">
+  <g fill="#eef4ff">
     <rect x="30.9" y="21.8" width="5.9" height="6" rx="1.6"/>
     <rect x="37.9" y="22.4" width="5.9" height="6" rx="1.6"/>
     <rect x="30.9" y="29" width="5.9" height="6" rx="1.6"/>

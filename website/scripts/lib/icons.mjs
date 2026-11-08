@@ -1,6 +1,6 @@
 // The Lumina icon set.
 //
-// Drawn in the language of the logo: two tones of violet, flat fills with no
+// Drawn in the language of the logo: two tones of blue, flat fills with no
 // outlines, generously rounded corners, and folded planes where depth helps.
 // Polygons get their rounded corners from a same-coloured stroke with
 // `stroke-linejoin: round`, which is far simpler than arc paths and keeps the
@@ -10,10 +10,10 @@
 // in one place; the literal fallbacks keep the icons correct if the stylesheet
 // has not loaded.
 
-const DEEP = 'var(--lum-icon-deep, #7c3aed)';
-const MAIN = 'var(--lum-icon-main, #8b5cf6)';
-const LIGHT = 'var(--lum-icon-light, #a78bfa)';
-const PANE = 'var(--lum-icon-pane, #f5f3ff)';
+const DEEP = 'var(--lum-icon-deep, #2a5fc7)';
+const MAIN = 'var(--lum-icon-main, #3574f0)';
+const LIGHT = 'var(--lum-icon-light, #6a9bf5)';
+const PANE = 'var(--lum-icon-pane, #eef4ff)';
 
 /** A polygon with rounded corners. */
 const poly = (d, fill, round = 3) =>
@@ -163,6 +163,42 @@ export const icons = {
   bare: [
     rect(5, 5, 38, 38, 10, LIGHT),
     rect(13, 22, 22, 5.5, 2.75, DEEP),
+  ].join(''),
+
+  /** A shield over two lines of terms: the licence you are granted. */
+  licence: [
+    poly('M24 4 L40 10 L40 24 L24 44 L8 24 L8 10 ', MAIN, 3.5),
+    rect(16, 17, 16, 3.6, 1.8, PANE),
+    rect(16, 24, 16, 3.6, 1.8, PANE),
+  ].join(''),
+
+  /** A page with a plus: something of yours added to the project. */
+  contributing: [
+    rect(7, 4, 27, 35, 6, LIGHT),
+    rect(13, 12, 15, 4, 2, PANE),
+    rect(13, 20, 10, 4, 2, PANE),
+    `<circle cx="34" cy="34" r="10" fill="${DEEP}"/>`,
+    rect(32.4, 28.5, 3.2, 11, 1.6, PANE),
+    rect(28.5, 32.4, 11, 3.2, 1.6, PANE),
+  ].join(''),
+
+  /** A bubble still being spoken into: somewhere to ask. */
+  support: [
+    rect(5, 8, 38, 27, 8, MAIN),
+    poly('M15 33 L27 33 L17 44 ', MAIN, 3),
+    `<circle cx="16" cy="21.5" r="3.2" fill="${PANE}"/>`,
+    `<circle cx="24" cy="21.5" r="3.2" fill="${PANE}"/>`,
+    `<circle cx="32" cy="21.5" r="3.2" fill="${PANE}"/>`,
+  ].join(''),
+
+  /** Three figures, the nearest in front: the people who built it. */
+  contributors: [
+    `<circle cx="11" cy="19" r="5.5" fill="${LIGHT}"/>`,
+    `<circle cx="37" cy="19" r="5.5" fill="${LIGHT}"/>`,
+    rect(3, 28, 16, 11, 5, LIGHT),
+    rect(29, 28, 16, 11, 5, LIGHT),
+    `<circle cx="24" cy="16" r="7.5" fill="${MAIN}"/>`,
+    rect(12.5, 27, 23, 14, 7, MAIN),
   ].join(''),
 };
 

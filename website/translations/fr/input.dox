@@ -389,6 +389,10 @@ c'est-à-dire huit bits par canal avec le rouge en premier.  Les pixels sont
 rangés de façon canonique, en lignes successives, à partir du coin supérieur
 gauche.
 
+Comme pour les icônes de fenêtre, Lumina ne décode aucun fichier image : un
+curseur issu d'un PNG demande d'en charger les pixels d'abord.  @ref
+window_icon_loader montre comment, et s'applique ici tel quel.
+
 
 @subsubsection cursor_standard Créer un curseur standard
 

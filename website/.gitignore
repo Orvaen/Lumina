@@ -8,8 +8,10 @@ src/content/docs/overview.md
 src/content/docs/guides/
 src/content/docs/about/
 src/content/docs/reference/
+src/content/docs/project/
 src/content/docs/*/overview.md
 src/content/docs/*/guides/
 src/content/docs/*/about/
 src/content/docs/*/reference/
+src/content/docs/*/project/
 public/spaces.svg

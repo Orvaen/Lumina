@@ -76,6 +76,11 @@ const en = {
   exposeNote: (macro) =>
     `Define \`${macro}\` before including \`<Lumina/lumina_native.h>\` to get this function.`,
 
+  // The project documents are rendered from the repository rather than
+  // written for the site, so each page says where its text comes from.
+  fromRepo: (file) => `This page is \`${file}\` in the repository.`,
+  fromRepoLink: 'Read it on GitHub',
+
   // Only shown in a non-default locale.
   untranslatedTitle: 'Not translated yet',
   untranslatedBody: 'This page is still shown in English.',
@@ -149,6 +154,9 @@ const fr = {
   cardConstants: (n) => `${n} constantes`,
   exposeNote: (macro) =>
     `Définissez \`${macro}\` avant d'inclure \`<Lumina/lumina_native.h>\` pour disposer de cette fonction.`,
+
+  fromRepo: (file) => `Cette page est le fichier \`${file}\` du dépôt.`,
+  fromRepoLink: 'Le lire sur GitHub',
 
   untranslatedTitle: 'Pas encore traduit',
   untranslatedBody:

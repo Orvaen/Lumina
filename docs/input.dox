@@ -366,6 +366,10 @@ The image data is 32-bit, little-endian, non-premultiplied RGBA, i.e. eight bits
 per channel with the red channel first.  The pixels are arranged canonically as
 sequential rows, starting from the top-left corner.
 
+As with window icons, Lumina does not decode image files, so a cursor coming
+from a PNG needs the pixels loaded first.  @ref window_icon_loader shows how,
+and applies here unchanged.
+
 
 @subsubsection cursor_standard Standard cursor creation
 
